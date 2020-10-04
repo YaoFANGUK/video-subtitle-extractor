@@ -42,7 +42,8 @@ python3 ./main/accuracyCal.py
 ```
 
 ## 演示视频
-<iframe width="560" height="315" src="https://www.youtube.com/embed/0gq8FQHb448" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+[![Demo Video](https://s1.ax1x.com/2020/10/05/0JWVeJ.png)](https://www.bilibili.com/video/BV1t5411h78J "Demo Video")
+
 
 ## Q&A
 1. 为什么不把Bbox, nms直接写成py，而是写成c，还要编译？
