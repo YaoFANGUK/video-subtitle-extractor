@@ -1,9 +1,9 @@
 ## 使用说明
-- 0.1 下载项目文件，将工作目录切换到项目文件所在目录
+- 1. 下载项目文件，将工作目录切换到项目文件所在目录
 ```shell
 cd video-subtitle-extractor
 ```
-- 0.2 在右侧release中下载模型文件ctpn_50000.ckpt.data-00000-of-00001，将其放置checkpoints_mlt文件夹中
+- 2. 在右侧release中下载模型文件ctpn_50000.ckpt.data-00000-of-00001，将其放置checkpoints_mlt文件夹中
 
 #### 1. 下载安装Anaconda
 <a href="https://www.anaconda.com/products/individual">https://www.anaconda.com/products/individual</a>
