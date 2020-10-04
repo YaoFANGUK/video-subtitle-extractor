@@ -27,6 +27,5 @@ six==1.15.0
 tensorflow @ https://storage.googleapis.com/tensorflow/mac/cpu/tensorflow-1.4.0-py3-none-any.whl
 tensorflow-tensorboard==0.4.0
 tqdm==4.50.0
-UNKNOWN==0.0.0
 urllib3==1.25.10
 Werkzeug==1.0.1
