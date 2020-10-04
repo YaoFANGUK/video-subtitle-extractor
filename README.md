@@ -39,7 +39,12 @@ python3 ./main/accuracyCal.py
 ## 演示视频
 <a href="https://youtu.be/0gq8FQHb448">https://youtu.be/0gq8FQHb448</a>
 
-Note:
+## 项目特色
+- 支持避免提取视频中的水印文本信息
+- 无需设置调用任何API，不需要接入百度、阿里等OCR服务即可本地完成文本识别
+- 无需用户手动设置字幕区域，该项目引入CTPN自动检测字幕区域
+
+PS:
 1. install requirements before running
 2. download trained model files from: (other Supplementary material also can be found here)
 https://drive.google.com/drive/folders/1AuthnUK7bqYOlLcKi1GkoLyHbq3GyjfX?usp=sharing
