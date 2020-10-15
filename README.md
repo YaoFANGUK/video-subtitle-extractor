@@ -23,7 +23,7 @@ conda activate videoEnv
 ```shell
 pip install -r requirements.txt
 ```
-> windows 安装失败，尝试
+> windows 安装tf1.4.0失败，尝试
 ```
 python3 -m pip install --upgrade https://github.com/fo40225/tensorflow-windows-wheel/raw/master/1.4.0/py36/GPU/cuda91cudnn7avx2/tensorflow_gpu-1.4.0-cp36-cp36m-win_amd64.whl
 ```
