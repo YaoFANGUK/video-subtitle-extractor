@@ -6,13 +6,13 @@
 
 ## 使用说明
 
-- 1. 下载项目文件，将工作目录切换到项目文件所在目录
+- 下载项目文件，将工作目录切换到项目文件所在目录
 
 ```shell
 cd video-subtitle-extractor
 ```
 
-- 2. 在右侧release中下载模型文件ctpn_50000.ckpt.data-00000-of-00001，将其放置checkpoints_mlt文件夹中
+-  在右侧release中下载模型文件ctpn_50000.ckpt.data-00000-of-00001，将其放置checkpoints_mlt文件夹中
 
 #### 1. 下载安装Anaconda
 
@@ -54,9 +54,15 @@ chmod +x make.sh
 > ```
 
 #### 5. 运行程序
+> mac/linux 用户运行demo.py
 
 ```shell
 python ./main/demo.py
+```
+> windows 用户运行demo_windows.py  (由zamlean提供)
+
+```shell
+python ./main/demo_windows.py
 ```
 
 #### 6.性能检测（可选）
@@ -86,7 +92,6 @@ python ./main/accuracyCal.py
 - 可以采取试探法，一个大视频先测一小段，然后获取到一个大概的字幕区域，然后剩下的视频帧都只检测这个大概的区域，这样相比每一帧都检测完整能进一步提升效率
 
 
-
 PS:
 
 1. install requirements before running
@@ -95,4 +100,3 @@ PS:
 3. unzip checkpoints_mlt.zip and put it into the checkpoints_mlt directory
 4. **This project is based on eragonruan's code**: https://github.com/eragonruan/text-detection-ctpn
 5. cnocr: https://github.com/breezedeus/cnocr
-
