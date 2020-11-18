@@ -14,11 +14,11 @@ cd video-subtitle-extractor
 
 -  在右侧release中下载模型文件ctpn_50000.ckpt.data-00000-of-00001，将其放置checkpoints_mlt文件夹中
 
-#### 1. 下载安装Anaconda
+#### 1. 下载安装Anaconda 
 
-<a href="https://www.anaconda.com/products/individual">https://www.anaconda.com/products/individual</a>
+<a href="https://www.anaconda.com/products/individual">https://www.anaconda.com/products/individual#Downloads</a>
 
-#### 2. 使用conda创建项目虚拟环境并激活环境
+#### 2. 使用conda创建项目虚拟环境并激活环境 (建议创建虚拟环境运行，也可以不用conda)
 
 ```shell
 conda create --name videoEnv python=3.6
