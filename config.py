@@ -10,8 +10,8 @@ from pathlib import Path
 from enum import Enum
 from fsplit.filesplit import Filesplit
 from paddle import fluid
-fluid.install_check.run_check()
 
+fluid.install_check.run_check()
 
 # --------------------- 请你不要改 start-----------------------------
 # 项目的base目录
@@ -42,6 +42,8 @@ class SubtitleArea(Enum):
     UNKNOWN = 2
     # 明确知道字幕区域出现的位置
     CUSTOM = 3
+
+
 # --------------------- 请你不要改 end-----------------------------
 
 
@@ -49,10 +51,13 @@ class SubtitleArea(Enum):
 # 是否使用GPU
 # 使用GPU可以提速20倍+，你要是有N卡你就改成 True
 USE_GPU = False
-if len(fluid.cuda_places()) > 0:
-    # 如果有GPU则使用GPU
-    USE_GPU = True
-    print('使用GPU进行加速')
+# 如果paddlepaddle编译了gpu的版本
+if fluid.is_compiled_with_cuda():
+    # 查看是否有可用的gpu
+    if len(fluid.cuda_places()) > 0:
+        # 如果有GPU则使用GPU
+        USE_GPU = True
+        print('使用GPU进行加速')
 
 # 默认字幕出现区域为下方
 SUBTITLE_AREA = SubtitleArea.LOWER_PART
