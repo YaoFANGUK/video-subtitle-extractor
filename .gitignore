@@ -350,3 +350,4 @@ $RECYCLE.BIN/
 
 # End of https://www.toptal.com/developers/gitignore/api/intellij+all,python,pycharm+all,macos,windows
 /backend/models/ch_rec/inference.pdiparams
+/output/

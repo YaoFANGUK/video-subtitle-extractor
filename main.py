@@ -80,23 +80,15 @@ class SubtitleExtractor:
         self.extract_subtitles()
         print('完成字幕提取，生成原始字幕文件...')
 
-        print('Step 3. 开始检测水印(台标)区域')
-        self.detect_watermark_area()
-        print('完成水印(台标)区域检测')
-
-        print('Step 4. 开始过滤水印区域内容')
+        print('Step 3. 开始检测并过滤水印区域内容')
         self.filter_watermark()
         print('已经成功过滤水印区域内容')
 
-        print('Step 5. 开始检测字幕区域')
-        self.detect_subtitle_area()
-        print('已完成字幕区域的检测')
-
-        print('Step 6. 开始将非字幕区域的内容删除')
+        print('Step 4. 开始检测非字幕区域，并将非字幕区域的内容删除')
         self.filter_scene_text()
         print('已将非字幕区域的内容删除')
 
-        print('Step 7. 开始生成字幕文件')
+        print('Step 5. 开始生成字幕文件')
         self.generate_subtitle_file()
         print('字幕文件生成成功')
 
