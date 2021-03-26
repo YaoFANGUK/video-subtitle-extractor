@@ -177,54 +177,12 @@ class SubtitleExtractor:
         # 关闭文件
         f.close()
 
-    def detect_watermark_area(self):
-        """
-        根据识别出来的raw txt文件中的坐标点信息，查找水印区域
-        假定：水印区域（台标）的坐标在水平和垂直方向都是固定的，也就是具有(xmin, xmax, ymin, ymax)相对固定
-        根据坐标点信息，进行统计，将一直具有固定坐标的文本区域选出
-        :return 返回最有可能的水印区域
-        """
-        f = open(self.raw_subtitle_path, mode='r', encoding='utf-8')  # 打开txt文件，以‘utf-8’编码读取
-        line = f.readline()  # 以行的形式进行读取文件
-        # 坐标点列表
-        coordinates_list = []
-        # 帧列表
-        frame_no_list = []
-        # 内容列表
-        content_list = []
-        while line:
-            frame_no = line.split('\t')[0]
-            text_position = line.split('\t')[1].split('(')[1].split(')')[0].split(', ')
-            content = line.split('\t')[2]
-            frame_no_list.append(frame_no)
-            coordinates_list.append((int(text_position[0]),
-                                     int(text_position[1]),
-                                     int(text_position[2]),
-                                     int(text_position[3])))
-            content_list.append(content)
-            line = f.readline()
-        f.close()
-        # 将坐标列表的相似值统一
-        coordinates_list = self._unite_coordinates(coordinates_list)
-
-        # 将原txt文件的坐标更新为归一后的坐标
-        with open(self.raw_subtitle_path, mode='w', encoding='utf-8') as f:
-            for frame_no, coordinate, content in zip(frame_no_list, coordinates_list, content_list):
-                f.write(f'{frame_no}\t{coordinate}\t{content}')
-
-        if len(Counter(coordinates_list).most_common()) > config.WATERMARK_AREA_NUM:
-            # 读取配置文件，返回可能为水印区域的坐标列表
-            return Counter(coordinates_list).most_common(config.WATERMARK_AREA_NUM)
-        else:
-            # 不够则有几个返回几个
-            return Counter(coordinates_list).most_common()
-
     def filter_watermark(self):
         """
         去除原始字幕文本中的水印区域的文本
         """
         # 获取潜在水印区域
-        watermark_areas = self.detect_watermark_area()
+        watermark_areas = self._detect_watermark_area()
 
         # 从frame目录随机读取一张图片，将所水印区域标记出来，用户看图判断是否是水印区域
         frame_path = os.path.join(self.frame_output_dir,
@@ -268,30 +226,12 @@ class SubtitleExtractor:
                 print(f'已经删除该区域字幕...')
         print('水印区域字幕过滤完毕...')
 
-    def detect_subtitle_area(self):
-        """
-        读取过滤水印区域后的raw txt文件，根据坐标信息，查找字幕区域
-        假定：字幕区域在y轴上有一个相对固定的坐标范围，相对于场景文本，这个范围出现频率更高
-        :return 返回字幕的区域位置
-        """
-        # 打开去水印区域处理过的raw txt
-        f = open(self.raw_subtitle_path, mode='r', encoding='utf-8')  # 打开txt文件，以‘utf-8’编码读取
-        line = f.readline()  # 以行的形式进行读取文件
-        # y坐标点列表
-        y_coordinates_list = []
-        while line:
-            text_position = line.split('\t')[1].split('(')[1].split(')')[0].split(', ')
-            y_coordinates_list.append((int(text_position[2]), int(text_position[3])))
-            line = f.readline()
-        f.close()
-        return Counter(y_coordinates_list).most_common(1)
-
     def filter_scene_text(self):
         """
         将场景里提取的文字过滤，仅保留字幕区域
         """
         # 获取潜在字幕区域
-        subtitle_area = self.detect_subtitle_area()[0][0]
+        subtitle_area = self._detect_subtitle_area()[0][0]
 
         # 从frame目录随机读取一张图片，将所水印区域标记出来，用户看图判断是否是水印区域
         frame_path = os.path.join(self.frame_output_dir,
@@ -337,6 +277,66 @@ class SubtitleExtractor:
                 subtitle_line = f'{line_code}\n{frame_start} --> {frame_end}\n{frame_content}\n'
                 f.write(subtitle_line)
         print(f'字幕文件生成位置：{srt_filename}')
+
+    def _detect_watermark_area(self):
+        """
+        根据识别出来的raw txt文件中的坐标点信息，查找水印区域
+        假定：水印区域（台标）的坐标在水平和垂直方向都是固定的，也就是具有(xmin, xmax, ymin, ymax)相对固定
+        根据坐标点信息，进行统计，将一直具有固定坐标的文本区域选出
+        :return 返回最有可能的水印区域
+        """
+        f = open(self.raw_subtitle_path, mode='r', encoding='utf-8')  # 打开txt文件，以‘utf-8’编码读取
+        line = f.readline()  # 以行的形式进行读取文件
+        # 坐标点列表
+        coordinates_list = []
+        # 帧列表
+        frame_no_list = []
+        # 内容列表
+        content_list = []
+        while line:
+            frame_no = line.split('\t')[0]
+            text_position = line.split('\t')[1].split('(')[1].split(')')[0].split(', ')
+            content = line.split('\t')[2]
+            frame_no_list.append(frame_no)
+            coordinates_list.append((int(text_position[0]),
+                                     int(text_position[1]),
+                                     int(text_position[2]),
+                                     int(text_position[3])))
+            content_list.append(content)
+            line = f.readline()
+        f.close()
+        # 将坐标列表的相似值统一
+        coordinates_list = self._unite_coordinates(coordinates_list)
+
+        # 将原txt文件的坐标更新为归一后的坐标
+        with open(self.raw_subtitle_path, mode='w', encoding='utf-8') as f:
+            for frame_no, coordinate, content in zip(frame_no_list, coordinates_list, content_list):
+                f.write(f'{frame_no}\t{coordinate}\t{content}')
+
+        if len(Counter(coordinates_list).most_common()) > config.WATERMARK_AREA_NUM:
+            # 读取配置文件，返回可能为水印区域的坐标列表
+            return Counter(coordinates_list).most_common(config.WATERMARK_AREA_NUM)
+        else:
+            # 不够则有几个返回几个
+            return Counter(coordinates_list).most_common()
+
+    def _detect_subtitle_area(self):
+        """
+        读取过滤水印区域后的raw txt文件，根据坐标信息，查找字幕区域
+        假定：字幕区域在y轴上有一个相对固定的坐标范围，相对于场景文本，这个范围出现频率更高
+        :return 返回字幕的区域位置
+        """
+        # 打开去水印区域处理过的raw txt
+        f = open(self.raw_subtitle_path, mode='r', encoding='utf-8')  # 打开txt文件，以‘utf-8’编码读取
+        line = f.readline()  # 以行的形式进行读取文件
+        # y坐标点列表
+        y_coordinates_list = []
+        while line:
+            text_position = line.split('\t')[1].split('(')[1].split(')')[0].split(', ')
+            y_coordinates_list.append((int(text_position[2]), int(text_position[3])))
+            line = f.readline()
+        f.close()
+        return Counter(y_coordinates_list).most_common(1)
 
     def _frame_to_timecode(self, frame_no):
         """
