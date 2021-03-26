@@ -72,13 +72,33 @@ class SubtitleExtractor:
         """
         运行整个提取视频的步骤
         """
+        print('Step 1. 开启提取视频关键帧...')
         self.extract_frame()
+        print('提取视频关键帧完毕...')
+
+        print('Step 2. 开始提取字幕信息，此步骤可能花费较长时间，请耐心等待...')
         self.extract_subtitles()
+        print('完成字幕提取，生成原始字幕文件...')
+
+        print('Step 3. 开始检测水印(台标)区域')
         self.detect_watermark_area()
+        print('完成水印(台标)区域检测')
+
+        print('Step 4. 开始过滤水印区域内容')
         self.filter_watermark()
+        print('已经成功过滤水印区域内容')
+
+        print('Step 5. 开始检测字幕区域')
         self.detect_subtitle_area()
+        print('已完成字幕区域的检测')
+
+        print('Step 6. 开始将非字幕区域的内容删除')
         self.filter_scene_text()
+        print('已将非字幕区域的内容删除')
+
+        print('Step 7. 开始生成字幕文件')
         self.generate_subtitle_file()
+        print('字幕文件生成成功')
 
     def extract_frame(self):
         """
@@ -126,7 +146,6 @@ class SubtitleExtractor:
                         frame_no += 1
                         cosine_distance = self._compute_image_similarity(Image.fromarray(frame),
                                                                          Image.fromarray(frame_next))
-                        print(cosine_distance)
                         if cosine_distance > config.COSINE_SIMILARITY_THRESHOLD:
                             # 如果下一帧与当前帧的相似度大于设定阈值，则略过该帧
                             continue
@@ -325,6 +344,7 @@ class SubtitleExtractor:
                 frame_content = content[2]
                 subtitle_line = f'{line_code}\n{frame_start} --> {frame_end}\n{frame_content}\n'
                 f.write(subtitle_line)
+        print(f'字幕文件生成位置：{srt_filename}')
 
     def _frame_to_timecode(self, frame_no):
         """
