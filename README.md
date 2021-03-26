@@ -51,14 +51,6 @@ pip install -r requirements(gpu).txt
 
 #### 4. 运行程序
 
-对于**GPU用户**： 请将config.py中第48行 USE_GPU = False 改为：
-
-```python
-USE_GPU = True
-```
-
-运行
-
 ```shell
 python main.py
 ```
