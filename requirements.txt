@@ -1,0 +1,14 @@
+shapely~=1.7.1
+scikit-image==0.17.2
+imgaug==0.4.0
+pyclipper~=1.2.1
+lmdb~=1.1.1
+opencv-python==4.2.0.32
+tqdm~=4.59.0
+numpy~=1.19.0
+visualdl
+python-Levenshtein
+six~=1.15.0
+pillow~=8.1.2
+pyyaml~=5.4.1
+requests~=2.25.1
