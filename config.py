@@ -71,6 +71,9 @@ COSINE_SIMILARITY_THRESHOLD = 0.95 if SUBTITLE_AREA == SubtitleArea.UNKNOWN else
 # 当前帧与之后的多少帧比较
 FRAME_COMPARE_TIMES = 10
 
+# 每一秒抓取多少帧进行OCR识别
+EXTRACT_FREQUENCY = 3
+
 # 欧式距离相似值
 EUCLIDEAN_SIMILARITY_THRESHOLD = 0.9
 
@@ -86,7 +89,7 @@ WATERMARK_AREA_NUM = 5
 
 # 文本相似度阈值
 # 用于去重时判断两行字幕是不是统一行
-TEXT_SIMILARITY_THRESHOLD = 0.95
+TEXT_SIMILARITY_THRESHOLD = 0.92
 # --------------------- 请根据自己的实际情况改 end-----------------------------
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'

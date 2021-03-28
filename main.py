@@ -8,6 +8,7 @@
 import os
 import random
 from collections import Counter
+import unicodedata
 
 import cv2
 from Levenshtein import ratio
@@ -73,7 +74,9 @@ class SubtitleExtractor:
         运行整个提取视频的步骤
         """
         print('Step 1. 开启提取视频关键帧...')
-        self.extract_frame()
+        self.extract_frame_by_fps()
+        # 或者运行 self.extract_frame()比较慢，但生成的字幕时间准
+        # self.extract_frame()
         print('提取视频关键帧完毕...')
 
         print('Step 2. 开始提取字幕信息，此步骤可能花费较长时间，请耐心等待...')
@@ -81,8 +84,14 @@ class SubtitleExtractor:
         print('完成字幕提取，生成原始字幕文件...')
 
         print('Step 3. 开始检测并过滤水印区域内容')
-        self.filter_watermark()
-        print('已经成功过滤水印区域内容')
+        # 询问用户视频是否有水印区域
+        user_input = input('视频是否存在水印区域，存在的话输入个数，不存在的话输入n: ').strip()
+        if user_input.isdigit():
+            config.WATERMARK_AREA_NUM = int(user_input)
+            self.filter_watermark()
+            print('已经成功过滤水印区域内容')
+        else:
+            print('-----------------------------')
 
         print('Step 4. 开始检测非字幕区域，并将非字幕区域的内容删除')
         self.filter_scene_text()
@@ -139,6 +148,37 @@ class SubtitleExtractor:
 
         self.video_cap.release()
 
+    def extract_frame_by_fps(self):
+        """
+        根据帧率，定时提前视频帧，容易丢字幕，但速度快
+        """
+        # 当前视频帧的帧号
+        frame_no = 0
+
+        while self.video_cap.isOpened():
+            ret, frame = self.video_cap.read()
+            # 如果读取视频帧失败（视频读到最后一帧）
+            if not ret:
+                break
+            # 读取视频帧成功
+            else:
+                frame_no += 1
+                frame = self._frame_preprocess(frame)
+
+                # 帧名往前补零，后续用于排序与时间戳转换，补足8位
+                # 一部10h电影，fps120帧最多也才1*60*60*120=432000 6位，所以8位足够
+                filename = os.path.join(self.frame_output_dir, str(frame_no).zfill(8) + '.jpg')
+                # 保存视频帧
+                cv2.imwrite(filename, frame)
+
+                # 将当前帧与接下来的帧进行比较，计算余弦相似度
+                for i in range(int(self.fps // config.EXTRACT_FREQUENCY) - 1):
+                    ret, _ = self.video_cap.read()
+                    if ret:
+                        frame_no += 1
+
+        self.video_cap.release()
+
     def extract_subtitles(self):
         """
         提取视频帧中的字幕信息，生成一个txt文件
@@ -159,7 +199,10 @@ class SubtitleExtractor:
             # 获取文本坐标
             coordinates = self.__get_coordinates(dt_box)
             # 将结果写入txt文本中
-            for content, coordinate in zip(([res[0] for res in rec_res]), coordinates):
+            text_res = [res[0] for res in rec_res]
+            if len(text_res) > 1:
+                print(text_res)
+            for content, coordinate in zip(text_res, coordinates):
                 f.write(f'{os.path.splitext(frame)[0]}\t'
                         f'{coordinate}\t'
                         f'{content}\n')
@@ -263,14 +306,19 @@ class SubtitleExtractor:
                 frame_start = self._frame_to_timecode(int(content[0]))
                 # 比较起始帧号与结束帧号， 如果字幕持续时间不足1秒，则将显示时间设为1s
                 if abs(int(content[1]) - int(content[0])) < self.fps:
-                    frame_end = self._frame_to_timecode(int(content[0] + self.fps))
+                    frame_end = self._frame_to_timecode(int(int(content[0]) + self.fps))
                 else:
                     frame_end = self._frame_to_timecode(int(content[1]))
                 frame_content = content[2]
                 subtitle_line = f'{line_code}\n{frame_start} --> {frame_end}\n{frame_content}\n'
                 f.write(subtitle_line)
-        self._concat_content_with_same_frameno()
         print(f'字幕文件生成位置：{srt_filename}')
+
+    def _is_subtitle_contained(self, img):
+        """
+        使用简单的图像算法判断视频帧是否包含字幕
+        """
+        pass
 
     def _detect_watermark_area(self):
         """
@@ -358,8 +406,6 @@ class SubtitleExtractor:
         """
         将视频帧转换成时间
         :param frame_no: 视频的帧号，i.e. 第几帧视频帧
-        :param frame_rate: 视频的帧率
-        :param drop: 帧率不为整数时,是否添加drop frame进行补帧
         :returns: SMPTE格式时间戳 as string, 如'01:02:12:32' 或者 '01:02:12;32'
         """
         # 将小数点后两位的数字丢弃
@@ -444,6 +490,7 @@ class SubtitleExtractor:
         """
         读取原始的raw txt，去除重复行，返回去除了重复后的字幕列表
         """
+        self._concat_content_with_same_frameno()
         with open(self.raw_subtitle_path, mode='r', encoding='utf-8') as r:
             lines = r.readlines()
         content_list = []
@@ -467,8 +514,12 @@ class SubtitleExtractor:
                     end_frame = content_list[content_list.index(j) - 1][0]
                     if end_frame == start_frame:
                         end_frame = j[0]
-                    if str(unique_subtitle_list).find(i[1].replace('\n', '')) == -1:
+                    if len(unique_subtitle_list) < 1:
                         unique_subtitle_list.append((start_frame, end_frame, i[1]))
+                    else:
+                        if ratio(unique_subtitle_list[-1][2].replace(' ', ''),
+                                 i[1].replace(' ', '')) < config.TEXT_SIMILARITY_THRESHOLD:
+                            unique_subtitle_list.append((start_frame, end_frame, i[1]))
                     index += 1
                     break
                 else:
@@ -500,28 +551,25 @@ class SubtitleExtractor:
             concatenation_list.append((frame_no, position))
 
         for i in concatenation_list:
-            content = ""
+            content = []
             for j in i[1]:
-                content = content + " " + content_list[j][2].split('\n')[0]
-
+                content.append(content_list[j][2])
+            content = ' '.join(content).replace('\n', ' ') + '\n'
             for k in i[1]:
-                content_list[k][2] = content.strip()
+                content_list[k][2] = content
 
         # 将多余的字幕行删除
+        to_delete = []
         for i in concatenation_list:
-            index = 0
-            for j in i[1]:
-                if index == 0:
-                    # 跳过第一个
-                    content_list[j][2] += '\n'
-                    index += 1
-                    continue
-                content_list.pop(j)
-
-        print(content_list)
+            for j in i[1][1:]:
+                to_delete.append(content_list[j])
+        for i in to_delete:
+            if i in content_list:
+                content_list.remove(i)
 
         with open(self.raw_subtitle_path, mode='w', encoding='utf-8') as f:
             for frame_no, coordinate, content in content_list:
+                content = unicodedata.normalize('NFKC', content)
                 f.write(f'{frame_no}\t{coordinate}\t{content}')
 
     def _unite_coordinates(self, coordinates_list):
@@ -617,4 +665,5 @@ if __name__ == '__main__':
     se = SubtitleExtractor(video_path)
     # 开始提取字幕
     se.run()
+
 
