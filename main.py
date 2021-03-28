@@ -261,10 +261,15 @@ class SubtitleExtractor:
             for index, content in enumerate(subtitle_content):
                 line_code = index + 1
                 frame_start = self._frame_to_timecode(int(content[0]))
-                frame_end = self._frame_to_timecode(int(content[1]))
+                # 比较起始帧号与结束帧号， 如果字幕持续时间不足1秒，则将显示时间设为1s
+                if abs(int(content[1]) - int(content[0])) < self.fps:
+                    frame_end = self._frame_to_timecode(int(content[0] + self.fps))
+                else:
+                    frame_end = self._frame_to_timecode(int(content[1]))
                 frame_content = content[2]
                 subtitle_line = f'{line_code}\n{frame_start} --> {frame_end}\n{frame_content}\n'
                 f.write(subtitle_line)
+        self._concat_content_with_same_frameno()
         print(f'字幕文件生成位置：{srt_filename}')
 
     def _detect_watermark_area(self):
@@ -423,11 +428,9 @@ class SubtitleExtractor:
             if fps_int == 60:
                 frame_no = frame_no * 2
 
-            # time codes are on the form 12:12:12;12
-            smpte_token = ";"
+            smpte_token = ","  # 也可能为;号
 
         else:
-            # time codes are on the form 12:12:12,12
             smpte_token = ","
 
         # 将视频帧转化为时间戳
@@ -441,7 +444,7 @@ class SubtitleExtractor:
         """
         读取原始的raw txt，去除重复行，返回去除了重复后的字幕列表
         """
-        with open(self.raw_subtitle_path,  mode='r', encoding='utf-8') as r:
+        with open(self.raw_subtitle_path, mode='r', encoding='utf-8') as r:
             lines = r.readlines()
         content_list = []
         for line in lines:
@@ -471,6 +474,55 @@ class SubtitleExtractor:
                 else:
                     continue
         return unique_subtitle_list
+
+    def _concat_content_with_same_frameno(self):
+        """
+        将raw txt文本中具有相同帧号的字幕行合并
+        """
+        with open(self.raw_subtitle_path, mode='r', encoding='utf-8') as r:
+            lines = r.readlines()
+        content_list = []
+        frame_no_list = []
+        for line in lines:
+            frame_no = line.split('\t')[0]
+            frame_no_list.append(frame_no)
+            coordinate = line.split('\t')[1]
+            content = line.split('\t')[2]
+            content_list.append([frame_no, coordinate, content])
+
+        # 找出那些不止一行的帧号
+        frame_no_list = [i[0] for i in Counter(frame_no_list).most_common() if i[1] > 1]
+
+        # 找出这些帧号出现的位置
+        concatenation_list = []
+        for frame_no in frame_no_list:
+            position = [i for i, x in enumerate(content_list) if x[0] == frame_no]
+            concatenation_list.append((frame_no, position))
+
+        for i in concatenation_list:
+            content = ""
+            for j in i[1]:
+                content = content + " " + content_list[j][2].split('\n')[0]
+
+            for k in i[1]:
+                content_list[k][2] = content.strip()
+
+        # 将多余的字幕行删除
+        for i in concatenation_list:
+            index = 0
+            for j in i[1]:
+                if index == 0:
+                    # 跳过第一个
+                    content_list[j][2] += '\n'
+                    index += 1
+                    continue
+                content_list.pop(j)
+
+        print(content_list)
+
+        with open(self.raw_subtitle_path, mode='w', encoding='utf-8') as f:
+            for frame_no, coordinate, content in content_list:
+                f.write(f'{frame_no}\t{coordinate}\t{content}')
 
     def _unite_coordinates(self, coordinates_list):
         """
@@ -565,3 +617,4 @@ if __name__ == '__main__':
     se = SubtitleExtractor(video_path)
     # 开始提取字幕
     se.run()
+
