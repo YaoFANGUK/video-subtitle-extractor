@@ -6,7 +6,7 @@ video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕�
 主要实现了以下功能：
 - 提取视频中的关键帧
 - 检测视频帧中文本的所在位置
-- 识别视频视频帧中文本的内容
+- 识别视频帧中文本的内容
 - 过滤非字幕区域的文本
 - 去除重复字幕行，去除水印(台标)文本
 - 生成srt字幕文件
@@ -50,14 +50,6 @@ pip install -r requirements(gpu).txt
 ```
 
 #### 4. 运行程序
-
-对于**GPU用户**： 请将config.py中第48行 USE_GPU = False 改为：
-
-```python
-USE_GPU = True
-```
-
-运行
 
 ```shell
 python main.py
