@@ -75,7 +75,7 @@ class SubtitleExtractor:
         """
         print('Step 1. 开启提取视频关键帧...')
         self.extract_frame_by_fps()
-        # 或者运行 self.extract_frame()比较慢，但生成的字幕时间准
+        # 或者运行 self.extract_frame(), 比较慢，但生成的字幕时间准
         # self.extract_frame()
         print('提取视频关键帧完毕...')
 
@@ -85,9 +85,8 @@ class SubtitleExtractor:
 
         print('Step 3. 开始检测并过滤水印区域内容')
         # 询问用户视频是否有水印区域
-        user_input = input('视频是否存在水印区域，存在的话输入个数，不存在的话输入n: ').strip()
-        if user_input.isdigit():
-            config.WATERMARK_AREA_NUM = int(user_input)
+        user_input = input('视频是否存在水印区域，存在的话输入y，不存在的话输入n: ').strip()
+        if user_input == 'y':
             self.filter_watermark()
             print('已经成功过滤水印区域内容')
         else:
@@ -106,6 +105,9 @@ class SubtitleExtractor:
         根据视频的分辨率，将高分辨的视频帧缩放到1280*720p
         根据字幕区域位置，将该图像区域截取出来
         """
+        # 删除缓存
+        self.__delete_frame_cache()
+
         # 当前视频帧的帧号
         frame_no = 0
 
@@ -150,8 +152,11 @@ class SubtitleExtractor:
 
     def extract_frame_by_fps(self):
         """
-        根据帧率，定时提前视频帧，容易丢字幕，但速度快
+        根据帧率，定时提取视频帧，容易丢字幕，但速度快
         """
+        # 删除缓存
+        self.__delete_frame_cache()
+
         # 当前视频帧的帧号
         frame_no = 0
 
@@ -171,7 +176,7 @@ class SubtitleExtractor:
                 # 保存视频帧
                 cv2.imwrite(filename, frame)
 
-                # 将当前帧与接下来的帧进行比较，计算余弦相似度
+                # 跳过剩下的帧
                 for i in range(int(self.fps // config.EXTRACT_FREQUENCY) - 1):
                     ret, _ = self.video_cap.read()
                     if ret:
@@ -187,7 +192,9 @@ class SubtitleExtractor:
         text_recogniser = load_model()
         # 视频帧列表
         frame_list = [i for i in sorted(os.listdir(self.frame_output_dir)) if i.endswith('.jpg')]
-
+        # 删除缓存
+        if os.path.exists(self.raw_subtitle_path):
+            os.remove(self.raw_subtitle_path)
         # 新建文件
         f = open(self.raw_subtitle_path, mode='w+', encoding='utf-8')
 
@@ -257,6 +264,9 @@ class SubtitleExtractor:
                     f.truncate()
                 print(f'已经删除该区域字幕...')
         print('水印区域字幕过滤完毕...')
+        # 删除缓存
+        if os.path.exists(sample_frame_file_path):
+            os.remove(sample_frame_file_path)
 
     def filter_scene_text(self):
         """
@@ -292,6 +302,10 @@ class SubtitleExtractor:
                     if ymin <= i_ymin and i_ymax <= ymax:
                         f.write(i)
                 f.truncate()
+            print('去除完毕')
+        # 删除缓存
+        if os.path.exists(sample_frame_file_path):
+            os.remove(sample_frame_file_path)
 
     def generate_subtitle_file(self):
         """
@@ -657,6 +671,11 @@ class SubtitleExtractor:
             image = image.convert('L')
         return image
 
+    def __delete_frame_cache(self):
+        if len(os.listdir(self.frame_output_dir)) > 0:
+            for i in os.listdir(self.frame_output_dir):
+                os.remove(os.path.join(self.frame_output_dir, i))
+
 
 if __name__ == '__main__':
     # 提示用户输入视频路径
@@ -665,5 +684,3 @@ if __name__ == '__main__':
     se = SubtitleExtractor(video_path)
     # 开始提取字幕
     se.run()
-
-
