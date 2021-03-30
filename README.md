@@ -20,6 +20,17 @@ video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕�
 
 [![Demo Video](https://s1.ax1x.com/2020/10/05/0JWVeJ.png)](https://www.bilibili.com/video/BV1t5411h78J "Demo Video")
 
+
+## 在线运行
+1. <a href="https://colab.research.google.com/" target="_blank">点击登陆Colab</a>
+
+2. 点击"文件"，"打开笔记本"，"GitHub"，复制以下链接:
+
+https://github.com/YaoFANGUK/video-subtitle-extractor/blob/main/google_colab.ipynb
+
+<img src="https://z3.ax1x.com/2021/03/30/ciG7Ps.png">   
+
+
 ## 使用说明
 
 #### 1. (可选) 下载安装Anaconda 
@@ -43,7 +54,7 @@ conda activate videoEnv
 pip install -r requirements.txt
 ```
 
-- 有N卡的GPU用户：(使用cuda版本10.2)
+- 有N卡的GPU用户：
 
 ```shell
 pip install -r requirements_gpu.txt
