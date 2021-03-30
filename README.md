@@ -46,7 +46,7 @@ pip install -r requirements.txt
 - 有N卡的GPU用户：(使用cuda版本10.2)
 
 ```shell
-pip install -r requirements(gpu).txt
+pip install -r requirements_gpu.txt
 ```
 
 #### 4. 运行程序
