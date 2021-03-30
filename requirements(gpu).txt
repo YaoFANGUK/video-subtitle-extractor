@@ -1,0 +1,16 @@
+astor==0.8.1
+certifi==2020.12.5
+chardet==4.0.0
+decorator==4.4.2
+filesplit==3.0.2
+gast==0.4.0
+idna==2.10
+numpy==1.20.2
+opencv-python==4.5.1.48
+paddlepaddle-gpu==2.0.1
+Pillow==8.1.2
+protobuf==3.15.6
+python-Levenshtein==0.12.2
+requests==2.25.1
+six==1.15.0
+urllib3==1.26.4
