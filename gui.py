@@ -8,42 +8,195 @@
 import sys
 import PySimpleGUI as sg
 import os
+import cv2
+from PIL import Image
+import io
 
 
-class GUI:
+class SubtitleExtractorGUI:
     def __init__(self):
-        self.play_pause_btn_base64 = b'iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAQAAABKfvVzAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAAmJLR0QAAKqNIzIAAAAJcEhZcwAA6mAAAOpgAYTJ3nYAAAAHdElNRQflBAcJJRr4Sqz6AAABT0lEQVQ4y43QP0hVcRTA8c/v3vdSe4Lh4uBgQ04NLenu2lq5KYghLbb1B2qJSN6go1hEODSYgmtLw6NGlaC9wYigCNyiP+/ddxtM6N7u+z3PdM7vnO/h+zspgrqu3jFgSBCclcpSwZI7vjnsCSxrSpzz1EVvaGjJfXHLUA9gQ27VvNxbw4kgYMyadROVQBdd+XGW/H088N2CHTP6xAnwxKIPpm1F1ApA265rXkXVCkDAe3OafsXVkkJ15IEbcbWkVGdextWSiiVRtSqAI/ct+mzaC1Oy/sApzlqMUY89N27PnH3pv61axfglK67o2PTQx3KzDKSue+SCr1Y88+P/bUVg1G3LGvbc06r+wwmQ91MpA3VXNWMqZeCmSSMxlfJZL2vYNNtvnJpcTlQlQSIcZ6mOM367a1unx9JJI1o+Oe+d1wFBTTtiMaCuLTMo8/MP91lgw66iuWQAAAAldEVYdGRhdGU6Y3JlYXRlADIwMjAtMDctMTlUMDM6Mzk6MjArMDA6MDCGZw5cAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE5LTAxLTA4VDIwOjM0OjQzKzAwOjAwxXusFQAAACB0RVh0c29mdHdhcmUAaHR0cHM6Ly9pbWFnZW1hZ2ljay5vcme8zx2dAAAAGHRFWHRUaHVtYjo6RG9jdW1lbnQ6OlBhZ2VzADGn/7svAAAAGHRFWHRUaHVtYjo6SW1hZ2U6OkhlaWdodAAxNDgVJuYGAAAAF3RFWHRUaHVtYjo6SW1hZ2U6OldpZHRoADE0OIbXtlsAAAAZdEVYdFRodW1iOjpNaW1ldHlwZQBpbWFnZS9wbmc/slZOAAAAF3RFWHRUaHVtYjo6TVRpbWUAMTU0Njk3OTY4M2FiHTQAAAARdEVYdFRodW1iOjpTaXplADE1MDJCmyxecAAAAFp0RVh0VGh1bWI6OlVSSQBmaWxlOi8vL2RhdGEvd3d3cm9vdC93d3cuZWFzeWljb24ubmV0L2Nkbi1pbWcuZWFzeWljb24uY24vZmlsZXMvMTIyLzEyMjI2NDYucG5nk8ShNwAAAABJRU5ErkJggg=='
+        # 字幕提取器布局
+        self.layout = None
+        # 字幕提取其窗口
+        self.window = None
+        # 视频路径
+        self.video_path = None
+        # 视频cap
+        self.video_cap = None
+        # 视频的帧率
+        self.fps = None
+        # 视频的帧数
+        self.frame_count = None
+        # 视频的宽
+        self.frame_width = None
+        # 视频的高
+        self.frame_height = None
+        # 设置字幕区域高宽
+        self.xmin = None
+        self.xmax = None
+        self.ymin = None
+        self.ymax = None
+        # 进度条最大值
         self.BAR_MAX = 1000
 
-    def create_layout(self):
+    def run(self):
+        # 创建布局
+        self._create_layout()
+        # 创建窗口
+        self.window = sg.Window('视频硬字幕提取器', self.layout)
+        while True:
+            # 循环读取事件
+            event, values = self.window.read(timeout=10)
+            # 处理【打开】事件
+            self._file_event_handler(event, values)
+            # 处理【滑动】事件
+            self._slide_event_handler(event, values)
+            # 处理【运行】事件
+            self._run_event_handler(event, values)
+            # 如果关闭软件，退出
+            if event == sg.WIN_CLOSED:
+                break
+
+    def _create_layout(self):
+        """
+        创建字幕提取器布局
+        """
         sg.theme('LightBrown12')
-        layout = [
+        self.layout = [
             # 菜单图标按钮
-            [sg.Button('打开'), sg.Button('执行'), sg.Button('设置'), sg.Button('帮助')],
+            [sg.Input(key='-FILE-', visible=False, enable_events=True),
+             sg.FileBrowse('打开', file_types=(('mp4文件', '*.mp4'), ('flv文件', '*.flv'),
+                                             ('wmv文件', '*.wmv'), ('avi文件', '*.avi')),
+                           key='-FILE_BTN-'),
+             sg.Button('执行'), sg.Button('设置'), sg.Button('帮助')],
             # 显示视频预览
-            [sg.Canvas(size=(854, 480), background_color='black')],
-            # 播放暂停按钮 + 快进快退条
-            [sg.Button('', size=(4, 1), image_data=self.play_pause_btn_base64),
-             sg.Slider(size=(115, 20), range=(0, 475), key='-SLIDER-', orientation='h', enable_events=True,
+            [sg.Image(size=(854, 480), background_color='black', key='-DISPLAY-')],
+            # 快进快退条
+            [sg.Slider(size=(120, 20), range=(1, 1), key='-SLIDER-', orientation='h', enable_events=True,
                        disable_number_display=True)
              ],
             # 输出区域
-            [sg.Output(size=(115, 10), font='Courier 10'),
-             sg.Frame(title='字幕位置调整', layout=[[
-                 sg.Slider(range=(1, 100), orientation='v', size=(10, 20), default_value=25),
-                 sg.Slider(range=(1, 100), orientation='v', size=(10, 20), default_value=75),
-             ]], pad=((15, 5), (0, 0)))],
+            [sg.Output(size=(100, 10), font='Courier 10'),
+             sg.Frame(title='垂直方向', layout=[[
+                 sg.Slider(range=(0, 0), orientation='v', size=(10, 20),
+                           # disable_number_display=True,
+                           enable_events=True,
+                           default_value=0, key='-Y-SLIDER-'),
+                 sg.Slider(range=(0, 0), orientation='v', size=(10, 20),
+                           # disable_number_display=True,
+                           enable_events=True,
+                           default_value=0, key='-Y-SLIDER-H-'),
+             ]], pad=((15, 5), (0, 0))),
+             sg.Frame(title='水平方向', layout=[[
+                 sg.Slider(range=(0, 0), orientation='v', size=(10, 20),
+                           # disable_number_display=True,
+                           enable_events=True,
+                           default_value=0, key='-X-SLIDER-'),
+                 sg.Slider(range=(0, 0), orientation='v', size=(10, 20),
+                           # disable_number_display=True,
+                           enable_events=True,
+                           default_value=0, key='-X-SLIDER-W-'),
+             ]], pad=((15, 5), (0, 0)))
+             ],
+
             # 运行按钮 + 进度条
-            [sg.Button('运行'), sg.ProgressBar(max_value=self.BAR_MAX, orientation='h', size=(90, 20), key='-PROG-')],
+            [sg.Button(button_text='运行', key='-RUN-'),
+             sg.ProgressBar(max_value=self.BAR_MAX, orientation='h',
+                            size=(90, 20), key='-PROG-', style='clam'
+                            )],
         ]
 
-        window = sg.Window('Script launcher', layout)
-        while True:
-            event, values = window.read()
-            if event == 'EXIT' or event == sg.WIN_CLOSED:
-                break
+    def _file_event_handler(self, event, values):
+        """
+        当点击打开按钮时：
+        1）打开视频文件，将画布显示视频帧
+        2）获取视频信息，初始化进度条滑块范围
+        """
+        if event == '-FILE-':
+            self.video_path = values['-FILE-']
+            if self.video_path != '':
+                self.video_cap = cv2.VideoCapture(self.video_path)
+            if self.video_cap.isOpened():
+                ret, frame = self.video_cap.read()
+                if ret:
+                    print(f'成功打开视频：{self.video_path}')
+                    # 获取视频的帧数
+                    self.frame_count = self.video_cap.get(cv2.CAP_PROP_FRAME_COUNT)
+                    # 获取视频的高度
+                    self.frame_height = self.video_cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+                    # 获取视频的宽度
+                    self.frame_width = self.video_cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+                    # 调整视频帧大小，是播放器能够显示
+                    resized_frame = cv2.resize(src=frame, dsize=(854, 480))
+                    # 显示视频帧
+                    self.window['-DISPLAY-'].update(data=cv2.imencode('.png', resized_frame)[1].tobytes())
+                    # 更新视频进度条滑块range
+                    self.window['-SLIDER-'].update(range=(1, self.frame_count))
+                    self.window['-SLIDER-'].update(1)
+                    # 更新视频字幕位置滑块range
+                    self.window['-Y-SLIDER-'].update(range=(0, self.frame_height), disabled=False)
+                    self.window['-Y-SLIDER-H-'].update(range=(0, self.frame_height // 2), disabled=False)
+                    self.window['-Y-SLIDER-'].update(self.frame_height - 50)
+                    self.window['-Y-SLIDER-H-'].update(10)
+                    self.window['-X-SLIDER-'].update(range=(0, self.frame_width), disabled=False)
+                    self.window['-X-SLIDER-W-'].update(range=(0, self.frame_width), disabled=False)
+                    self.window['-X-SLIDER-'].update(0)
+                    self.window['-X-SLIDER-W-'].update(self.frame_width)
+
+    def _run_event_handler(self, event, values):
+        """
+        当点击运行按钮时：
+        1) 禁止修改字幕滑块区域
+        2) 禁止再次点击【运行】和【打开】按钮
+        3) 设定字幕区域位置
+        """
+        if event == '-RUN-':
+            if self.video_cap is None:
+                print('请先打开视频')
+            else:
+                # 1) 禁止修改字幕滑块区域
+                self.window['-Y-SLIDER-'].update(disabled=True)
+                self.window['-X-SLIDER-'].update(disabled=True)
+                self.window['-Y-SLIDER-H-'].update(disabled=True)
+                self.window['-X-SLIDER-W-'].update(disabled=True)
+                # 2) 禁止再次点击【运行】和【打开】按钮
+                self.window['-RUN-'].update(disabled=True)
+                self.window['-FILE-'].update(disabled=True)
+                self.window['-FILE_BTN-'].update(disabled=True)
+                # 3) 设定字幕区域位置
+                self.xmin = values['-X-SLIDER-']
+                self.xmax = values['-X-SLIDER-'] + values['-X-SLIDER-W-']
+                self.ymin = values['-Y-SLIDER-']
+                self.ymax = values['-Y-SLIDER-'] + values['-Y-SLIDER-H-']
+                print(f'字幕区域：({self.ymin},{self.ymax},{self.xmin},{self.xmax})')
+
+    def _slide_event_handler(self, event, values):
+        """
+        当滑动视频进度条/滑动字幕选择区域滑块时：
+        1) 判断视频是否存在，如果存在则显示对应的视频帧
+        2) 绘制rectangle
+        """
+        if event == '-SLIDER-' or event == '-Y-SLIDER-' or event == '-Y-SLIDER-H-' or event == '-X-SLIDER-' or event == '-X-SLIDER-W-':
+            if self.video_cap is not None and self.video_cap.isOpened():
+                frame_no = int(values['-SLIDER-'])
+                self.video_cap.set(cv2.CAP_PROP_POS_FRAMES, frame_no)
+                ret, frame = self.video_cap.read()
+                if ret:
+                    # 画字幕框
+                    y = int(values['-Y-SLIDER-'])
+                    h = int(values['-Y-SLIDER-H-'])
+                    x = int(values['-X-SLIDER-'])
+                    w = int(values['-X-SLIDER-W-'])
+                    draw = cv2.rectangle(img=frame, pt1=(x, y), pt2=(x + w, y + h),
+                                         color=(0, 255, 0), thickness=3)
+                    # 调整视频帧大小，是播放器能够显示
+                    resized_frame = cv2.resize(src=draw, dsize=(854, 480))
+                    # 显示视频帧
+                    self.window['-DISPLAY-'].update(data=cv2.imencode('.png', resized_frame)[1].tobytes())
 
 
 if __name__ == '__main__':
-    print(sg.theme_list())
-    GUI().create_layout()
+    # 创建GUI对象
+    subtitleExtractorGUI = SubtitleExtractorGUI()
+    # 运行字幕提取器
+    subtitleExtractorGUI.run()
