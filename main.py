@@ -26,9 +26,13 @@ def load_model():
     # 获取参数对象
     args = utility.parse_args()
     # 设置文本检测模型路径
-    args.det_model_dir = config.DET_MODEL_PATH
+    # args.det_model_dir = config.DET_MODEL_PATH
+    # 加载快速模型
+    args.det_model_dir = config.DET_MODEL_FAST_PATH
     # 设置文本识别模型路径
-    args.rec_model_dir = config.REC_MODEL_PATH
+    # args.rec_model_dir = config.REC_MODEL_PATH
+    # 加载快速模型
+    args.rec_model_dir = config.REC_MODEL_FAST_PATH
     # 设置字典路径
     args.rec_char_dict_path = config.DICT_PATH
     # 是否使用GPU加速

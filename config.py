@@ -20,8 +20,10 @@ BASE_DIR = str(Path(os.path.abspath(__file__)).parent)
 # 模型文件目录
 # 文本检测模型
 DET_MODEL_PATH = os.path.join(BASE_DIR, 'backend', 'models', 'ch_det')
+DET_MODEL_FAST_PATH = os.path.join(BASE_DIR, 'backend', 'models', 'ch_det_fast')
 # 文本识别模型
 REC_MODEL_PATH = os.path.join(BASE_DIR, 'backend', 'models', 'ch_rec')
+REC_MODEL_FAST_PATH = os.path.join(BASE_DIR, 'backend', 'models', 'ch_rec_fast')
 
 # 查看该路径下是否有文本模型识别完整文件，没有的话合并小文件生成完整文件
 if 'inference.pdiparams' not in (os.listdir(REC_MODEL_PATH)):

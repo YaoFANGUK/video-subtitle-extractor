@@ -29,11 +29,11 @@ from tools.infer.utility import draw_ocr, draw_boxes
 
 import requests
 import json
-import base64
+import test
 
 
 def cv2_to_base64(image):
-    return base64.b64encode(image).decode('utf8')
+    return test.b64encode(image).decode('utf8')
 
 
 def draw_server_result(image_file, res):
