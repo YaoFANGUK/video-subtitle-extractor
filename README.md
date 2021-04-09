@@ -14,9 +14,21 @@ video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕�
 ## 项目特色
 
 - 采用本地进行OCR识别，无需设置调用任何API，不需要接入百度、阿里等在线OCR服务即可本地完成文本识别
-- 无需用户手动设置字幕区域，项目通过文本检测模型自动检测字幕区域
+- (CLI版本) 无需用户手动设置字幕区域，项目通过文本检测模型自动检测字幕区域
+- 支持GPU加速，GPU加速后可以获得更高的准确率与更快的提取速度
 
-## 演示视频
+- (GUI版本) 图形化界面
+
+<img src="https://z3.ax1x.com/2021/04/09/cN0S0S.png">
+
+点击【打开】后选择视频文件，调整字幕区域，点击【运行】
+
+> 运行后程序会疑似卡死一样的僵住，是因为没有优化好(后续进行解决)，但是卡住时请不要关闭，实际上程序在正常运行，请耐心等待，提取完后会生成srt字幕文件。
+> 
+> **有任何改进意见请在ISSUES中提出**
+
+
+## 演示视频 (CLI版)
 
 [![Demo Video](https://s1.ax1x.com/2020/10/05/0JWVeJ.png)](https://www.bilibili.com/video/BV1t5411h78J "Demo Video")
 
@@ -61,6 +73,14 @@ pip install -r requirements_gpu.txt
 ```
 
 #### 4. 运行程序
+
+- 运行图形化界面版本(GUI)
+
+```shell
+python gui.py
+```
+
+- 运行命令行版本(CLI)
 
 ```shell
 python main.py
