@@ -771,10 +771,9 @@ class SubtitleExtractor:
 
 if __name__ == '__main__':
     # 提示用户输入视频路径
-    # video_path = input("请输入视频完整路径：").strip()
-    video_path = '/Users/yao/Downloads/testvd.mp4'
+    video_path = input("请输入视频完整路径：").strip()
     # 新建字幕提取对象
     se = SubtitleExtractor(video_path)
     # 开始提取字幕
-    # se.run()
-    se.extract_subtitle_frame()
+    se.run()
+
