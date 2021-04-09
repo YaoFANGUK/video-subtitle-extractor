@@ -44,7 +44,7 @@ class SubtitleExtractorGUI:
         # 创建布局
         self._create_layout()
         # 创建窗口
-        self.window = sg.Window('请选择字幕区域', self.layout)
+        self.window = sg.Window('硬字幕提取器', self.layout)
         while True:
             # 循环读取事件
             event, values = self.window.read(timeout=10)
