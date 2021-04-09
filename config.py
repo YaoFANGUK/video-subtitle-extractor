@@ -20,8 +20,10 @@ BASE_DIR = str(Path(os.path.abspath(__file__)).parent)
 # 模型文件目录
 # 文本检测模型
 DET_MODEL_PATH = os.path.join(BASE_DIR, 'backend', 'models', 'ch_det')
+DET_MODEL_FAST_PATH = os.path.join(BASE_DIR, 'backend', 'models', 'ch_det_fast')
 # 文本识别模型
 REC_MODEL_PATH = os.path.join(BASE_DIR, 'backend', 'models', 'ch_rec')
+REC_MODEL_FAST_PATH = os.path.join(BASE_DIR, 'backend', 'models', 'ch_rec_fast')
 
 # 查看该路径下是否有文本模型识别完整文件，没有的话合并小文件生成完整文件
 if 'inference.pdiparams' not in (os.listdir(REC_MODEL_PATH)):
@@ -60,7 +62,7 @@ if fluid.is_compiled_with_cuda():
         print('使用GPU进行加速')
 
 # 默认字幕出现区域为下方
-SUBTITLE_AREA = SubtitleArea.LOWER_PART
+SUBTITLE_AREA = SubtitleArea.UNKNOWN
 
 # 余弦相似度阈值
 # 数值越小生成的视频帧越少，相对提取速度更快但生成的字幕越不精准
