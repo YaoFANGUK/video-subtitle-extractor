@@ -28,7 +28,7 @@ video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕�
 
 ## 演示视频 (CLI版)
 
-Shapely|[![Demo Video](https://s1.ax1x.com/2020/10/05/0JWVeJ.png)](https://www.bilibili.com/video/BV1t5411h78J "Demo Video")
+[![Demo Video](https://s1.ax1x.com/2020/10/05/0JWVeJ.png)](https://www.bilibili.com/video/BV1t5411h78J "Demo Video")
 
 
 ## 在线运行
