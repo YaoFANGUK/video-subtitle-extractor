@@ -14,6 +14,7 @@ import io
 import config
 import numpy as np
 from main import SubtitleExtractor
+from threading import Thread
 
 
 class SubtitleExtractorGUI:
@@ -171,7 +172,7 @@ class SubtitleExtractorGUI:
                 print(f'字幕区域：({self.ymin},{self.ymax},{self.xmin},{self.xmax})')
                 subtitle_area = (self.ymin, self.ymax, self.xmin, self.xmax)
                 se = SubtitleExtractor(self.video_path, subtitle_area)
-                se.run()
+                Thread(target=se.run, daemon=True).start()
 
     def _slide_event_handler(self, event, values):
         """

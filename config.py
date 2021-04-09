@@ -46,6 +46,13 @@ class SubtitleArea(Enum):
     CUSTOM = 3
 
 
+class BackgroundColor(Enum):
+    # 字幕背景
+    WHITE = 0
+    DARK = 1
+    UNKNOWN = 2
+
+
 # --------------------- 请你不要改 end-----------------------------
 
 
@@ -61,6 +68,15 @@ if fluid.is_compiled_with_cuda():
         USE_GPU = True
         print('使用GPU进行加速')
 
+# 使用快速字幕检测算法时，背景颜色
+BG_MOD = BackgroundColor.DARK
+# 黑色背景被减矩阵阈值
+BG_VALUE_DARK = 200
+# 其他背景颜色被减矩阵阈值
+BG_VALUE_OTHER = 63
+# ROI比例
+ROI_RATE = 0.4
+
 # 默认字幕出现区域为下方
 SUBTITLE_AREA = SubtitleArea.UNKNOWN
 
@@ -75,6 +91,8 @@ FRAME_COMPARE_TIMES = 10
 
 # 每一秒抓取多少帧进行OCR识别
 EXTRACT_FREQUENCY = 3
+# 每几帧抽取一帧进行OCR识别
+EXTRACT_INTERVAL = 8
 
 # 欧式距离相似值
 EUCLIDEAN_SIMILARITY_THRESHOLD = 0.9
