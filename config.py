@@ -62,7 +62,7 @@ if fluid.is_compiled_with_cuda():
         print('使用GPU进行加速')
 
 # 默认字幕出现区域为下方
-SUBTITLE_AREA = SubtitleArea.LOWER_PART
+SUBTITLE_AREA = SubtitleArea.UNKNOWN
 
 # 余弦相似度阈值
 # 数值越小生成的视频帧越少，相对提取速度更快但生成的字幕越不精准

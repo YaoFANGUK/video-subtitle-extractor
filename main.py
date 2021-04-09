@@ -25,18 +25,21 @@ from config import SubtitleArea
 def load_model():
     # 获取参数对象
     args = utility.parse_args()
-    # 设置文本检测模型路径
-    # args.det_model_dir = config.DET_MODEL_PATH
-    # 加载快速模型
-    args.det_model_dir = config.DET_MODEL_FAST_PATH
-    # 设置文本识别模型路径
-    # args.rec_model_dir = config.REC_MODEL_PATH
-    # 加载快速模型
-    args.rec_model_dir = config.REC_MODEL_FAST_PATH
-    # 设置字典路径
-    args.rec_char_dict_path = config.DICT_PATH
     # 是否使用GPU加速
     args.use_gpu = config.USE_GPU
+    if config.USE_GPU:
+        # 设置文本检测模型路径
+        args.det_model_dir = config.DET_MODEL_PATH
+        # 设置文本识别模型路径
+        args.rec_model_dir = config.REC_MODEL_PATH
+    else:
+        # 加载快速模型
+        args.det_model_dir = config.DET_MODEL_FAST_PATH
+        # 加载快速模型
+        args.rec_model_dir = config.REC_MODEL_FAST_PATH
+    # 设置字典路径
+    args.rec_char_dict_path = config.DICT_PATH
+
     return TextSystem(args)
 
 
@@ -45,7 +48,9 @@ class SubtitleExtractor:
     视频字幕提取类
     """
 
-    def __init__(self, vd_path):
+    def __init__(self, vd_path, sub_area=None):
+        # 字幕区域位置
+        self.sub_area = sub_area
         # 视频路径
         self.video_path = vd_path
         self.video_cap = cv2.VideoCapture(vd_path)
@@ -77,32 +82,34 @@ class SubtitleExtractor:
         """
         运行整个提取视频的步骤
         """
-        print('Step 1. 开启提取视频关键帧...')
+        print('【处理中】开启提取视频关键帧...')
         self.extract_frame_by_fps()
         # 或者运行 self.extract_frame(), 比较慢，但生成的字幕时间准
         # self.extract_frame()
-        print('提取视频关键帧完毕...')
+        print('【结束】提取视频关键帧完毕...')
 
-        print('Step 2. 开始提取字幕信息，此步骤可能花费较长时间，请耐心等待...')
+        print('【处理中】开始提取字幕信息，此步骤可能花费较长时间，请耐心等待...')
         self.extract_subtitles()
-        print('完成字幕提取，生成原始字幕文件...')
+        print('【结束】完成字幕提取，生成原始字幕文件...')
 
-        print('Step 3. 开始检测并过滤水印区域内容')
-        # 询问用户视频是否有水印区域
-        user_input = input('视频是否存在水印区域，存在的话输入y，不存在的话输入n: ').strip()
-        if user_input == 'y':
-            self.filter_watermark()
-            print('已经成功过滤水印区域内容')
-        else:
-            print('-----------------------------')
+        if self.sub_area is None:
+            print('【处理中】开始检测并过滤水印区域内容')
+            # 询问用户视频是否有水印区域
+            user_input = input('视频是否存在水印区域，存在的话输入y，不存在的话输入n: ').strip()
+            if user_input == 'y':
+                self.filter_watermark()
+                print('【结束】已经成功过滤水印区域内容')
+            else:
+                print('-----------------------------')
 
-        print('Step 4. 开始检测非字幕区域，并将非字幕区域的内容删除')
-        self.filter_scene_text()
-        print('已将非字幕区域的内容删除')
+        if self.sub_area is None:
+            print('【处理中】开始检测非字幕区域，并将非字幕区域的内容删除')
+            self.filter_scene_text()
+            print('【结束】已将非字幕区域的内容删除')
 
-        print('Step 5. 开始生成字幕文件')
+        print('【处理中】开始生成字幕文件')
         self.generate_subtitle_file()
-        print('字幕文件生成成功')
+        print('【结束】字幕文件生成成功')
 
     def extract_frame(self):
         """
@@ -211,12 +218,25 @@ class SubtitleExtractor:
             coordinates = self.__get_coordinates(dt_box)
             # 将结果写入txt文本中
             text_res = [res[0] for res in rec_res]
-            if len(text_res) > 1:
-                print(text_res)
             for content, coordinate in zip(text_res, coordinates):
-                f.write(f'{os.path.splitext(frame)[0]}\t'
-                        f'{coordinate}\t'
-                        f'{content}\n')
+                if self.sub_area is not None:
+                    s_ymin = self.sub_area[0]
+                    s_ymax = self.sub_area[1]
+                    s_xmin = self.sub_area[2]
+                    s_xmax = self.sub_area[3]
+                    xmin = coordinate[0]
+                    xmax = coordinate[1]
+                    ymin = coordinate[2]
+                    ymax = coordinate[3]
+                    if s_xmin <= xmin and xmax <= s_xmax and s_ymin <= ymin and ymax <= s_ymax:
+                        print(content)
+                        f.write(f'{os.path.splitext(frame)[0]}\t'
+                                f'{coordinate}\t'
+                                f'{content}\n')
+                else:
+                    f.write(f'{os.path.splitext(frame)[0]}\t'
+                            f'{coordinate}\t'
+                            f'{content}\n')
         # 关闭文件
         f.close()
 
@@ -404,12 +424,10 @@ class SubtitleExtractor:
         """
         # 对于分辨率大于1920*1080的视频，将其视频帧进行等比缩放至1280*720进行识别
         # paddlepaddle会将图像压缩为640*640
-        if self.frame_width > 1280:
-            scale_rate = round(float(1280 / self.frame_width), 2)
-            frame = cv2.resize(frame, None, fx=scale_rate, fy=scale_rate, interpolation=cv2.INTER_AREA)
-
+        # if self.frame_width > 1280:
+        #     scale_rate = round(float(1280 / self.frame_width), 2)
+        #     frame = cv2.resize(frame, None, fx=scale_rate, fy=scale_rate, interpolation=cv2.INTER_AREA)
         cropped = int(frame.shape[0] // 2)
-
         # 如果字幕出现的区域在下部分
         if self.subtitle_area == SubtitleArea.LOWER_PART:
             # 将视频帧切割为下半部分
