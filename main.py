@@ -14,6 +14,7 @@ import cv2
 from Levenshtein import ratio
 from PIL import Image
 from numpy import average, dot, linalg
+import numpy as np
 
 import config
 from backend.tools.infer import utility
@@ -84,8 +85,6 @@ class SubtitleExtractor:
         """
         print('【处理中】开启提取视频关键帧...')
         self.extract_frame_by_fps()
-        # 或者运行 self.extract_frame(), 比较慢，但生成的字幕时间准
-        # self.extract_frame()
         print('【结束】提取视频关键帧完毕...')
 
         print('【处理中】开始提取字幕信息，此步骤可能花费较长时间，请耐心等待...')
@@ -194,6 +193,34 @@ class SubtitleExtractor:
                         frame_no += 1
 
         self.video_cap.release()
+
+    def extract_subtitle_frame(self):
+        """
+        提取包含字幕的视频帧
+        """
+        # 删除缓存
+        self.__delete_frame_cache()
+        # 获取字幕帧列表
+        subtitle_frame_list = self._analyse_subtitle_frame()
+        if subtitle_frame_list is None:
+            print('请指定字幕区域')
+            return
+        cap = cv2.VideoCapture(self.video_path)
+        idx = 0
+        index = 0
+
+        while cap.isOpened():
+            ret, frame = cap.read()
+            if not ret:
+                break
+            if idx in subtitle_frame_list and idx != 0:
+                filename = os.path.join(self.frame_output_dir, str(idx).zfill(8) + '.jpg')
+                frame = self._frame_preprocess(frame)
+                cv2.imwrite(filename, frame)
+                subtitle_frame_list.remove(idx)
+                index += 1
+            idx = idx + 1
+        cap.release()
 
     def extract_subtitles(self):
         """
@@ -352,11 +379,54 @@ class SubtitleExtractor:
                 f.write(subtitle_line)
         print(f'字幕文件生成位置：{srt_filename}')
 
-    def _is_subtitle_contained(self, img):
+    def _analyse_subtitle_frame(self):
         """
-        使用简单的图像算法判断视频帧是否包含字幕
+        使用简单的图像算法找出包含字幕的视频帧
+        : 参考 https://github.com/BruceHan98/OCR-Extract-Subtitles/blob/main/analyze_key_frame.py
         """
-        pass
+        if self.sub_area is None:
+            return None
+        else:
+            subtitle_frame_index_list = []
+            index = 0
+            s_ymin = self.sub_area[0]
+            s_ymax = self.sub_area[1]
+            s_xmin = self.sub_area[2]
+            s_xmax = self.sub_area[3]
+            cap = cv2.VideoCapture(self.video_path)
+            success, frame = cap.read()
+            if success:
+                # 截取字幕部分
+                frame = frame[s_ymin:s_ymax, s_xmin:s_xmax]
+            h, w = frame.shape[0:2]
+            if config.BG_MOD == config.BackgroundColor.DARK:  # 深色背景
+                minuend = np.full(h * w, config.BG_VALUE_DARK)  # 被减矩阵
+            else:
+                minuend = np.full(h * w, config.BG_VALUE_OTHER)  # 被减矩阵
+
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            flatten_gray = gray.flatten()
+            last_roi = flatten_gray - minuend
+            last_roi = np.where(last_roi > 0, 1, 0)
+            while cap.isOpened():
+                ret, frame = cap.read()
+                if not ret:
+                    break
+                frame = frame[s_ymin:s_ymax, s_xmin:s_xmax]
+                if index % config.EXTRACT_INTERVAL == 0:
+                    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                    flatten_gray = gray.flatten()
+                    roi = flatten_gray - minuend
+                    roi = np.where(roi > 0, 1, 0)
+                    change = roi - last_roi
+                    addi = np.where(change > 0, 1, 0).sum()
+                    if addi > roi.sum() * config.ROI_RATE:  # 字幕增加
+                        subtitle_frame_index_list.append(index)
+                    last_roi = roi
+                index += 1
+
+            cap.release()
+            return subtitle_frame_index_list
 
     def _detect_watermark_area(self):
         """
@@ -611,7 +681,7 @@ class SubtitleExtractor:
     def _unite_coordinates(self, coordinates_list):
         """
         给定一个坐标列表，将这个列表中相似的坐标统一为一个值
-        e.g. 由于检测框检测的结果不是一直的，相同位置文字的坐标可能一次检测为(255,123,456,789)，另一次检测为(253,122,456,799)
+        e.g. 由于检测框检测的结果不是一致的，相同位置文字的坐标可能一次检测为(255,123,456,789)，另一次检测为(253,122,456,799)
         因此要对相似的坐标进行值的统一
         :param coordinates_list 包含坐标点的列表
         :return: 返回一个统一值后的坐标列表
@@ -701,8 +771,10 @@ class SubtitleExtractor:
 
 if __name__ == '__main__':
     # 提示用户输入视频路径
-    video_path = input("请输入视频完整路径：").strip()
+    # video_path = input("请输入视频完整路径：").strip()
+    video_path = '/Users/yao/Downloads/testvd.mp4'
     # 新建字幕提取对象
     se = SubtitleExtractor(video_path)
     # 开始提取字幕
-    se.run()
+    # se.run()
+    se.extract_subtitle_frame()
