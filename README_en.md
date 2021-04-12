@@ -43,7 +43,7 @@ video-subtitle-extractor is used to extract hard-coded subtitles and generate **
 
 <a href="https://www.anaconda.com/products/individual">https://www.anaconda.com/products/individual#Downloads</a>
 
-#### 2. (Optional) create and activate a conda vitural environment
+#### 2. (Optional) create and activate a conda virtual environment
 
 ```shell
 conda create --name videoEnv python=3.7
