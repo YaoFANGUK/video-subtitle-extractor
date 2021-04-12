@@ -14,16 +14,11 @@ video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕�
 ## 项目特色
 
 - 采用本地进行OCR识别，无需设置调用任何API，不需要接入百度、阿里等在线OCR服务即可本地完成文本识别
-- (CLI版本) 无需用户手动设置字幕区域，项目通过文本检测模型自动检测字幕区域
 - 支持GPU加速，GPU加速后可以获得更高的准确率与更快的提取速度
-
+- (CLI版本) 无需用户手动设置字幕区域，项目通过文本检测模型自动检测字幕区域
 - (GUI版本) 图形化界面
 
 <img src="https://z3.ax1x.com/2021/04/09/cNrA1A.png">
-
-<div align="center">
-  <img src="demo.gif"/>
-</div>
 
 点击【打开】后选择视频文件，调整字幕区域，点击【运行】
  
@@ -31,6 +26,14 @@ video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕�
 
 
 ## 演示视频 (CLI版)
+
+- GUI版：
+
+<div align="center">
+  <img src="demo.gif"/>
+</div>
+
+- CLI版：
 
 [![Demo Video](https://s1.ax1x.com/2020/10/05/0JWVeJ.png)](https://www.bilibili.com/video/BV1t5411h78J "Demo Video")
 
@@ -44,6 +47,7 @@ https://github.com/YaoFANGUK/video-subtitle-extractor/blob/main/google_colab.ipy
 
 <img src="https://z3.ax1x.com/2021/03/30/ciG7Ps.png">   
 
+> PS: google Colab只能运行CLI版本
 
 ## 使用说明
 
