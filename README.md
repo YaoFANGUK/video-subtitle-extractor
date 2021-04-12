@@ -68,7 +68,7 @@ conda activate videoEnv
 pip install -r requirements.txt
 ```
 
-- 有N卡的GPU用户：
+- 有N卡的GPU用户： **要达到高精度的识别率请使用GPU版**
 
 ```shell
 pip install -r requirements_gpu.txt
