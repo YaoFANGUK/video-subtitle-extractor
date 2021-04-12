@@ -37,7 +37,8 @@ def load_model():
         # 加载快速模型
         args.det_model_dir = config.DET_MODEL_FAST_PATH
         # 加载快速模型
-        args.rec_model_dir = config.REC_MODEL_FAST_PATH
+        # args.rec_model_dir = config.REC_MODEL_FAST_PATH
+        args.rec_model_dir = config.REC_MODEL_PATH
     # 设置字典路径
     args.rec_char_dict_path = config.DICT_PATH
 
