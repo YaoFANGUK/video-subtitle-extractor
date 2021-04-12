@@ -31,6 +31,7 @@ video-subtitle-extractor is used to extract hard-coded subtitles and generate **
 <div align="center">
   <img src="demo.gif"/>
 </div>
+
 - Command Line Interface: 
 
 [![Demo Video](https://s1.ax1x.com/2020/10/05/0JWVeJ.png)](https://www.bilibili.com/video/BV1t5411h78J "Demo Video")
