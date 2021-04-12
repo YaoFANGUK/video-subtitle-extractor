@@ -74,7 +74,7 @@ pip install -r requirements_gpu.txt
 python gui.py
 ```
 
-- RUn CLI version
+- Run CLI version
 
 ```shell    
 python main.py
