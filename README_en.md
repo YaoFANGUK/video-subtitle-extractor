@@ -82,7 +82,7 @@ python main.py
 
 
 
-## Run on Gooogle Colab
+## Run on Google Colab
 
 1. <a href="https://colab.research.google.com/" target="_blank">Login Colab</a>
 2. Click "File", "Open Notebook", "GitHub" and then copy the following link:
@@ -95,9 +95,9 @@ https://github.com/YaoFANGUK/video-subtitle-extractor/blob/main/google_colab.ipy
 
 ## Debug
 
-- For Windows users if you encounter errors related to "geos_c.dll"
+- For Windows users, if you encounter errors related to "geos_c.dll"
 
-```integrationperformancetest
+```text
     _lgeos = CDLL(os.path.join(sys.prefix, 'Library', 'bin', 'geos_c.dll'))
   File "C:\Users\Flavi\anaconda3\envs\subEnv\lib\ctypes\__init__.py", line 364, in __init__
     self._handle = _dlopen(self._name, mode)
