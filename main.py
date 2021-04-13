@@ -245,7 +245,7 @@ class SubtitleExtractor:
             # 获取文本坐标
             coordinates = self.__get_coordinates(dt_box)
             # 将结果写入txt文本中
-            text_res = [res[0] for res in rec_res]
+            text_res = [(res[0], res[1]) for res in rec_res]
             for content, coordinate in zip(text_res, coordinates):
                 if self.sub_area is not None:
                     s_ymin = self.sub_area[0]
@@ -257,14 +257,15 @@ class SubtitleExtractor:
                     ymin = coordinate[2]
                     ymax = coordinate[3]
                     if s_xmin <= xmin and xmax <= s_xmax and s_ymin <= ymin and ymax <= s_ymax:
-                        print(content)
-                        f.write(f'{os.path.splitext(frame)[0]}\t'
-                                f'{coordinate}\t'
-                                f'{content}\n')
+                        print(content[0], content[1])
+                        if content[1] > config.DROP_SCORE:
+                            f.write(f'{os.path.splitext(frame)[0]}\t'
+                                    f'{coordinate}\t'
+                                    f'{content[0]}\n')
                 else:
                     f.write(f'{os.path.splitext(frame)[0]}\t'
                             f'{coordinate}\t'
-                            f'{content}\n')
+                            f'{content[0]}\n')
         # 关闭文件
         f.close()
 
@@ -366,6 +367,8 @@ class SubtitleExtractor:
         subtitle_content = self._remove_duplicate_subtitle()
         print(os.path.splitext(self.video_path)[0])
         srt_filename = os.path.join(os.path.splitext(self.video_path)[0] + '.srt')
+        # 保存持续时间不足1秒的字幕行，用于后续处理
+        post_process_subtitle = []
         with open(srt_filename, mode='w', encoding='utf-8') as f:
             for index, content in enumerate(subtitle_content):
                 line_code = index + 1
@@ -373,12 +376,15 @@ class SubtitleExtractor:
                 # 比较起始帧号与结束帧号， 如果字幕持续时间不足1秒，则将显示时间设为1s
                 if abs(int(content[1]) - int(content[0])) < self.fps:
                     frame_end = self._frame_to_timecode(int(int(content[0]) + self.fps))
+                    post_process_subtitle.append(line_code)
                 else:
                     frame_end = self._frame_to_timecode(int(content[1]))
                 frame_content = content[2]
                 subtitle_line = f'{line_code}\n{frame_start} --> {frame_end}\n{frame_content}\n'
                 f.write(subtitle_line)
         print(f'字幕文件生成位置：{srt_filename}')
+        # 返回持续时间低于1s的字幕行
+        return post_process_subtitle
 
     def _analyse_subtitle_frame(self):
         """
@@ -616,17 +622,35 @@ class SubtitleExtractor:
             for j in content_list[index:]:
                 # 计算当前行与下一行的Levenshtein距离
                 distance = ratio(i[1], j[1])
-                if distance < config.TEXT_SIMILARITY_THRESHOLD or j == content_list[-1]:
+                if distance < config.THRESHOLD_TEXT_SIMILARITY or j == content_list[-1]:
                     # 定义字幕结束帧帧号
                     end_frame = content_list[content_list.index(j) - 1][0]
                     if end_frame == start_frame:
                         end_frame = j[0]
+                    # 如果是第一行字幕，直接添加进列表
                     if len(unique_subtitle_list) < 1:
                         unique_subtitle_list.append((start_frame, end_frame, i[1]))
                     else:
-                        if ratio(unique_subtitle_list[-1][2].replace(' ', ''),
-                                 i[1].replace(' ', '')) < config.TEXT_SIMILARITY_THRESHOLD:
+                        string_a = unique_subtitle_list[-1][2].replace(' ', '')
+                        string_b = i[1].replace(' ', '')
+                        similarity_ratio = ratio(string_a, string_b)
+                        # 打印相似度
+                        # print(f'{similarity_ratio}: {unique_subtitle_list[-1][2]} vs {i[1]}')
+                        # 如果相似度小于阈值，说明该两行字幕不一样
+                        if similarity_ratio < config.THRESHOLD_TEXT_SIMILARITY:
                             unique_subtitle_list.append((start_frame, end_frame, i[1]))
+                        else:
+                            # 如果大于阈值，但又不完全相同，说明两行字幕相似
+                            # 可能出现以下情况: "但如何进人并接管上海" vs "但如何进入并接管上海"
+                            # OCR识别出现了错误识别
+                            if similarity_ratio < 1:
+                                # TODO:
+                                # 1) 取出两行字幕的并集
+                                # 2) 纠错
+                                # print(f'{round(similarity_ratio, 2)}, 需要手动纠错:\n {string_a} vs\n {string_b}')
+                                # 保存较长的
+                                if len(string_a) < len(string_b):
+                                    unique_subtitle_list[-1] = (start_frame, end_frame, i[1])
                     index += 1
                     break
                 else:
@@ -777,4 +801,3 @@ if __name__ == '__main__':
     se = SubtitleExtractor(video_path)
     # 开始提取字幕
     se.run()
-

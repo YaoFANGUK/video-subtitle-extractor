@@ -1,6 +1,9 @@
 简体中文 | [English](README_en.md)
 
 ## 项目简介
+![License](https://img.shields.io/badge/License-Apache%202-red.svg)
+![python version](https://img.shields.io/badge/Python-3.7+-blue.svg)
+![support os](https://img.shields.io/badge/OS-Windows/macOS/Linux-green.svg)
 
 video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕文件(srt格式)的软件。
 主要实现了以下功能：
@@ -30,7 +33,7 @@ video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕�
 - GUI版：
 
 <div align="center">
-  <img src="demo.gif"/>
+  <img src="design/demo.gif"/>
 </div>
 
 - CLI版：
@@ -39,23 +42,18 @@ video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕�
 
 
 ## 在线运行
-1. <a href="https://colab.research.google.com/" target="_blank">点击登陆Colab</a>
 
-2. 点击"文件"，"打开笔记本"，"GitHub"，复制以下链接:
+- 使用**Google Colab Notebook**(免费GPU): <a href="https://colab.research.google.com/github/YaoFANGUK/video-subtitle-extractor/blob/main/google_colab.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
 
-https://github.com/YaoFANGUK/video-subtitle-extractor/blob/main/google_colab.ipynb
-
-<img src="https://z3.ax1x.com/2021/03/30/ciG7Ps.png">   
-
-> PS: google Colab只能运行CLI版本
+> PS: Google Colab只能运行CLI版本
 
 ## 使用说明
 
-#### 1. (可选) 下载安装Anaconda 
+#### 1. (推荐) 下载安装Anaconda 
 
 <a href="https://www.anaconda.com/products/individual">https://www.anaconda.com/products/individual#Downloads</a>
 
-#### 2. (可选) 使用conda创建项目虚拟环境并激活环境 (建议创建虚拟环境运行，也可以不用conda)
+#### 2. (推荐) 使用conda创建项目虚拟环境并激活环境 (建议创建虚拟环境运行，以免后续出现问题)
 
 ```shell
 conda create --name videoEnv python=3.7

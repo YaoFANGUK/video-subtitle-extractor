@@ -109,7 +109,11 @@ WATERMARK_AREA_NUM = 5
 
 # 文本相似度阈值
 # 用于去重时判断两行字幕是不是统一行
-TEXT_SIMILARITY_THRESHOLD = 0.92
+# 采用动态算法实现相似度阈值判断: 对于短文本要求较低的阈值，对于长文本要求较高的阈值
+THRESHOLD_TEXT_SIMILARITY = 0.8
+
+# 字幕提取中置信度低于0.8的不要
+DROP_SCORE = 0.8
 # --------------------- 请根据自己的实际情况改 end-----------------------------
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
