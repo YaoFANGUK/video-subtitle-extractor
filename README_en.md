@@ -1,6 +1,9 @@
 [简体中文](README.md) | English
 
 ## Introduction
+![License](https://img.shields.io/badge/license-Apache%202-red.svg)
+![python version](https://img.shields.io/badge/python-3.7+-blue.svg)
+![support os](https://img.shields.io/badge/OS-Windows/macOS/Linux-green.svg)
 
 video-subtitle-extractor is used to extract hard-coded subtitles and generate **srt** file.  It includes the following implementations:
 
@@ -29,7 +32,7 @@ video-subtitle-extractor is used to extract hard-coded subtitles and generate **
 <img src="https://z3.ax1x.com/2021/04/09/cNrA1A.png">
 
 <div align="center">
-  <img src="demo.gif"/>
+  <img src="design/demo.gif"/>
 </div>
 
 - Command Line Interface: 
@@ -85,14 +88,7 @@ python main.py
 
 ## Run on Google Colab
 
-1. <a href="https://colab.research.google.com/" target="_blank">Login Colab</a>
-2. Click "File", "Open Notebook", "GitHub" and then copy the following link:
-
-https://github.com/YaoFANGUK/video-subtitle-extractor/blob/main/google_colab.ipynb
-
-<img src="https://z3.ax1x.com/2021/03/30/ciG7Ps.png">   
-
-
+- **Google Colab Notebook with free GPU**: <a href="https://colab.research.google.com/github/YaoFANGUK/video-subtitle-extractor/blob/main/google_colab.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
 
 ## Debug
 
