@@ -15,7 +15,8 @@ video-subtitle-extractor is used to extract hard-coded subtitles and generate **
 - generate srt file
 
 **Download**：
-- MacOS CPU：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/macOS_CPU.v0.1.0.dmg">macOS_CPU.v0.1.0.dmg</a>
+- Windows：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/vse_windows_CPU.zip">vse_windows_CPU.zip</a>
+- MacOS：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/vse_macOS_CPU.dmg">vse_macOS_CPU.dmg</a>
 
 ## Features
 
