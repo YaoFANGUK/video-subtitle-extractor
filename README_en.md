@@ -14,7 +14,8 @@ video-subtitle-extractor is used to extract hard-coded subtitles and generate **
 - remove duplicated subtitle line
 - generate srt file
 
-
+**Download**：
+- MacOS CPU：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/macOS_CPU.v0.1.0.dmg">macOS_CPU.v0.1.0.dmg</a>
 
 ## Features
 

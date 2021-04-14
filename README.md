@@ -14,6 +14,9 @@ video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕�
 - 去除重复字幕行，去除水印(台标)文本
 - 生成srt字幕文件
 
+**下载地址**：
+- MacOS CPU版本：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/macOS_CPU.v0.1.0.dmg">macOS_CPU.v0.1.0.dmg</a>
+
 ## 项目特色
 
 - 采用本地进行OCR识别，无需设置调用任何API，不需要接入百度、阿里等在线OCR服务即可本地完成文本识别
