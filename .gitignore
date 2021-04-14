@@ -352,3 +352,4 @@ $RECYCLE.BIN/
 /backend/models/ch_rec/inference.pdiparams
 /output/
 /test.py
+/dylib/
