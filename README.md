@@ -1,12 +1,14 @@
 简体中文 | [English](README_en.md)
 
 ## 项目简介
+
 ![License](https://img.shields.io/badge/License-Apache%202-red.svg)
 ![python version](https://img.shields.io/badge/Python-3.7+-blue.svg)
 ![support os](https://img.shields.io/badge/OS-Windows/macOS/Linux-green.svg)
 
 video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕文件(srt格式)的软件。
 主要实现了以下功能：
+
 - 提取视频中的关键帧
 - 检测视频帧中文本的所在位置
 - 识别视频帧中文本的内容
@@ -15,6 +17,7 @@ video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕�
 - 生成srt字幕文件
 
 **下载地址**：
+
 - Windows CPU版本：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/vse_windows_CPU.zip">vse_windows_CPU.zip</a> 
 
 > <a href="https://github.91chifun.workers.dev/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/vse_windows_CPU.zip">国内用户：vse_windows_CPU.zip</a>
@@ -33,7 +36,7 @@ video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕�
 <img src="https://z3.ax1x.com/2021/04/09/cNrA1A.png">
 
 点击【打开】后选择视频文件，调整字幕区域，点击【运行】
- 
+
 > **有任何改进意见请在ISSUES中提出**
 
 
@@ -44,6 +47,7 @@ video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕�
 <div align="center">
   <img src="design/demo.gif"/>
 </div>
+
 
 - CLI版：
 
@@ -71,21 +75,35 @@ conda activate videoEnv
 
 #### 3. 使用pip安装依赖文件
 
-如果没有安装Anaconda，请确保你已经安装 python 3.7
+如果没有安装Anaconda，请确保你已经安装 python 3.7+
 
-- mac用户, CPU用户: 
+- CPU用户 (mac用户) : 
 
-```shell
-pip install -r requirements.txt
-```
+  - 安装依赖：
 
-- 有N卡的GPU用户： **要达到高精度的识别率请使用GPU版**
+    ```shell
+    pip install -r requirements.txt
+    ```
 
-```shell
-conda install paddlepaddle-gpu==2.1.0 cudatoolkit=10.2 --channel https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/Paddle/
-conda install Shapely --channel https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/Paddle/
-pip install -r requirements_gpu.txt
-```
+- GPU用户(有N卡)： **要达到高精度的识别率请使用GPU版**
+
+  - 安装paddlepaddle:
+
+    ```shell
+    conda install -y paddlepaddle-gpu==2.1.0 cudatoolkit=10.2 --channel https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/Paddle/
+    ```
+
+  - 安装Shapely:
+
+    ```shell
+    conda install -y Shapely --channel https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/
+    ```
+
+  - 安装其他依赖:
+
+    ```shell
+    pip install -r requirements_gpu.txt
+    ```
 
 #### 4. 运行程序
 
@@ -115,11 +133,13 @@ OSError: [WinError 126] 找不到指定的模块。
 解决方案：
 
 1) 卸载Shapely
+
 ```shell
 pip uninstall Shapely -y
- ```
+```
 
 2) 使用conda重新安装Shapely
+
 ```shell
 conda install Shapely             
 ```
