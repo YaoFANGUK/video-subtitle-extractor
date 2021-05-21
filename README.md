@@ -75,7 +75,7 @@ conda activate videoEnv
 
 #### 3. 使用pip安装依赖文件
 
-如果没有安装Anaconda，请确保你已经安装 python 3.7+
+请确保你已经安装 python 3.7+
 
 - CPU用户 (mac用户) : 
 
