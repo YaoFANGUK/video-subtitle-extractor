@@ -119,9 +119,12 @@ python gui.py
 python main.py
 ```
 
-## Debug
+## 常见问题与解决方案
+#### 1. CondaHTTPError
 
-- Windows下出现geos_c.dll错误
+解决方案：<a href="https://zhuanlan.zhihu.com/p/260034241">https://zhuanlan.zhihu.com/p/260034241</a>
+
+#### 2. Windows下出现geos_c.dll错误
 
 ```integrationperformancetest
     _lgeos = CDLL(os.path.join(sys.prefix, 'Library', 'bin', 'geos_c.dll'))
