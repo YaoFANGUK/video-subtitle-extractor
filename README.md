@@ -92,6 +92,8 @@ conda activate videoEnv
     ```shell
     conda install -y paddlepaddle-gpu==2.1.0 cudatoolkit=10.2 --channel https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/Paddle/
     ```
+    
+    > 如果安装cuda 10.2，请对应安装7.6.5的cuDNN, **请不要使用cuDNN v8.x 和 cuda 10.2的组合**
 
   - 安装Shapely:
 
