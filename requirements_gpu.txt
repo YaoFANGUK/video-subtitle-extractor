@@ -14,7 +14,6 @@ matplotlib==3.4.1
 networkx==2.5.1
 numpy==1.19.0
 opencv-python==4.5.1.48
-paddlepaddle-gpu==2.0.1
 Pillow==8.2.0
 protobuf==3.15.8
 pyclipper==1.2.1
@@ -26,7 +25,6 @@ PyWavelets==1.1.1
 requests==2.25.1
 scikit-image==0.18.1
 scipy==1.6.2
-Shapely==1.7.1
 six==1.15.0
 tifffile==2021.4.8
 urllib3==1.26.4
