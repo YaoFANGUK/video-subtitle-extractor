@@ -43,7 +43,7 @@ video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕�
 
 
 
-## 演示视频 (CLI版)
+## 演示
 
 - GUI版：
 
