@@ -35,7 +35,7 @@ video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕�
 - (CLI版本) 无需用户手动设置字幕区域，项目通过文本检测模型自动检测字幕区域
 - (GUI版本) 图形化界面
 
-<img src="https://z3.ax1x.com/2021/04/09/cNrA1A.png">
+<img src="https://z3.ax1x.com/2021/04/09/cNrA1A.png" alt="demo">
 
 点击【打开】后选择视频文件，调整字幕区域，点击【运行】
 
@@ -47,12 +47,7 @@ video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕�
 
 - GUI版：
 
-<div align="center">
-  <img src="design/demo.gif"/>
-</div>
-
-
-
+<p style="text-align:center;"><img src="design/demo.gif" alt="demo.gif"/></p>
 
 - CLI版：
 
@@ -104,9 +99,9 @@ conda activate videoEnv
         <h5>(2) 安装CUDA 10.2</h5>
         <pre><code>sudo sh cuda_10.2.89_440.33.01_linux.run --override</code></pre>
         <p>1. 输入accept</p>
-        <img src="https://z3.ax1x.com/2021/05/24/gv0AVU.png" width="500">
+        <img src="https://z3.ax1x.com/2021/05/24/gv0AVU.png" width="500" alt="">
         <p>2. 选中CUDA Toolkit 10.2（如果你没有安装nvidia驱动则选中Driver，如果你已经安装了nvidia驱动请不要选中driver），之后选中install，回车</p>
-        <img src="https://z3.ax1x.com/2021/05/24/gv0dMt.png" width="500">
+        <img src="https://z3.ax1x.com/2021/05/24/gv0dMt.png" width="500" alt="">
         <p>3. 添加环境变量</p>
         <p>在 ~/.bashrc 加入以下内容</p>
         <pre><code># CUDA
@@ -177,7 +172,7 @@ python main.py
 
 #### 2. Windows下出现geos_c.dll错误
 
-```integrationperformancetest
+```text
     _lgeos = CDLL(os.path.join(sys.prefix, 'Library', 'bin', 'geos_c.dll'))
   File "C:\Users\Flavi\anaconda3\envs\subEnv\lib\ctypes\__init__.py", line 364, in __init__
     self._handle = _dlopen(self._name, mode)
