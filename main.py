@@ -23,26 +23,32 @@ from config import SubtitleArea
 
 
 # 加载文本检测+识别模型
-def load_model():
-    # 获取参数对象
-    args = utility.parse_args()
-    # 是否使用GPU加速
-    args.use_gpu = config.USE_GPU
-    if config.USE_GPU:
-        # 设置文本检测模型路径
-        args.det_model_dir = config.DET_MODEL_PATH
-        # 设置文本识别模型路径
-        args.rec_model_dir = config.REC_MODEL_PATH
-    else:
-        # 加载快速模型
-        args.det_model_dir = config.DET_MODEL_FAST_PATH
-        # 加载快速模型
-        # args.rec_model_dir = config.REC_MODEL_FAST_PATH
-        args.rec_model_dir = config.REC_MODEL_PATH
-    # 设置字典路径
-    args.rec_char_dict_path = config.DICT_PATH
+class OcrRecogniser:
+    def __init__(self):
+        # 获取参数对象
+        self.args = utility.parse_args()
+        self.recogniser = self.init_model()
 
-    return TextSystem(args)
+    def predict(self, image):
+        detection_box, recognise_result = self.recogniser(image)
+        return detection_box, recognise_result
+
+    def init_model(self):
+        self.args.use_gpu = config.USE_GPU
+        if config.USE_GPU:
+            # 设置文本检测模型路径
+            self.args.det_model_dir = config.DET_MODEL_PATH
+            # 设置文本识别模型路径
+            self.args.rec_model_dir = config.REC_MODEL_PATH
+        else:
+            # 加载快速模型
+            self.args.det_model_dir = config.DET_MODEL_FAST_PATH
+            # 加载快速模型
+            # args.rec_model_dir = config.REC_MODEL_FAST_PATH
+            self.args.rec_model_dir = config.REC_MODEL_PATH
+        # 设置字典路径
+        self.args.rec_char_dict_path = config.DICT_PATH
+        return TextSystem(self.args)
 
 
 class SubtitleExtractor:
@@ -228,7 +234,7 @@ class SubtitleExtractor:
         提取视频帧中的字幕信息，生成一个txt文件
         """
         # 初始化文本识别对象
-        text_recogniser = load_model()
+        text_recogniser = OcrRecogniser()
         # 视频帧列表
         frame_list = [i for i in sorted(os.listdir(self.frame_output_dir)) if i.endswith('.jpg')]
         # 删除缓存
@@ -241,7 +247,7 @@ class SubtitleExtractor:
             # 读取视频帧
             img = cv2.imread(os.path.join(self.frame_output_dir, frame))
             # 获取检测结果
-            dt_box, rec_res = text_recogniser(img)
+            dt_box, rec_res = text_recogniser.predict(img)
             # 获取文本坐标
             coordinates = self.__get_coordinates(dt_box)
             # 将结果写入txt文本中
