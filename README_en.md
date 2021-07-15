@@ -76,7 +76,7 @@ make sure you have python 3.8 installed
     pip install -r requirements.txt
     ```
 
-- For users who have Nvidia graphic card： **GPU version have better accuracy**
+- For users who have Nvidia graphic card： **GPU version can achieve better accuracy**
 
   - Install **CUDA 10.2** and **cuDNN 7.6.5**
 
