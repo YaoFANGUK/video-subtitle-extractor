@@ -6,7 +6,7 @@
 ![python version](https://img.shields.io/badge/Python-3.8+-blue.svg)
 ![support os](https://img.shields.io/badge/OS-Windows/macOS/Linux-green.svg)
 
-video-subtitle-extractor aims at extracting hard-coded subtitles and generate **srt** file.  It includes the following 
+video-subtitle-extractor aims at extracting hard-coded subtitles and generating **srt** file.  It includes the following 
 implementations:
 
 - detect and extract subtitle frames (and keyframes using traditional graphic method)
