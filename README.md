@@ -73,6 +73,9 @@ video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕�
 
 ```shell
 conda create --name videoEnv python=3.8
+```
+
+```shell
 conda activate videoEnv  
 ```
 
