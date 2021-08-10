@@ -61,6 +61,9 @@ implementations:
 
 ```shell
 conda create --name videoEnv python=3.8
+```
+
+```shell
 conda activate videoEnv  
 ```
 
