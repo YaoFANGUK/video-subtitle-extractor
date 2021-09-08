@@ -44,7 +44,7 @@ class SubtitleExtractorGUI:
         # 创建布局
         self._create_layout()
         # 创建窗口
-        self.window = sg.Window(title='硬字幕提取器', layout=self.layout, finalize=True)
+        self.window = sg.Window(title='硬字幕提取器', layout=self.layout)
         while True:
             # 循环读取事件
             event, values = self.window.read(timeout=10)
@@ -72,10 +72,10 @@ class SubtitleExtractorGUI:
                       key='-DISPLAY-')],
             # 打开按钮 + 快进快退条
             [sg.Input(key='-FILE-', visible=False, enable_events=True),
-             sg.FileBrowse('打开', file_types=(('所有文件', '*.*'), ('mp4文件', '*.mp4'), ('flv文件', '*.flv'),
-                                                           ('wmv文件', '*.wmv'), ('avi文件', '*.avi')),
+             sg.FileBrowse('打开', file_types=(('所有文件', '*.*'), ('mp4文件', '*.mp4'),
+                                             ('flv文件', '*.flv'), ('wmv文件', '*.wmv'), ('avi文件', '*.avi')),
                            key='-FILE_BTN-'),
-             sg.Slider(size=(50, 20), range=(1, 1), key='-SLIDER-', orientation='h',
+             sg.Slider(size=(80, 20), range=(1, 1), key='-SLIDER-', orientation='h',
                        enable_events=True,
                        disable_number_display=True)
              ],
