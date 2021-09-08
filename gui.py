@@ -64,15 +64,21 @@ class SubtitleExtractorGUI:
         创建字幕提取器布局
         """
         sg.theme('LightBrown12')
+        # 获取桌面分辨率
+        screen_width, screen_height = sg.Window.get_screen_size()
+        video_preview_height = screen_height // 2
+        video_preview_width = screen_width // 2
+        print(video_preview_width, video_preview_height)
         self.layout = [
             # 显示视频预览
-            [sg.Image(size=(854, 480), background_color='black', key='-DISPLAY-')],
+            [sg.Image(size=(video_preview_width, video_preview_height), background_color='black', key='-DISPLAY-')],
             # 打开按钮 + 快进快退条
             [sg.Input(key='-FILE-', visible=False, enable_events=True),
-             sg.FileBrowse('打开', file_types=(('mp4文件', '*.mp4'), ('flv文件', '*.flv'),
-                                             ('wmv文件', '*.wmv'), ('avi文件', '*.avi')),
+             sg.FileBrowse('打开', size=(10, 0), file_types=(('所有文件', '*.*'), ('mp4文件', '*.mp4'), ('flv文件', '*.flv'),
+                                                           ('wmv文件', '*.wmv'), ('avi文件', '*.avi')),
                            key='-FILE_BTN-'),
-             sg.Slider(size=(95, 20), range=(1, 1), key='-SLIDER-', orientation='h', enable_events=True,
+             sg.Slider(size=(95, 20), range=(1, 1), key='-SLIDER-', orientation='h',
+                       enable_events=True,
                        disable_number_display=True)
              ],
             # 输出区域
