@@ -5,20 +5,19 @@
 @FileName: gui.py
 @desc:
 """
-import sys
 import PySimpleGUI as sg
-import os
 import cv2
-from PIL import Image
-import io
-import config
-import numpy as np
 from main import SubtitleExtractor
 from threading import Thread
 
 
 class SubtitleExtractorGUI:
     def __init__(self):
+        # 获取窗口分辨率
+        self.screen_width, self.screen_height = sg.Window.get_screen_size()
+        # 设置视频预览区域大小
+        self.video_preview_height = self.screen_height // 2
+        self.video_preview_width = self.screen_width // 2
         # 字幕提取器布局
         self.layout = None
         # 字幕提取其窗口
@@ -45,7 +44,7 @@ class SubtitleExtractorGUI:
         # 创建布局
         self._create_layout()
         # 创建窗口
-        self.window = sg.Window('硬字幕提取器', self.layout)
+        self.window = sg.Window(title='硬字幕提取器', layout=self.layout, finalize=True)
         while True:
             # 循环读取事件
             event, values = self.window.read(timeout=10)
@@ -65,19 +64,18 @@ class SubtitleExtractorGUI:
         """
         sg.theme('LightBrown12')
         # 获取桌面分辨率
-        screen_width, screen_height = sg.Window.get_screen_size()
-        video_preview_height = screen_height // 2
-        video_preview_width = screen_width // 2
-        print(video_preview_width, video_preview_height)
+        print(sg.Window.get_screen_size())
+
         self.layout = [
             # 显示视频预览
-            [sg.Image(size=(video_preview_width, video_preview_height), background_color='black', key='-DISPLAY-')],
+            [sg.Image(size=(self.video_preview_width, self.video_preview_height), background_color='black',
+                      key='-DISPLAY-')],
             # 打开按钮 + 快进快退条
             [sg.Input(key='-FILE-', visible=False, enable_events=True),
-             sg.FileBrowse('打开', size=(10, 0), file_types=(('所有文件', '*.*'), ('mp4文件', '*.mp4'), ('flv文件', '*.flv'),
+             sg.FileBrowse('打开', file_types=(('所有文件', '*.*'), ('mp4文件', '*.mp4'), ('flv文件', '*.flv'),
                                                            ('wmv文件', '*.wmv'), ('avi文件', '*.avi')),
                            key='-FILE_BTN-'),
-             sg.Slider(size=(95, 20), range=(1, 1), key='-SLIDER-', orientation='h',
+             sg.Slider(size=(50, 20), range=(1, 1), key='-SLIDER-', orientation='h',
                        enable_events=True,
                        disable_number_display=True)
              ],
@@ -134,7 +132,7 @@ class SubtitleExtractorGUI:
                     # 获取视频的帧率
                     self.fps = self.video_cap.get(cv2.CAP_PROP_FPS)
                     # 调整视频帧大小，是播放器能够显示
-                    resized_frame = cv2.resize(src=frame, dsize=(854, 480))
+                    resized_frame = cv2.resize(src=frame, dsize=(self.video_preview_width, self.video_preview_height))
                     # 显示视频帧
                     self.window['-DISPLAY-'].update(data=cv2.imencode('.png', resized_frame)[1].tobytes())
                     # 更新视频进度条滑块range
