@@ -63,9 +63,6 @@ class SubtitleExtractorGUI:
         创建字幕提取器布局
         """
         sg.theme('LightBrown12')
-        # 获取桌面分辨率
-        print(sg.Window.get_screen_size())
-
         self.layout = [
             # 显示视频预览
             [sg.Image(size=(self.video_preview_width, self.video_preview_height), background_color='black',
