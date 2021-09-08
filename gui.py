@@ -197,8 +197,8 @@ class SubtitleExtractorGUI:
                     w = int(values['-X-SLIDER-W-'])
                     draw = cv2.rectangle(img=frame, pt1=(x, y), pt2=(x + w, y + h),
                                          color=(0, 255, 0), thickness=3)
-                    # 调整视频帧大小，是播放器能够显示
-                    resized_frame = cv2.resize(src=draw, dsize=(854, 480))
+                    # 调整视频帧大小，使播放器能够显示
+                    resized_frame = cv2.resize(src=draw, dsize=(self.video_preview_width, self.video_preview_height))
                     # 显示视频帧
                     self.window['-DISPLAY-'].update(data=cv2.imencode('.png', resized_frame)[1].tobytes())
 
