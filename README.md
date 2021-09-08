@@ -65,7 +65,7 @@ video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕�
 
 ## 使用说明
 
-[![GPU版本安装教程](https://z3.ax1x.com/2021/09/08/h7Ro1H.png)](https://www.bilibili.com/video/bv11L4y1Y7Tj "GUP版本安装教程")
+[![GPU版本安装教程](https://z3.ax1x.com/2021/09/08/h7hhNV.png)](https://www.bilibili.com/video/bv11L4y1Y7Tj "GUP版本安装教程")
 
 #### 1. 下载安装Anaconda 
 
