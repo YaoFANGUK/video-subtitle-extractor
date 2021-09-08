@@ -44,8 +44,7 @@ class OcrRecogniser:
             # 加载快速模型
             self.args.det_model_dir = config.DET_MODEL_FAST_PATH
             # 加载快速模型
-            # args.rec_model_dir = config.REC_MODEL_FAST_PATH
-            self.args.rec_model_dir = config.REC_MODEL_PATH
+            self.args.rec_model_dir = config.REC_MODEL_FAST_PATH
         # 设置字典路径
         self.args.rec_char_dict_path = config.DICT_PATH
         return TextSystem(self.args)
