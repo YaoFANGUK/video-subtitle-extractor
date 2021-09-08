@@ -65,6 +65,8 @@ video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕�
 
 ## 使用说明
 
+[![GPU版本安装教程](https://z3.ax1x.com/2021/09/08/h7Ro1H.png)](https://www.bilibili.com/video/bv11L4y1Y7Tj "GUP版本安装教程")
+
 #### 1. 下载安装Anaconda 
 
 <a href="https://www.anaconda.com/products/individual">https://www.anaconda.com/products/individual#Downloads</a>
@@ -122,6 +124,7 @@ conda activate videoEnv
      sudo chmod a+r /usr/local/cuda-10.2/lib64/*
      sudo chmod a+r /usr/local/cuda-10.2/include/*</code></pre>
     </details>
+
 
     <details>
         <summary>Windows用户</summary>
@@ -197,6 +200,6 @@ conda install Shapely
 ```
 
 #### 3. 语音配合优化提取速度
+
 项目地址： https://github.com/m986883511/extract-video-subtittle
 感谢作者：m986883511
-
