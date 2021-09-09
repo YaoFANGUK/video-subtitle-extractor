@@ -35,7 +35,7 @@ DICT_PATH = os.path.join(BASE_DIR, 'backend', 'ppocr', 'utils', 'ppocr_keys_v1.t
 
 
 # 如果设置了识别文本语言类型，则设置为对应的语言
-if REC_CHAR_TYPE in ('ch', 'en', 'EN_symbol', 'french', 'german', 'japan', 'korean', 'it', 'es', 'pt', 'ru', 'ar',
+if REC_CHAR_TYPE in ('ch', 'japan', 'korean', 'en', 'EN_symbol', 'french', 'german', 'it', 'es', 'pt', 'ru', 'ar',
                      'ta', 'ug', 'fa', 'ur', 'rs_latin', 'oc', 'rs_cyrillic', 'bg', 'uk', 'be', 'te', 'kn', 'ch_tra', 'hi', 'mr', 'ne', 'EN'):
     REC_MODEL_PATH = os.path.join(BASE_DIR, 'backend', 'models', f'{REC_CHAR_TYPE}_rec')
     REC_MODEL_FAST_PATH = os.path.join(REC_MODEL_BASE, f'{REC_CHAR_TYPE}_rec_fast')
