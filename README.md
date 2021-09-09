@@ -18,6 +18,10 @@ video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕�
 
 **下载地址**：
 
+- Windows GPU版本：
+  - 国内：<a href="https://github.91chifun.workers.dev/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_GPU.zip.001">vse_windows_GPU.zip.001 (1/2)</a>、<a href="https://github.91chifun.workers.dev/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_GPU.zip.002">vse_windows_GPU.zip.002 (2/2)</a>
+  - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_GPU.zip.001">vse_windows_GPU.zip.001 (1/2)</a> 、<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_GPU.zip.002">vse_windows_GPU.zip.002 (2/2)</a>
+
 - Windows CPU版本：
   - 国内：<a href="https://github.91chifun.workers.dev/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/vse_windows_CPU.zip">vse_windows_CPU.zip</a>
   - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/vse_windows_CPU.zip">vse_windows_CPU.zip</a> 
