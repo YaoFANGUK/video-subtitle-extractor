@@ -47,6 +47,8 @@ class OcrRecogniser:
             self.args.rec_model_dir = config.REC_MODEL_FAST_PATH
         # 设置字典路径
         self.args.rec_char_dict_path = config.DICT_PATH
+        # 设置识别文本的类型
+        self.args.rec_char_type = config.REC_CHAR_TYPE
         return TextSystem(self.args)
 
 
