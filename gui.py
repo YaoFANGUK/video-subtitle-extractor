@@ -7,8 +7,12 @@
 """
 import PySimpleGUI as sg
 import cv2
-from main import SubtitleExtractor
+import os
 from threading import Thread
+from backend.tools.settings import set_language
+# 确保在加载main模块前先设置语言
+set_language(os.path.join(os.path.dirname(__file__), 'settings.ini'))
+from main import SubtitleExtractor
 
 
 class SubtitleExtractorGUI:
@@ -201,5 +205,6 @@ class SubtitleExtractorGUI:
 
 
 if __name__ == '__main__':
+    # 运行图形化界面
     subtitleExtractorGUI = SubtitleExtractorGUI()
     subtitleExtractorGUI.run()
