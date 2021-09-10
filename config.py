@@ -5,6 +5,7 @@
 @FileName: config.py
 @desc: 项目配置文件，可以在这里调参，牺牲时间换取精确度，或者牺牲准确度换取时间
 """
+import configparser
 import os
 from pathlib import Path
 from enum import Enum
@@ -13,8 +14,18 @@ from paddle import fluid
 
 fluid.install_check.run_check()
 
+config = configparser.ConfigParser()
+config_path = os.path.join(os.path.dirname(__file__), 'settings.ini')
+if not os.path.exists(config_path):
+    # 如果没有配置文件，默认使用中文
+    with open(config_path, mode='w') as f:
+        f.write('[DEFAULT]\n')
+        f.write(f'Language = ch')
+config.read(config_path)
+
 # 设置识别语言
-REC_CHAR_TYPE = 'ch'
+REC_CHAR_TYPE = config['DEFAULT']['Language']
+print(f'识别字幕语言：{REC_CHAR_TYPE}')
 
 # --------------------- 请你不要改 start-----------------------------
 # 项目的base目录
