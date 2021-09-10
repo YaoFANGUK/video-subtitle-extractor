@@ -13,7 +13,7 @@ def set_language(config_file):
     window = sg.Window(title='字幕提取器',
                        layout=[
                            [sg.Text('选择视频字幕的语言:'), sg.DropDown(values=languages, size=(30, 20), pad=(0, 20),
-                                                               key='-LANGUAGE-')],
+                                                               key='-LANGUAGE-', readonly=True)],
                            [sg.OK(), sg.Cancel()]
                        ])
     event, values = window.read()
