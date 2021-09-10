@@ -15,6 +15,7 @@ video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕�
 - 过滤非字幕区域的文本
 - 去除重复字幕行，去除水印(台标)文本
 - 生成srt字幕文件
+- 多语言：支持**中文**、**日语**、**韩语**、**法语**、**德语**字幕的提取
 
 **下载地址**：
 
@@ -53,9 +54,9 @@ video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕�
 
 <p style="text-align:center;"><img src="design/demo.gif" alt="demo.gif"/></p>
 
-- CLI版：
+- 点击查看视频教程 👇
 
-[![Demo Video](https://s1.ax1x.com/2020/10/05/0JWVeJ.png)](https://www.bilibili.com/video/BV1t5411h78J "Demo Video")
+[![GPU版本安装教程](https://z3.ax1x.com/2021/09/08/h7hhNV.png)](https://www.bilibili.com/video/bv11L4y1Y7Tj "GUP版本安装教程")
 
 
 
@@ -68,10 +69,6 @@ video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕�
 
 
 ## 使用说明
-
-点击查看视频教程 👇
-
-[![GPU版本安装教程](https://z3.ax1x.com/2021/09/08/h7hhNV.png)](https://www.bilibili.com/video/bv11L4y1Y7Tj "GUP版本安装教程")
 
 #### 1. 下载安装Anaconda 
 
