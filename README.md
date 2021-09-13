@@ -206,8 +206,3 @@ pip uninstall Shapely -y
 ```shell
 conda install Shapely             
 ```
-
-#### 3. 语音配合优化提取速度
-
-项目地址： https://github.com/m986883511/extract-video-subtittle
-感谢作者：m986883511
