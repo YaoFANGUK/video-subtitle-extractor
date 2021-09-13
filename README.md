@@ -175,11 +175,16 @@ python main.py
 
 ## 常见问题与解决方案
 
-#### 1. CondaHTTPError
+#### 1. 运行不正常/没有结果
+
+解决方案：如果你使用的是3070/3080等安培架构的显卡，请使用最新的paddlepaddle版本以及最新的cuda
+
+
+#### 2. CondaHTTPError
 
 解决方案：<a href="https://zhuanlan.zhihu.com/p/260034241">https://zhuanlan.zhihu.com/p/260034241</a>
 
-#### 2. Windows下出现geos_c.dll错误
+#### 3. Windows下出现geos_c.dll错误
 
 ```text
     _lgeos = CDLL(os.path.join(sys.prefix, 'Library', 'bin', 'geos_c.dll'))
