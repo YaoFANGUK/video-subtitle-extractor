@@ -15,6 +15,7 @@ video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕�
 - 过滤非字幕区域的文本
 - 去除重复字幕行，去除水印(台标)文本
 - 生成srt字幕文件
+- 多语言：支持**中文**、**日语**、**韩语**、**法语**、**德语**字幕的提取
 
 **下载地址**：
 
@@ -53,9 +54,9 @@ video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕�
 
 <p style="text-align:center;"><img src="design/demo.gif" alt="demo.gif"/></p>
 
-- CLI版：
+- 点击查看视频教程 👇
 
-[![Demo Video](https://s1.ax1x.com/2020/10/05/0JWVeJ.png)](https://www.bilibili.com/video/BV1t5411h78J "Demo Video")
+[![GPU版本安装教程](https://z3.ax1x.com/2021/09/08/h7hhNV.png)](https://www.bilibili.com/video/bv11L4y1Y7Tj "GUP版本安装教程")
 
 
 
@@ -68,10 +69,6 @@ video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕�
 
 
 ## 使用说明
-
-点击查看视频教程 👇
-
-[![GPU版本安装教程](https://z3.ax1x.com/2021/09/08/h7hhNV.png)](https://www.bilibili.com/video/bv11L4y1Y7Tj "GUP版本安装教程")
 
 #### 1. 下载安装Anaconda 
 
@@ -178,11 +175,16 @@ python main.py
 
 ## 常见问题与解决方案
 
-#### 1. CondaHTTPError
+#### 1. 运行不正常/没有结果
+
+解决方案：如果你使用的是3060/3070/3080等安培架构的显卡，请使用最新的paddlepaddle版本以及最新的cuda 11+
+
+
+#### 2. CondaHTTPError
 
 解决方案：<a href="https://zhuanlan.zhihu.com/p/260034241">https://zhuanlan.zhihu.com/p/260034241</a>
 
-#### 2. Windows下出现geos_c.dll错误
+#### 3. Windows下出现geos_c.dll错误
 
 ```text
     _lgeos = CDLL(os.path.join(sys.prefix, 'Library', 'bin', 'geos_c.dll'))
@@ -204,8 +206,3 @@ pip uninstall Shapely -y
 ```shell
 conda install Shapely             
 ```
-
-#### 3. 语音配合优化提取速度
-
-项目地址： https://github.com/m986883511/extract-video-subtittle
-感谢作者：m986883511
