@@ -20,12 +20,22 @@ if not os.path.exists(config_path):
     # 如果没有配置文件，默认使用中文
     with open(config_path, mode='w') as f:
         f.write('[DEFAULT]\n')
-        f.write(f'Language = ch')
+        f.write('Language = ch\n')
+        f.write('Mode = accurate')
 config.read(config_path)
 
 # 设置识别语言
 REC_CHAR_TYPE = config['DEFAULT']['Language']
 print(f'识别字幕语言：{REC_CHAR_TYPE}')
+
+# 设置识别模式
+MODE_TYPE = config['DEFAULT']['Mode']
+print(f'识别模式：{MODE_TYPE}')
+ACCURATE_MODE_ON = False
+if MODE_TYPE == 'accurate':
+    ACCURATE_MODE_ON = True
+if MODE_TYPE == 'fast':
+    ACCURATE_MODE_ON = False
 
 # --------------------- 请你不要改 start-----------------------------
 # 项目的base目录

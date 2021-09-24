@@ -9,9 +9,9 @@ import PySimpleGUI as sg
 import cv2
 import os
 from threading import Thread
-from backend.tools.settings import set_language
-# 确保在加载main模块前先设置语言
-set_language(os.path.join(os.path.dirname(__file__), 'settings.ini'))
+from backend.tools.settings import set_language_mode
+# 确保在加载main模块前先设置语言和模式
+set_language_mode(os.path.join(os.path.dirname(__file__), 'settings.ini'))
 from main import SubtitleExtractor
 
 
