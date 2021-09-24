@@ -18,6 +18,7 @@ import numpy as np
 
 import config
 from backend.tools.infer import utility
+from backend.tools.infer.predict_det import TextDetector
 from backend.tools.infer.predict_system import TextSystem
 from config import SubtitleArea
 
@@ -52,6 +53,19 @@ class OcrRecogniser:
         return TextSystem(self.args)
 
 
+class SubtitleDetect:
+    def __init__(self):
+        # 获取参数对象
+        args = utility.parse_args()
+        args.det_algorithm = 'DB'
+        args.det_model_dir = config.DET_MODEL_FAST_PATH
+        self.text_detector = TextDetector(args)
+
+    def detect_subtitle(self, img):
+        dt_boxes, elapse = self.text_detector(img)
+        return dt_boxes, elapse
+
+
 class SubtitleExtractor:
     """
     视频字幕提取类
@@ -60,6 +74,7 @@ class SubtitleExtractor:
     def __init__(self, vd_path, sub_area=None):
         # 字幕区域位置
         self.sub_area = sub_area
+        self.sub_detector = SubtitleDetect()
         # 视频路径
         self.video_path = vd_path
         self.video_cap = cv2.VideoCapture(vd_path)
@@ -92,7 +107,10 @@ class SubtitleExtractor:
         运行整个提取视频的步骤
         """
         print('【处理中】开启提取视频关键帧...')
-        self.extract_frame_by_fps()
+        if self.sub_area is not None and config.ACCURATE_MODE_ON:
+            self.extract_frame_by_det()
+        else:
+            self.extract_frame_by_fps()
         print('【结束】提取视频关键帧完毕...')
 
         print('【处理中】开始提取字幕信息，此步骤可能花费较长时间，请耐心等待...')
@@ -199,6 +217,39 @@ class SubtitleExtractor:
                     ret, _ = self.video_cap.read()
                     if ret:
                         frame_no += 1
+
+        self.video_cap.release()
+
+    def extract_frame_by_det(self):
+        """
+        通过检测字幕区域位置提取字幕帧
+        """
+        # 删除缓存
+        self.__delete_frame_cache()
+
+        # 当前视频帧的帧号
+        frame_no = 0
+
+        while self.video_cap.isOpened():
+            ret, frame = self.video_cap.read()
+            # 如果读取视频帧失败（视频读到最后一帧）
+            if not ret:
+                break
+            # 读取视频帧成功
+            else:
+                frame_no += 1
+                if self.sub_area is not None:
+                    ymin, ymax, xmin, xmax = self.sub_area
+                    dt_boxes, elapse = self.sub_detector.detect_subtitle(frame[ymin:ymax, xmin:xmax])
+                    if len(dt_boxes) > 0:
+                        # 保存视频帧
+                        frame = self._frame_preprocess(frame)
+
+                        # 帧名往前补零，后续用于排序与时间戳转换，补足8位
+                        # 一部10h电影，fps120帧最多也才1*60*60*120=432000 6位，所以8位足够
+                        filename = os.path.join(self.frame_output_dir, str(frame_no).zfill(8) + '.jpg')
+                        cv2.imwrite(filename, frame)
+                        print(f'字幕帧：{frame_no}, 耗时: {elapse}')
 
         self.video_cap.release()
 
@@ -528,83 +579,24 @@ class SubtitleExtractor:
         :param frame_no: 视频的帧号，i.e. 第几帧视频帧
         :returns: SMPTE格式时间戳 as string, 如'01:02:12:32' 或者 '01:02:12;32'
         """
-        # 将小数点后两位的数字丢弃
-        tmp = str(self.fps).split('.')
-        tmp[1] = tmp[1][:2]
-        frame_rate = float('.'.join(tmp))
-
-        drop = False
-
-        if frame_rate in [29.97, 59.94]:
-            drop = True
-
-        # 将fps就近取整，如29.97或59.94取整为30和60
-        fps_int = int(round(frame_rate))
-        # 然后添加drop frames进行补偿
-
-        if drop:
-            # drop-frame-mode
-            # 每分钟添加两个fake frames，每十分钟的时候不添加
-            # 1分钟内，non-drop和drop的时间戳对比
-            # frame: 1795 non-drop: 00:00:59:25 drop: 00:00:59;25
-            # frame: 1796 non-drop: 00:00:59:26 drop: 00:00:59;26
-            # frame: 1797 non-drop: 00:00:59:27 drop: 00:00:59;27
-            # frame: 1798 non-drop: 00:00:59:28 drop: 00:00:59;28
-            # frame: 1799 non-drop: 00:00:59:29 drop: 00:00:59;29
-            # frame: 1800 non-drop: 00:01:00:00 drop: 00:01:00;02
-            # frame: 1801 non-drop: 00:01:00:01 drop: 00:01:00;03
-            # frame: 1802 non-drop: 00:01:00:02 drop: 00:01:00;04
-            # frame: 1803 non-drop: 00:01:00:03 drop: 00:01:00;05
-            # frame: 1804 non-drop: 00:01:00:04 drop: 00:01:00;06
-            # frame: 1805 non-drop: 00:01:00:05 drop: 00:01:00;07
-            #
-            # 10分钟内，non-drop和drop的时间戳对比
-            #
-            # frame: 17977 non-drop: 00:09:59:07 drop: 00:09:59;25
-            # frame: 17978 non-drop: 00:09:59:08 drop: 00:09:59;26
-            # frame: 17979 non-drop: 00:09:59:09 drop: 00:09:59;27
-            # frame: 17980 non-drop: 00:09:59:10 drop: 00:09:59;28
-            # frame: 17981 non-drop: 00:09:59:11 drop: 00:09:59;29
-            # frame: 17982 non-drop: 00:09:59:12 drop: 00:10:00;00
-            # frame: 17983 non-drop: 00:09:59:13 drop: 00:10:00;01
-            # frame: 17984 non-drop: 00:09:59:14 drop: 00:10:00;02
-            # frame: 17985 non-drop: 00:09:59:15 drop: 00:10:00;03
-            # frame: 17986 non-drop: 00:09:59:16 drop: 00:10:00;04
-            # frame: 17987 non-drop: 00:09:59:17 drop: 00:10:00;05
-
-            # 计算29.97 std NTSC工作流程的丢帧数。1分钟一共有30*60 = 1800 frames
-
-            FRAMES_IN_ONE_MINUTE = 1800 - 2
-
-            FRAMES_IN_TEN_MINUTES = (FRAMES_IN_ONE_MINUTE * 10) - 2
-
-            ten_minute_chunks = frame_no / FRAMES_IN_TEN_MINUTES
-            one_minute_chunks = frame_no % FRAMES_IN_TEN_MINUTES
-
-            ten_minute_part = 18 * ten_minute_chunks
-            one_minute_part = 2 * ((one_minute_chunks - 2) / FRAMES_IN_ONE_MINUTE)
-
-            if one_minute_part < 0:
-                one_minute_part = 0
-
-            # 添加额外的帧
-            frame_no += ten_minute_part + one_minute_part
-
-            # 对于60 fps的drop frame计算， 添加两倍的帧数
-            if fps_int == 60:
-                frame_no = frame_no * 2
-
-            smpte_token = ","  # 也可能为;号
-
-        else:
-            smpte_token = ","
-
-        # 将视频帧转化为时间戳
-        hours = int(frame_no / (3600 * fps_int))
-        minutes = int(frame_no / (60 * fps_int) % 60)
-        seconds = int(frame_no / fps_int % 60)
-        frames = int(frame_no % fps_int)
-        return "%02d:%02d:%02d%s%02d" % (hours, minutes, seconds, smpte_token, frames)
+        # 设置当前帧号
+        cap = cv2.VideoCapture(self.video_path)
+        cap.set(cv2.CAP_PROP_POS_FRAMES, frame_no)
+        cap.read()
+        # 获取当前帧号对应的时间戳
+        milliseconds = cap.get(cv2.CAP_PROP_POS_MSEC)
+        seconds = milliseconds // 1000
+        milliseconds = int(milliseconds % 1000)
+        minutes = 0
+        hours = 0
+        if seconds >= 60:
+            minutes = int(seconds // 60)
+            seconds = int(seconds % 60)
+        if minutes >= 60:
+            hours = int(minutes // 60)
+            minutes = int(minutes % 60)
+        smpte_token = ','
+        return "%02d:%02d:%02d%s%02d" % (hours, minutes, seconds, smpte_token, milliseconds)
 
     def _remove_duplicate_subtitle(self):
         """
