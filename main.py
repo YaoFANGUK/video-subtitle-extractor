@@ -596,6 +596,7 @@ class SubtitleExtractor:
             hours = int(minutes // 60)
             minutes = int(minutes % 60)
         smpte_token = ','
+        cap.release()
         return "%02d:%02d:%02d%s%02d" % (hours, minutes, seconds, smpte_token, milliseconds)
 
     def _remove_duplicate_subtitle(self):
