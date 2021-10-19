@@ -25,6 +25,8 @@ implementations:
 
 - Windows GPU version：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_GPU.zip">vse_windows_GPU.zip</a>
 
+- Windows GPU version - RTX 30xx series：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_GPU_30xx.7z">vse_windows_GPU_30xx.7z</a>
+
 - MacOS：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/vse_macOS_CPU.dmg">vse_macOS_CPU.dmg</a>
 
 ## Features
