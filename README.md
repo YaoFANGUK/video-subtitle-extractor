@@ -22,9 +22,16 @@ video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕�
 
 **下载地址**：
 
-- Windows GPU版本：
+> RTX 30xx***以外***系列的显卡请下载```vse_windows_GPU.zip```
+- Windows GPU版本 - 非安培架构：
   - 国内：<a href="https://github.91chifun.workers.dev/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_GPU.zip">vse_windows_GPU.zip</a>
   - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_GPU.zip">vse_windows_GPU.zip</a>
+
+
+> RTX 3050/3060/3070/3080 (ti)等安培架构的显卡请下载```vse_windows_GPU_30xx.7z```
+- Windows GPU版本 - 安培架构：
+  - 国内：<a href="https://github.91chifun.workers.dev/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_GPU_30xx.7z">vse_windows_GPU_30xx.7z</a>
+  - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_GPU_30xx.7z">vse_windows_GPU_30xx.7z</a>
 
 - Windows CPU版本：
   - 国内：<a href="https://github.91chifun.workers.dev/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/vse_windows_CPU.zip">vse_windows_CPU.zip</a>
