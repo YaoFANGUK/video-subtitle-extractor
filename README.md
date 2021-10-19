@@ -22,7 +22,7 @@ video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕�
 
 **下载地址**：
 
-> RTX 30xx***以外***系列的显卡请下载```vse_windows_GPU.zip```
+> RTX 30xx系列***以外***的显卡请下载```vse_windows_GPU.zip```
 - Windows GPU版本 - 非安培架构：
   - 国内：<a href="https://github.91chifun.workers.dev/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_GPU.zip">vse_windows_GPU.zip</a>
   - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_GPU.zip">vse_windows_GPU.zip</a>
