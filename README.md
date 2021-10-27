@@ -17,21 +17,14 @@ video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕�
 - 生成srt字幕文件
 - 多语言：支持**中文**、**日语**、**韩语**、**法语**、**德语**字幕的提取
 - 多模式：
-  - **fast** - 快速提取字幕但时间轴不准确 
-  - **accurate** - 时间轴准确但提取速度较慢
+  - **fast** - 快速提取字幕但可能丢字幕
+  - **accurate** - 不丢字幕但速度较慢
 
 **下载地址**：
 
-> RTX 30xx系列***以外***的显卡请下载```vse_windows_GPU.zip```
-- Windows GPU版本 - 非安培架构：
-  - 国内：<a href="https://github.91chifun.workers.dev/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_GPU.zip">vse_windows_GPU.zip</a>
-  - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_GPU.zip">vse_windows_GPU.zip</a>
-
-
-> RTX 3050/3060/3070/3080 (ti)等安培架构的显卡请下载```vse_windows_GPU_30xx.7z```
-- Windows GPU版本 - 安培架构：
-  - 国内：<a href="https://github.91chifun.workers.dev/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_GPU_30xx.7z">vse_windows_GPU_30xx.7z</a>
-  - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_GPU_30xx.7z">vse_windows_GPU_30xx.7z</a>
+- Windows GPU版本：
+  - 国内：<a href="https://github.91chifun.workers.dev/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_GPU.7z">vse_windows_GPU.7z</a>
+  - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_GPU.7z">vse_windows_GPU.7z</a>
 
 - Windows CPU版本：
   - 国内：<a href="https://github.91chifun.workers.dev/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/vse_windows_CPU.zip">vse_windows_CPU.zip</a>
