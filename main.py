@@ -5,6 +5,7 @@
 @FileName: main.py
 @desc: 主程序入口文件
 """
+import re
 import os
 import random
 from collections import Counter
@@ -21,6 +22,7 @@ from backend.tools.infer import utility
 from backend.tools.infer.predict_det import TextDetector
 from backend.tools.infer.predict_system import TextSystem
 from config import SubtitleArea
+import platform
 
 
 # 加载文本检测+识别模型
@@ -94,6 +96,8 @@ class SubtitleExtractor:
         self.frame_output_dir = os.path.join(self.temp_output_dir, 'frames')
         # 提取的字幕文件存储目录
         self.subtitle_output_dir = os.path.join(self.temp_output_dir, 'subtitle')
+        # 定义vsf的字幕输出路径
+        self.vsf_subtitle = os.path.join(self.subtitle_output_dir, 'raw_vsf.srt')
         # 不存在则创建文件夹
         if not os.path.exists(self.frame_output_dir):
             os.makedirs(self.frame_output_dir)
@@ -101,14 +105,21 @@ class SubtitleExtractor:
             os.makedirs(self.subtitle_output_dir)
         # 提取的原始字幕文本存储路径
         self.raw_subtitle_path = os.path.join(self.subtitle_output_dir, 'raw.txt')
+        # 自定义ocr对象
+        self.ocr = OcrRecogniser()
 
     def run(self):
         """
         运行整个提取视频的步骤
         """
         print('【处理中】开启提取视频关键帧...')
-        if self.sub_area is not None and config.ACCURATE_MODE_ON:
-            self.extract_frame_by_det()
+        if self.sub_area is not None:
+            if config.ACCURATE_MODE_ON:
+                self.extract_frame_by_det()
+            elif platform.system() == 'Windows':
+                self.extract_frame_by_vsf()
+            else:
+                self.extract_frame_by_fps()
         else:
             self.extract_frame_by_fps()
         print('【结束】提取视频关键帧完毕...')
@@ -133,7 +144,10 @@ class SubtitleExtractor:
             print('【结束】已将非字幕区域的内容删除')
 
         print('【处理中】开始生成字幕文件')
-        self.generate_subtitle_file()
+        if platform.system() == 'Windows':
+            self.generate_subtitle_file_vsf()
+        else:
+            self.generate_subtitle_file()
         print('【结束】字幕文件生成成功')
 
     def extract_frame(self):
@@ -242,16 +256,60 @@ class SubtitleExtractor:
                     ymin, ymax, xmin, xmax = self.sub_area
                     dt_boxes, elapse = self.sub_detector.detect_subtitle(frame[ymin:ymax, xmin:xmax])
                     if len(dt_boxes) > 0:
-                        # 保存视频帧
-                        frame = self._frame_preprocess(frame)
-
                         # 帧名往前补零，后续用于排序与时间戳转换，补足8位
                         # 一部10h电影，fps120帧最多也才1*60*60*120=432000 6位，所以8位足够
                         filename = os.path.join(self.frame_output_dir, str(frame_no).zfill(8) + '.jpg')
-                        cv2.imwrite(filename, frame)
+                        # 查询frame目录下最后两张图片
+                        frame_list = sorted([i for i in os.listdir(self.frame_output_dir) if i.endswith('.jpg')])
+                        # 如果frame列表大于等于2则取出最后两张图片
+                        if len(frame_list) < 2:
+                            # 保存视频帧
+                            cv2.imwrite(filename, frame)
+                        else:
+                            frame_last = cv2.imread(os.path.join(self.frame_output_dir, frame_list[-1]))
+                            frame_last_2nd = cv2.imread(os.path.join(self.frame_output_dir, frame_list[-2]))
+                            if self._compare_ocr_result(frame_last, frame_last_2nd):
+                                if self._compare_ocr_result(frame_last, frame):
+                                    # 如果当最后两帧内容一样，且最后一帧与当前帧一样
+                                    # 删除最后一张，将当前帧设置为最后一帧
+                                    os.remove(os.path.join(self.frame_output_dir, frame_list[-1]))
+                            cv2.imwrite(filename, frame)
                         print(f'字幕帧：{frame_no}, 耗时: {elapse}')
 
         self.video_cap.release()
+
+    def extract_frame_by_vsf(self):
+        """
+       通过调用videoSubFinder获取字幕帧
+       """
+        # 删除缓存
+        self.__delete_frame_cache()
+        # 定义videoSubFinder所在路径
+        path_vsf = os.path.join(config.BASE_DIR, 'backend', 'subfinder', 'VideoSubFinderWXW.exe')
+        # ：图像上半部分所占百分比，取值【0-1】
+        top_end = 1 - self.sub_area[0] / self.frame_height
+        # bottom_end：图像下半部分所占百分比，取值【0-1】
+        bottom_end = 1 - self.sub_area[1] / self.frame_height
+        # left_end：图像左半部分所占百分比，取值【0-1】
+        left_end = self.sub_area[2] / self.frame_width
+        # re：图像右半部分所占百分比，取值【0-1】
+        right_end = self.sub_area[3] / self.frame_width
+        # 定义执行命令
+        cmd = path_vsf + " -c -r" + " -i " + self.video_path + " -o " + self.temp_output_dir + f' -ces {self.vsf_subtitle}' + f' -te {top_end}' + f' -be {bottom_end}' + f' -le {left_end}' + f' -re {right_end}'
+        os.system(cmd)
+        # 提取字幕帧
+        cap = cv2.VideoCapture(self.video_path)
+        for i, frame_name in enumerate(os.listdir(os.path.join(self.temp_output_dir, 'RGBImages'))):
+            timestamp = frame_name.split('__')[0]
+            h, m, s, ms = timestamp.split('_')
+            total_ms = int(ms) + int(s) * 1000 + int(m) * 60 * 1000 + int(h) * 60 * 60 * 1000
+            cap.set(cv2.CAP_PROP_POS_MSEC, total_ms)
+            ret, frame = cap.read()
+            if ret:
+                img_name = os.path.join(self.frame_output_dir, f'{str(i + 1).zfill(8)}.jpg')
+                cv2.imwrite(img_name, frame)
+        # 释放占用资源
+        cap.release()
 
     def extract_subtitle_frame(self):
         """
@@ -444,6 +502,36 @@ class SubtitleExtractor:
         # 返回持续时间低于1s的字幕行
         return post_process_subtitle
 
+    def generate_subtitle_file_vsf(self):
+        subtitle_timestamp = []
+        with open(self.vsf_subtitle, mode='r', encoding='utf-8') as f:
+            lines = f.readlines()
+            timestamp = []
+            frame_no = []
+            for line in lines:
+                if re.match(r'^\d{1,}$', line):
+                    frame_no.append(line.replace('\n', '').replace('\r', '').zfill(8))
+                if re.match(r'^\d{2,}:\d{2,}:\d{2,},\d{1,3}.*', line):
+                    timestamp.append(line.replace('\n', '').replace('\r', ''))
+            for i in zip(frame_no, timestamp):
+                subtitle_timestamp.append(i)
+        subtitle_content = self._remove_duplicate_subtitle()
+        final_subtitle = []
+        for sc in subtitle_content:
+            frame_no = sc[0]
+            content = sc[2]
+            for st in subtitle_timestamp:
+                if st[0] == frame_no:
+                    timestamp = st[1]
+                    final_subtitle.append((timestamp, content))
+        srt_filename = os.path.join(os.path.splitext(self.video_path)[0] + '.srt')
+        with open(srt_filename, mode='w', encoding='utf-8') as f:
+            for i, subtitle_line in enumerate(final_subtitle):
+                f.write(f'{i + 1}\n')
+                f.write(f'{subtitle_line[0]}\n')
+                f.write(f'{subtitle_line[1]}\n')
+        print(f'字幕文件生成位置：{srt_filename}')
+
     def _analyse_subtitle_frame(self):
         """
         使用简单的图像算法找出包含字幕的视频帧
@@ -561,7 +649,7 @@ class SubtitleExtractor:
         # paddlepaddle会将图像压缩为640*640
         # if self.frame_width > 1280:
         #     scale_rate = round(float(1280 / self.frame_width), 2)
-        #     frame = cv2.resize(frame, None, fx=scale_rate, fy=scale_rate, interpolation=cv2.INTER_AREA)
+        #     frames = cv2.resize(frames, None, fx=scale_rate, fy=scale_rate, interpolation=cv2.INTER_AREA)
         cropped = int(frame.shape[0] // 2)
         # 如果字幕出现的区域在下部分
         if self.subtitle_area == SubtitleArea.LOWER_PART:
@@ -742,6 +830,38 @@ class SubtitleExtractor:
         # dot返回的是点积，对二维数组（矩阵）进行计算
         res = dot(a / a_norm, b / b_norm)
         return res
+
+    def __get_area_text(self, ocr_result):
+        """
+        获取字幕区域内的文本内容
+        """
+        box, text = ocr_result
+        coordinates = self.__get_coordinates(box)
+        area_text = []
+        for content, coordinate in zip(text, coordinates):
+            if self.sub_area is not None:
+                s_ymin = self.sub_area[0]
+                s_ymax = self.sub_area[1]
+                s_xmin = self.sub_area[2]
+                s_xmax = self.sub_area[3]
+                xmin = coordinate[0]
+                xmax = coordinate[1]
+                ymin = coordinate[2]
+                ymax = coordinate[3]
+                if s_xmin <= xmin and xmax <= s_xmax and s_ymin <= ymin and ymax <= s_ymax:
+                    area_text.append(content[0])
+        return area_text
+
+    def _compare_ocr_result(self, img1, img2):
+        """
+        比较两张图片预测出的字幕区域文本是否相同
+        """
+        area_text1 = "".join(self.__get_area_text(self.ocr.predict(img1)))
+        area_text2 = "".join(self.__get_area_text(self.ocr.predict(img2)))
+        if ratio(area_text1, area_text2) > config.THRESHOLD_TEXT_SIMILARITY:
+            return True
+        else:
+            return False
 
     @staticmethod
     def __get_coordinates(dt_box):
