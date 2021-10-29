@@ -20,6 +20,8 @@ video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕�
   - **fast** - 快速提取字幕但可能丢字幕
   - **accurate** - 不丢字幕但速度较慢
 
+QQ交流群：210150985
+
 **下载地址**：
 
 - Windows GPU版本：
