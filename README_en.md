@@ -15,10 +15,10 @@ implementations:
 - filter non-subtitle text
 - remove duplicated subtitle line
 - generate srt file
-- multiple language support: **Chinese**, **Japanese**, **Korean**, **French**, **German**
+- multiple language support: **Chinese(中文)**, **Japanese(日语)**, **Korean(韩语)**, **French(法语)**, **German(德语)**
 - multiple mode:
-  - **fast**: high extraction speed while few subtitle missing
-  - **accurate**: no subtitle missing while low extraction speed
+  - **fast(快速)**: high extraction speed while few subtitle missing
+  - **accurate(精准)**: no subtitle missing while low extraction speed
 
 **Download**：
 
@@ -89,46 +89,46 @@ make sure you have python 3.8 installed
 
 - For users who have Nvidia graphic card： **GPU version can achieve better accuracy**
 
-  - Install **CUDA 10.2** and **cuDNN 7.6.5**
+  - Install **CUDA 11.2** and **cuDNN 8.1.1**
 
     <details>
         <summary>Linux</summary>
-        <h5>(1) Download CUDA 10.2</h5>
-        <pre><code>wget https://developer.download.nvidia.com/compute/cuda/10.2/Prod/local_installers/cuda_10.2.89_440.33.01_linux.run</code></pre>
-        <h5>(2) Install CUDA 10.2</h5>
-        <pre><code>sudo sh cuda_10.2.89_440.33.01_linux.run --override</code></pre>
+        <h5>(1) Download CUDA 11.2</h5>
+        <pre><code>wget https://developer.download.nvidia.com/compute/cuda/11.2.0/local_installers/cuda_11.2.0_460.27.04_linux.run</code></pre>
+        <h5>(2) Install CUDA 11.2</h5>
+        <pre><code>sudo sh cuda_11.2.0_460.27.04_linux.run --override</code></pre>
         <p>1. Input accept</p>
         <img src="https://z3.ax1x.com/2021/05/24/gv0AVU.png" width="500" alt="">
-        <p>2. make sure CUDA Toolkit 10.2 is chosen (If you have already installed driver, do not select Driver)</p>
-        <img src="https://z3.ax1x.com/2021/05/24/gv0dMt.png" width="500" alt="">
+        <p>2. make sure CUDA Toolkit 11.2 is chosen (If you have already installed driver, do not select Driver)</p>
+        <img src="https://z3.ax1x.com/2021/10/11/5VnwfH.png" width="500" alt="">
         <p>3. Add environment variables</p>
         <p>add the following content in  <strong>~/.bashrc</strong></p>
         <pre><code># CUDA
-    export PATH=/usr/local/cuda-10.2/bin${PATH:+:${PATH}}
-    export LD_LIBRARY_PATH=/usr/local/cuda-10.2/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}</code></pre>
+    export PATH=/usr/local/cuda-11.2/bin${PATH:+:${PATH}}
+    export LD_LIBRARY_PATH=/usr/local/cuda-11.2/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}</code></pre>
         <p>Make sure it works</p>
         <pre><code>source ~/.bashrc</code></pre>
-        <h5>(3) Download cuDNN 7.6.5</h5>
-        <p><a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/cudnn-10.2-linux-x64-v7.6.5.32.tgz">cudnn-10.2-linux-x64-v7.6.5.32.tgz</a></p>
-        <h5>(4) Install cuDNN 7.6.5</h5>
-        <pre><code> tar -zxvf cudnn-10.2-linux-x64-v7.6.5.32.tgz
-     sudo cp ./cuda/include/* /usr/local/cuda-10.2/include/
-     sudo cp ./cuda/lib64/* /usr/local/cuda-10.2/lib64/
-     sudo chmod a+r /usr/local/cuda-10.2/lib64/*
-     sudo chmod a+r /usr/local/cuda-10.2/include/*</code></pre>
+        <h5>(3) Download cuDNN 8.1.1</h5>
+        <p><a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/cudnn-11.2-linux-x64-v8.1.1.33.tgz">cudnn-11.2-linux-x64-v8.1.1.33.tgz</a></p>
+        <h5>(4) Install cuDNN 8.1.1</h5>
+        <pre><code> tar -zxvf cudnn-11.2-linux-x64-v8.1.1.33.tgz
+     sudo cp ./cuda/include/* /usr/local/cuda-11.2/include/
+     sudo cp ./cuda/lib64/* /usr/local/cuda-11.2/lib64/
+     sudo chmod a+r /usr/local/cuda-11.2/lib64/*
+     sudo chmod a+r /usr/local/cuda-11.2/include/*</code></pre>
     </details>
 
     <details>
         <summary>Windows</summary>
-        <h5>(1) Download CUDA 10.2</h5>
-        <a href="https://developer.download.nvidia.com/compute/cuda/10.2/Prod/local_installers/cuda_10.2.89_441.22_win10.exe">cuda_10.2.89_441.22_win10.exe</a>
-        <h5>(2) Install CUDA 10.2</h5>
-        <h5>(3) Download cuDNN 7.6.5</h5>
-        <p><a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/cudnn-10.2-windows10-x64-v7.6.5.32.zip">cudnn-10.2-windows10-x64-v7.6.5.32.zip</a></p>
-        <h5>(4) Install cuDNN 7.6.5</h5>
+        <h5>(1) Download CUDA 11.2</h5>
+        <a href="https://developer.download.nvidia.com/compute/cuda/11.2.0/local_installers/cuda_11.2.0_460.89_win10.exe">cuda_11.2.0_460.89_win10.exe</a>
+        <h5>(2) Install CUDA 11.2</h5>
+        <h5>(3) Download cuDNN 8.1.1</h5>
+        <p><a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/cudnn-11.2-windows-x64-v8.1.1.33.zip">cudnn-11.2-windows-x64-v8.1.1.33.zip</a></p>
+        <h5>(4) Install cuDNN 8.1.1</h5>
         <p>
-           unzip "cudnn-10.2-windows10-x64-v7.6.5.32.zip", then move all files in "bin, include, lib" in cuda 
-    directory to C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.2\
+           unzip "cudnn-11.2-windows-x64-v8.1.1.33.zip", then move all files in "bin, include, lib" in cuda 
+    directory to C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\
         </p>
     </details>
  
@@ -137,7 +137,7 @@ make sure you have python 3.8 installed
   - Install paddlepaddle:
 
     ```shell
-    conda install -y paddlepaddle-gpu==2.1.0 cudatoolkit=10.2 --channel https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/Paddle/
+    conda install paddlepaddle-gpu==2.1.3 cudatoolkit=11.2 -c https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/Paddle/ -c conda-forge 
     ```
 
     > If you installed cuda 10.2，please install cuDNN 7.6.5 instead of cuDNN v8.x
