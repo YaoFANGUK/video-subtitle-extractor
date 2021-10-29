@@ -17,15 +17,14 @@ implementations:
 - generate srt file
 - multiple language support: **Chinese**, **Japanese**, **Korean**, **French**, **German**
 - multiple mode:
-  - **fast**: high extraction speed while low timestamp accuracy
-  - **accurate**: high timestamp accuracy while low extraction speed
+  - **fast**: high extraction speed while few subtitle missing
+  - **accurate**: no subtitle missing while low extraction speed
 
 **Download**：
+
+- Windows GPU version：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_GPU.7z">vse_windows_GPU.7z</a>
+
 - Windows CPU version：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/vse_windows_CPU.zip">vse_windows_CPU.zip</a>
-
-- Windows GPU version：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_GPU.zip">vse_windows_GPU.zip</a>
-
-- Windows GPU version - RTX 30xx series：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_GPU_30xx.7z">vse_windows_GPU_30xx.7z</a>
 
 - MacOS：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/vse_macOS_CPU.dmg">vse_macOS_CPU.dmg</a>
 
