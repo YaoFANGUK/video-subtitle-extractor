@@ -179,10 +179,6 @@ python main.py
 
 ## 常见问题与解决方案
 
-#### 0. 怎么给作者赏口饭吃
-
-<img src="https://i.imgur.com/mfh2gER.jpeg" width="150">
-
 #### 1. 运行不正常/没有结果
 
 解决方案：如果你使用的是3060/3070/3080等安培架构的显卡，请使用最新的paddlepaddle版本以及最新的cuda 11+
