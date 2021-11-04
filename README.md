@@ -181,7 +181,7 @@ python main.py
 
 #### 0. 怎么给作者赏口饭吃
 
-<img src="https://z3.ax1x.com/2021/10/29/5X8RMt.jpg" width="150">
+<img src="https://i.imgur.com/mfh2gER.jpeg" width="150">
 
 #### 1. 运行不正常/没有结果
 
