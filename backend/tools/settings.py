@@ -9,8 +9,8 @@ import PySimpleGUI as sg
 
 
 def set_language_mode(config_file):
-    languages = ['中文', '日语', '韩语', '法语', '德语']
-    modes = ['[快速]', '[精准]']
+    languages = ['中文/英文', '繁体中文', '日语', '韩语', '法语', '德语']
+    modes = ['快速', '精准']
     window = sg.Window(title='字幕提取器',
                        layout=[
                            [sg.Text('选择视频字幕的语言:'), sg.DropDown(values=languages, size=(30, 20), pad=(0, 20),
@@ -25,9 +25,12 @@ def set_language_mode(config_file):
         print('选择了:', values['-LANGUAGE-'])
         language = None
         mode = None
-        if values['-LANGUAGE-'] == '中文':
+        if values['-LANGUAGE-'] == '中文/英文':
             # 设置中文模型
             language = 'ch'
+        elif values['-LANGUAGE-'] == '繁体中文':
+            # 设置繁体中文
+            language = 'ch_tra'
         elif values['-LANGUAGE-'] == '日语':
             # 设置日语模型
             language = 'japan'
@@ -42,10 +45,10 @@ def set_language_mode(config_file):
             language = 'german'
         # 设置模型语言配置
         print('选择了:', values['-MODE-'])
-        if values['-MODE-'] == '[精准]':
+        if values['-MODE-'] == '精准':
             # 设置精准模式
             mode = 'accurate'
-        elif values['-MODE-'] == '[快速]':
+        elif values['-MODE-'] == '快速':
             # 设置快速模式
             mode = 'fast'
         set_config(config_file, language, mode)

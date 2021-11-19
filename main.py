@@ -144,10 +144,16 @@ class SubtitleExtractor:
             print('【结束】已将非字幕区域的内容删除')
 
         print('【处理中】开始生成字幕文件')
-        if platform.system() == 'Windows':
-            self.generate_subtitle_file_vsf()
-        else:
+        # 判断是否开启精准模式
+        if config.ACCURATE_MODE_ON:
+            # 如果开启精准模式则使用原生字幕生成
             self.generate_subtitle_file()
+        else:
+            # 如果没有开启精准模式，则Windows平台默认使用vsf提取
+            if platform.system() == 'Windows':
+                self.generate_subtitle_file_vsf()
+            else:
+                self.generate_subtitle_file()
         print('【结束】字幕文件生成成功')
 
     def extract_frame(self):
@@ -373,7 +379,7 @@ class SubtitleExtractor:
                     ymin = coordinate[2]
                     ymax = coordinate[3]
                     if s_xmin <= xmin and xmax <= s_xmax and s_ymin <= ymin and ymax <= s_ymax:
-                        print(content[0], content[1])
+                        print(content[0])
                         if content[1] > config.DROP_SCORE:
                             f.write(f'{os.path.splitext(frame)[0]}\t'
                                     f'{coordinate}\t'
@@ -481,7 +487,6 @@ class SubtitleExtractor:
         生成srt格式的字幕文件
         """
         subtitle_content = self._remove_duplicate_subtitle()
-        print(os.path.splitext(self.video_path)[0])
         srt_filename = os.path.join(os.path.splitext(self.video_path)[0] + '.srt')
         # 保存持续时间不足1秒的字幕行，用于后续处理
         post_process_subtitle = []
@@ -503,34 +508,37 @@ class SubtitleExtractor:
         return post_process_subtitle
 
     def generate_subtitle_file_vsf(self):
-        subtitle_timestamp = []
-        with open(self.vsf_subtitle, mode='r', encoding='utf-8') as f:
-            lines = f.readlines()
-            timestamp = []
-            frame_no = []
-            for line in lines:
-                if re.match(r'^\d{1,}$', line):
-                    frame_no.append(line.replace('\n', '').replace('\r', '').zfill(8))
-                if re.match(r'^\d{2,}:\d{2,}:\d{2,},\d{1,3}.*', line):
-                    timestamp.append(line.replace('\n', '').replace('\r', ''))
-            for i in zip(frame_no, timestamp):
-                subtitle_timestamp.append(i)
-        subtitle_content = self._remove_duplicate_subtitle()
-        final_subtitle = []
-        for sc in subtitle_content:
-            frame_no = sc[0]
-            content = sc[2]
-            for st in subtitle_timestamp:
-                if st[0] == frame_no:
-                    timestamp = st[1]
-                    final_subtitle.append((timestamp, content))
-        srt_filename = os.path.join(os.path.splitext(self.video_path)[0] + '.srt')
-        with open(srt_filename, mode='w', encoding='utf-8') as f:
-            for i, subtitle_line in enumerate(final_subtitle):
-                f.write(f'{i + 1}\n')
-                f.write(f'{subtitle_line[0]}\n')
-                f.write(f'{subtitle_line[1]}\n')
-        print(f'字幕文件生成位置：{srt_filename}')
+        try:
+            subtitle_timestamp = []
+            with open(self.vsf_subtitle, mode='r', encoding='utf-8') as f:
+                lines = f.readlines()
+                timestamp = []
+                frame_no = []
+                for line in lines:
+                    if re.match(r'^\d{1,}$', line):
+                        frame_no.append(line.replace('\n', '').replace('\r', '').zfill(8))
+                    if re.match(r'^\d{2,}:\d{2,}:\d{2,},\d{1,3}.*', line):
+                        timestamp.append(line.replace('\n', '').replace('\r', ''))
+                for i in zip(frame_no, timestamp):
+                    subtitle_timestamp.append(i)
+            subtitle_content = self._remove_duplicate_subtitle()
+            final_subtitle = []
+            for sc in subtitle_content:
+                frame_no = sc[0]
+                content = sc[2]
+                for st in subtitle_timestamp:
+                    if st[0] == frame_no:
+                        timestamp = st[1]
+                        final_subtitle.append((timestamp, content))
+            srt_filename = os.path.join(os.path.splitext(self.video_path)[0] + '.srt')
+            with open(srt_filename, mode='w', encoding='utf-8') as f:
+                for i, subtitle_line in enumerate(final_subtitle):
+                    f.write(f'{i + 1}\n')
+                    f.write(f'{subtitle_line[0]}\n')
+                    f.write(f'{subtitle_line[1]}\n')
+            print(f'字幕文件生成位置：{srt_filename}')
+        except FileNotFoundError:
+            self.generate_subtitle_file()
 
     def _analyse_subtitle_frame(self):
         """
