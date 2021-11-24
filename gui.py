@@ -8,6 +8,7 @@
 import PySimpleGUI as sg
 import cv2
 import os
+import sys
 from threading import Thread
 from backend.tools.settings import set_language_mode
 # 确保在加载main模块前先设置语言和模式
@@ -49,9 +50,15 @@ class SubtitleExtractorGUI:
         self._create_layout()
         # 创建窗口
         self.window = sg.Window(title='硬字幕提取器', layout=self.layout)
+        once = False
         while True:
             # 循环读取事件
             event, values = self.window.read(timeout=10)
+            if once == False:
+                if len(sys.argv) > 1:
+                    self._file_event_handler('-FILE-', {'-FILE-': sys.argv[1]})
+                    sys.argv = [sys.argv[0]]
+                once = True
             # 处理【打开】事件
             self._file_event_handler(event, values)
             # 处理【滑动】事件
@@ -142,12 +149,12 @@ class SubtitleExtractorGUI:
                     # 更新视频字幕位置滑块range
                     self.window['-Y-SLIDER-'].update(range=(0, self.frame_height), disabled=False)
                     self.window['-Y-SLIDER-H-'].update(range=(0, self.frame_height // 2), disabled=False)
-                    self.window['-Y-SLIDER-'].update(self.frame_height - 50)
-                    self.window['-Y-SLIDER-H-'].update(10)
+                    self.window['-Y-SLIDER-'].update(self.frame_height *0.88)
+                    self.window['-Y-SLIDER-H-'].update(self.frame_height * 0.116)
                     self.window['-X-SLIDER-'].update(range=(0, self.frame_width), disabled=False)
                     self.window['-X-SLIDER-W-'].update(range=(0, self.frame_width), disabled=False)
-                    self.window['-X-SLIDER-'].update(0)
-                    self.window['-X-SLIDER-W-'].update(self.frame_width)
+                    self.window['-X-SLIDER-'].update(self.frame_width * 0.15)
+                    self.window['-X-SLIDER-W-'].update(self.frame_width * 0.7)
 
     def _run_event_handler(self, event, values):
         """
