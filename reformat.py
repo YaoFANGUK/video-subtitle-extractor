@@ -43,10 +43,12 @@ def reformat(path):
         sub.text = typoFix(sub.text)
         seg = wordsegment.segment(sub.text)
         if (len(seg) == 1):
-            seg = wordsegment.segment(re.sub(re.compile(f"(\r\ni)([^\\s])", re.I), "\\1 \\2", sub.text))
+            seg = wordsegment.segment(re.sub(re.compile(f"(\ni)([^\\s])", re.I), "\\1 \\2", sub.text))
         seg = formatSegList(seg)
-        sub.text = sub.text.replace("  ", "\r\n")
-        # sub.text = re.sub(".+?\r\n", "", sub.text)
+        
+        sub.text = re.sub(' +([\\u4e00-\\u9fa5])', ' \\1', sub.text)
+        sub.text = sub.text.replace("  ", "\n")
+        # sub.text = re.sub(".+?\n", "", sub.text)
         print(seg)
         lines = []
         remain = sub.text
@@ -98,9 +100,10 @@ def reformat(path):
         ss = re.sub(" *([\\']) *", "\\1", ss)
         # ss = ss.replace(" .", ".")
         # ss = ss.replace(" ?", "?")
-        ss = re.sub('\r\n\\s*', '\r\n', ss)
+        ss = re.sub('\n\\s*', '\n', ss)
         ss = re.sub('^\\s*', '', ss)
         ss = ss.replace(" Dr. ", " Dr.")
+        ss = ss.replace("\n\n", "\n")
 
         print(ss)
         #     # print(sub.text)
@@ -108,7 +111,7 @@ def reformat(path):
         # sub.text = sub.text.replace("  ", " ")
         # print("-->")
         print(sub.text)
-        sub.text = ss
+        sub.text = ss.strip()
         # print("<--")
         print()
     subs.save(path, encoding='utf-8')
