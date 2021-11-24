@@ -5,6 +5,7 @@ import re
 import time
 import sys
 import os
+import pysrt
 
 
 codings = ["utf-8", "utf-16", "utf-32", "gbk", "gb2312", "gb18030", "big5", "cp1252"]
@@ -48,23 +49,13 @@ def srt_timestamps(content):
     return timestamps
 
 
-def srt_subtitles(content):
-    # 通过分割时间轴获取字幕存储于列表中返回
-    content = content.replace('\ufeff', '')
-    _subtitles = re.split(r'\d{2}:\d{2}:\d{2},\d{3}.+\d{2}:\d{2}:\d{2},\d{3}', content)
-    subtitles = []
-    for s in range(1, len(_subtitles)):
-        # print(re.sub('(\r\n)|\n', '', _subtitles[s]))
-        subtitle = re.sub(r'(\r\n\r\n\d+\r\n)|(^\r\n)|(^\n)|(\n\n\d+\n)|(\u200e)', '', _subtitles[s])
-        subtitle = re.sub('(\r\n)|\n', '|', subtitle.strip())
-        subtitle = subtitle.replace("||", '\\N{\\r原文字幕}')
-        subtitles.append(subtitle)
-
-        # 
-    return subtitles
+def format_subtitle(text):
+    subtitle = re.sub('(\r\n)|\n', '\\\\N{\\\\r原文字幕}', text.strip())
+    return subtitle
 
 
-def ass_content(timestamps, subtitles, header_path):
+def ass_content(filename, header_path):
+    subs = pysrt.open(filename)
     content = readings(filename=header_path) + '\n'
     body = {
         'dialogue': 'Dialogue: ',
@@ -72,26 +63,23 @@ def ass_content(timestamps, subtitles, header_path):
         'behind_time': '',
         'default': 'Default',
         'ntp': 'NTP',
-        '0000': '0000',
+        '0': '0',
         'sub': ',',
     }
-    count = len(subtitles)
-    for c in range(count):
-        start = timestamps[c][0]                    # 获取当前字幕起始时间
-        start = start[:1] + ',' + start[1:8] + '.' + start[-2:]
-        end = timestamps[c][1]                      # 获取当前字幕结束时间
-        end = end[1:8] + '.' + end[-2:]
-        timeline = ','.join([start, end])           # 合成时间轴
+    for sub in subs:
+        start = '{:0>2d}:{:0>2d}:{:0>2d}.{:0>2d}'.format(sub.start.hours, sub.start.minutes, sub.start.seconds, round(sub.start.milliseconds/10))
+        end = '{:0>2d}:{:0>2d}:{:0>2d}.{:0>2d}'.format(sub.end.hours, sub.end.minutes, sub.end.seconds, round(sub.end.milliseconds/10))
+        timeline = ','.join(['0', start, end])           # 合成时间轴
 
-        subtitle = subtitles[c]                     # 获取当前字幕
+        subtitle = format_subtitle(sub.text)        # 获取当前字幕
 
         list2str = [  # 字幕列表格式化
             body['dialogue'] + timeline,
             body['default'],
             body['ntp'],
-            body['0000'],
-            body['0000'],
-            body['0000'] + ',',
+            body['0'],
+            body['0'],
+            body['0'] + ',',
             subtitle]
 
         content += ','.join(list2str)
@@ -105,10 +93,7 @@ def srt_to_ass(filename='', content='', **kwargs):
     for_json = kwargs.get('for_json')
     header_path = kwargs.get('header_path') if kwargs.get('header_path') else './header.txt'
     encoding = kwargs.get('encoding')
-    content = readings(filename=filename, content=content, encoding=encoding)
-    timestamps = srt_timestamps(content)
-    subtitles = srt_subtitles(content)
-    content = ass_content(timestamps, subtitles, header_path)
+    content = ass_content(filename, header_path)
     end_time = time.time() - start_time
     if for_json:
         data = {
