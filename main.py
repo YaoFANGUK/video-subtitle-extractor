@@ -23,6 +23,8 @@ from backend.tools.infer.predict_det import TextDetector
 from backend.tools.infer.predict_system import TextSystem
 from config import SubtitleArea
 import platform
+from reformat import reformat
+from srt2ass import write_srt_to_ass
 
 
 # 加载文本检测+识别模型
@@ -154,6 +156,9 @@ class SubtitleExtractor:
                 self.generate_subtitle_file_vsf()
             else:
                 self.generate_subtitle_file()
+        srt_filename = os.path.join(os.path.splitext(self.video_path)[0] + '.srt')
+        reformat(srt_filename)
+        write_srt_to_ass(srt_filename)
         print('【结束】字幕文件生成成功')
 
     def extract_frame(self):
