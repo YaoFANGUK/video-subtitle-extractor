@@ -19,6 +19,9 @@ def set_language_mode(config_file):
                                                                key='-MODE-', readonly=True)],
                            [sg.OK(), sg.Cancel()]
                        ])
+    language = 'ch'
+    mode = 'fast'
+    return
     event, values = window.read()
     if event == 'OK':
         # 设置模型语言配置
