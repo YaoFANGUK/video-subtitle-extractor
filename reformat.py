@@ -12,7 +12,8 @@ def reformat(path):
 
     typoMap = {
         "l'm": "I'm",
-        "Let'sqo": "Let's go"
+        "Let'sqo": "Let's go",
+        "Iife": "life",
     }
     for verb in verbForms:
         verbFormMap[verb.replace("'", "").lower()] = verb
@@ -92,7 +93,10 @@ def reformat(path):
             #             lines.append(ss[ii].strip())
             # lines.append(re.sub('(' + s + ")", "\\1", ss[1], flags=re.I))
         # print(lines)
-        ss = " ".join(lines)
+        if segLen > 0:
+            ss = " ".join(lines)
+        else:
+            ss = remain
         ss = re.sub("([^\\sA-Z])([A-Z])", "\\1 \\2", ss)
         ss = ss.replace("  ", " ")
         ss = ss.replace("。", ".")
