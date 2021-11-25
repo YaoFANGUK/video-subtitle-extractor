@@ -1,4 +1,4 @@
 cd /d %~dp0 
 CALL conda activate videoEnv
-python gui.py %1
+python gui.py %*
 rem pause
