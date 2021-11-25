@@ -75,7 +75,7 @@ class SubtitleExtractor:
     视频字幕提取类
     """
 
-    def __init__(self, vd_path, sub_area=None):
+    def __init__(self, vd_path, sub_area=None, bd_video_path=None):
         # 字幕区域位置
         self.sub_area = sub_area
         self.sub_detector = SubtitleDetect()
@@ -109,6 +109,7 @@ class SubtitleExtractor:
         self.raw_subtitle_path = os.path.join(self.subtitle_output_dir, 'raw.txt')
         # 自定义ocr对象
         self.ocr = OcrRecogniser()
+        self.bd_video_path = bd_video_path
 
     def run(self):
         """
@@ -159,6 +160,13 @@ class SubtitleExtractor:
         srt_filename = os.path.join(os.path.splitext(self.video_path)[0] + '.srt')
         reformat(srt_filename)
         write_srt_to_ass(srt_filename)
+
+        if self.bd_video_path is not None:
+            print("开始同步时间轴")
+            sushi_path = os.path.realpath('../Sushi/run_no_pause.bat')
+            print(sushi_path)
+            os.system(sushi_path + f' "{self.video_path}" "{self.bd_video_path}"  "{srt_filename}"')
+            write_srt_to_ass(os.path.join(os.path.splitext(self.bd_video_path)[0] + '.srt'))
         print('【结束】字幕文件生成成功')
 
     def extract_frame(self):

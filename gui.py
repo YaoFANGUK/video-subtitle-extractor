@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-@Author  : Fang Yao 
+@Author  : Fang Yao
 @Time    : 2021/4/1 6:07 下午
 @FileName: gui.py
 @desc:
@@ -44,6 +44,8 @@ class SubtitleExtractorGUI:
         self.xmax = None
         self.ymin = None
         self.ymax = None
+        self.bd_video_path = None
+        self.hd_video_path = None
 
     def run(self):
         # 创建布局
@@ -55,9 +57,8 @@ class SubtitleExtractorGUI:
             # 循环读取事件
             event, values = self.window.read(timeout=10)
             if once == False:
-                if len(sys.argv) > 1:
-                    self._file_event_handler('-FILE-', {'-FILE-': sys.argv[1]})
-                    sys.argv = [sys.argv[0]]
+                if self.hd_video_path is not None:
+                    self._file_event_handler('-FILE-', {'-FILE-': self.hd_video_path})
                 once = True
             # 处理【打开】事件
             self._file_event_handler(event, values)
@@ -183,7 +184,7 @@ class SubtitleExtractorGUI:
                 self.ymax = int(values['-Y-SLIDER-'] + values['-Y-SLIDER-H-'])
                 print(f'字幕区域：({self.ymin},{self.ymax},{self.xmin},{self.xmax})')
                 subtitle_area = (self.ymin, self.ymax, self.xmin, self.xmax)
-                se = SubtitleExtractor(self.video_path, subtitle_area)
+                se = SubtitleExtractor(self.video_path, subtitle_area, self.bd_video_path)
                 Thread(target=se.run, daemon=True).start()
 
     def _slide_event_handler(self, event, values):
@@ -214,4 +215,18 @@ class SubtitleExtractorGUI:
 if __name__ == '__main__':
     # 运行图形化界面
     subtitleExtractorGUI = SubtitleExtractorGUI()
+    argc = len(sys.argv)
+    if argc > 2:
+        if os.path.getsize(sys.argv[1]) > os.path.getsize(sys.argv[2]):
+            subtitleExtractorGUI.hd_video_path = sys.argv[2]
+            subtitleExtractorGUI.bd_video_path = sys.argv[1]
+        else:
+            subtitleExtractorGUI.hd_video_path = sys.argv[1]
+            subtitleExtractorGUI.bd_video_path = sys.argv[2]
+        print(f"硬字幕: {subtitleExtractorGUI.hd_video_path}")
+        print(f"同步时间轴: {subtitleExtractorGUI.bd_video_path}")
+    elif argc > 1:
+        subtitleExtractorGUI.hd_video_path = sys.argv[1]
+    sys.argv = [sys.argv[0]]
+
     subtitleExtractorGUI.run()
