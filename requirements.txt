@@ -30,3 +30,6 @@ Shapely==1.7.1
 six==1.15.0
 tifffile==2021.4.8
 urllib3==1.26.4
+pysrt
+opencc-python-reimplemented
+wordsegment

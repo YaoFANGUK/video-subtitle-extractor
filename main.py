@@ -25,6 +25,7 @@ from config import SubtitleArea
 import platform
 from reformat import reformat
 from srt2ass import write_srt_to_ass
+from translation import chs_to_cht
 
 
 # 加载文本检测+识别模型
@@ -157,16 +158,25 @@ class SubtitleExtractor:
                 self.generate_subtitle_file_vsf()
             else:
                 self.generate_subtitle_file()
-        srt_filename = os.path.join(os.path.splitext(self.video_path)[0] + '.srt')
+        srt_filename = os.path.join(os.path.splitext(self.video_path)[0] + '.zh.简体&英文.srt')
+        srt_filename_cht = os.path.join(os.path.splitext(self.video_path)[0] + '.zh.繁体&英文.srt')
+        os.replace(os.path.join(os.path.splitext(self.video_path)[0] + '.srt'), srt_filename)
         reformat(srt_filename)
+        chs_to_cht(srt_filename, srt_filename_cht)
         write_srt_to_ass(srt_filename)
+        write_srt_to_ass(srt_filename_cht)
 
         if self.bd_video_path is not None:
             print("开始同步时间轴")
             sushi_path = os.path.realpath('../Sushi/run_no_pause.bat')
             print(sushi_path)
             os.system(sushi_path + f' "{self.video_path}" "{self.bd_video_path}"  "{srt_filename}"')
-            write_srt_to_ass(os.path.join(os.path.splitext(self.bd_video_path)[0] + '.srt'))
+            srt_filename = os.path.join(os.path.splitext(self.bd_video_path)[0] + '.简体&英文.srt')
+            srt_filename_cht = os.path.join(os.path.splitext(self.bd_video_path)[0] + '.繁体&英文.srt')
+            os.replace(os.path.join(os.path.splitext(self.bd_video_path)[0] + '.srt'), srt_filename)
+            chs_to_cht(srt_filename, srt_filename_cht)
+            write_srt_to_ass(srt_filename)
+            write_srt_to_ass(srt_filename_cht)
         print('【结束】字幕文件生成成功')
 
     def extract_frame(self):
