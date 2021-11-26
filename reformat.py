@@ -106,6 +106,7 @@ def reformat(path):
         # ss = ss.replace(" ?", "?")
         ss = re.sub('\n\\s*', '\n', ss)
         ss = re.sub('^\\s*', '', ss)
+        ss = re.sub('·$', '.', ss)
         ss = ss.replace(" Dr. ", " Dr.")
         ss = ss.replace("\n\n", "\n")
 
