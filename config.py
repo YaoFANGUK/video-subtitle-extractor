@@ -21,7 +21,7 @@ if not os.path.exists(config_path):
     with open(config_path, mode='w') as f:
         f.write('[DEFAULT]\n')
         f.write('Language = ch\n')
-        f.write('Mode = accurate')
+        f.write('Mode = fast')
 config.read(config_path)
 
 # 设置识别语言
