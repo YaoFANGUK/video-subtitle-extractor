@@ -925,7 +925,10 @@ class SubtitleExtractor:
 if __name__ == '__main__':
     # 提示用户输入视频路径
     video_path = input("请输入视频完整路径：").strip()
+    # 提示用户输入字幕区域
+    ymin, ymax, xmin, xmax = map(int, input("请输入字幕区域(ymin ymax xmin xmax)：").split())
+    subtitle_area = (ymin, ymax, xmin, xmax)
     # 新建字幕提取对象
-    se = SubtitleExtractor(video_path)
+    se = SubtitleExtractor(video_path, subtitle_area)
     # 开始提取字幕
     se.run()

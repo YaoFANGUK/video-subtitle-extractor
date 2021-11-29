@@ -142,8 +142,8 @@ class SubtitleExtractorGUI:
                     # 更新视频字幕位置滑块range
                     self.window['-Y-SLIDER-'].update(range=(0, self.frame_height), disabled=False)
                     self.window['-Y-SLIDER-H-'].update(range=(0, self.frame_height // 2), disabled=False)
-                    self.window['-Y-SLIDER-'].update(self.frame_height * .88)
-                    self.window['-Y-SLIDER-H-'].update(self.frame_height * .116)
+                    self.window['-Y-SLIDER-'].update(self.frame_height * .85)
+                    self.window['-Y-SLIDER-H-'].update(self.frame_height * .146)
                     self.window['-X-SLIDER-'].update(range=(0, self.frame_width), disabled=False)
                     self.window['-X-SLIDER-W-'].update(range=(0, self.frame_width), disabled=False)
                     self.window['-X-SLIDER-'].update(self.frame_width * .15)
