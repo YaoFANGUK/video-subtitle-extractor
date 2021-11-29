@@ -142,12 +142,12 @@ class SubtitleExtractorGUI:
                     # 更新视频字幕位置滑块range
                     self.window['-Y-SLIDER-'].update(range=(0, self.frame_height), disabled=False)
                     self.window['-Y-SLIDER-H-'].update(range=(0, self.frame_height // 2), disabled=False)
-                    self.window['-Y-SLIDER-'].update(self.frame_height - 50)
-                    self.window['-Y-SLIDER-H-'].update(10)
+                    self.window['-Y-SLIDER-'].update(self.frame_height * .88)
+                    self.window['-Y-SLIDER-H-'].update(self.frame_height * .116)
                     self.window['-X-SLIDER-'].update(range=(0, self.frame_width), disabled=False)
                     self.window['-X-SLIDER-W-'].update(range=(0, self.frame_width), disabled=False)
-                    self.window['-X-SLIDER-'].update(0)
-                    self.window['-X-SLIDER-W-'].update(self.frame_width)
+                    self.window['-X-SLIDER-'].update(self.frame_width * .15)
+                    self.window['-X-SLIDER-W-'].update(self.frame_width * .7)
 
     def _run_event_handler(self, event, values):
         """
