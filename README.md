@@ -29,8 +29,8 @@ QQ交流群：210150985
   - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_GPU.7z">vse_windows_GPU.7z</a>
 
 - Windows CPU版本：
-  - 国内：<a href="https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/vse_windows_CPU.zip">vse_windows_CPU.zip</a>
-  - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/vse_windows_CPU.zip">vse_windows_CPU.zip</a> 
+  - 国内：<a href=https://github.91chi.fun//https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_CPU.zip>vse_windows_CPU.zip</a>
+  - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_CPU.zip">vse_windows_CPU.zip</a> 
 
 - MacOS CPU版本：
   - 国内：<a href="https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/vse_macOS_CPU.dmg">vse_macOS_CPU.dmg</a>
