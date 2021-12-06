@@ -114,12 +114,20 @@ class SubtitleExtractor:
         """
         print('【处理中】开启提取视频关键帧...')
         if self.sub_area is not None:
+            # 如果开启精准模式
             if config.ACCURATE_MODE_ON:
-                self.extract_frame_by_det()
-            elif platform.system() == 'Windows':
-                self.extract_frame_by_vsf()
+                # 开启精准模式并且有GPU加速
+                if config.USE_GPU:
+                    self.extract_frame_by_det()
+                else:
+                    self.extract_frame_by_fps()
+            # 如果没有开启精准模式
             else:
-                self.extract_frame_by_fps()
+                # 没有开启精准模式且操作系统为Windows
+                if platform.system() == 'Windows':
+                    self.extract_frame_by_vsf()
+                else:
+                    self.extract_frame_by_fps()
         else:
             self.extract_frame_by_fps()
         print('【结束】提取视频关键帧完毕...')
