@@ -112,8 +112,8 @@ class SubtitleExtractor:
         """
         运行整个提取视频的步骤
         """
-        if not self.__is_legal_path(self.video_path):
-            print('【警告】程序运行中断！路径不合法！程序以及视频路径请不要带有中文和空格！！！请修改路径名或者文件名后重新运行程序')
+        if not self.__is_legal_video_path(self.video_path):
+            print('【警告】程序运行中断！路径不合法！视频路径请不要带有空格！！！请修改路径名或者文件名后重新运行程序')
         else:
             print('【处理中】开启提取视频关键帧...')
             if self.sub_area is not None:
@@ -883,14 +883,11 @@ class SubtitleExtractor:
             return False
 
     @staticmethod
-    def __is_legal_path(video_path):
+    def __is_legal_video_path(video_path):
         """
         判断视频路径是否合法， 如果不合法则修改路径
         """
         is_legal = True
-        # 是否包含中文
-        if re.search(r"[\u4e00-\u9fa5]+", video_path):
-            is_legal = False
         # 是否包含空格
         if re.search(r"\s", video_path):
             is_legal = False
