@@ -22,18 +22,28 @@ video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕�
 
 QQ交流群：210150985
 
+**使用说明**：
+
+- 视频以及程序路径请**不要带中文和空格**，否则可能出现未知错误！！！
+ > 如：以下存放视频和代码的路径都不行
+ > 
+ > D:\下载\vse\运行程序.exe（路径含中文）
+ > 
+ > E:\study\kaoyan\sanshang youya.mp4 （路径含空格） 
+- 直接下载压缩包解压运行，如果不能运行再按照下面的教程，尝试源码安装conda环境运行
+
 **下载地址**：
 
 - Windows GPU版本：
-  - 国内：<a href="https://github.91chifun.workers.dev/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_GPU.7z">vse_windows_GPU.7z</a>
+  - 国内：<a href="https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_GPU.7z">vse_windows_GPU.7z</a>
   - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_GPU.7z">vse_windows_GPU.7z</a>
 
 - Windows CPU版本：
-  - 国内：<a href="https://github.91chifun.workers.dev/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/vse_windows_CPU.zip">vse_windows_CPU.zip</a>
-  - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/vse_windows_CPU.zip">vse_windows_CPU.zip</a> 
+  - 国内：<a href=https://github.91chi.fun//https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_CPU.zip>vse_windows_CPU.zip</a>
+  - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_CPU.zip">vse_windows_CPU.zip</a> 
 
 - MacOS CPU版本：
-  - 国内：<a href="https://github.91chifun.workers.dev/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/vse_macOS_CPU.dmg">vse_macOS_CPU.dmg</a>
+  - 国内：<a href="https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/vse_macOS_CPU.dmg">vse_macOS_CPU.dmg</a>
   - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/vse_macOS_CPU.dmg">vse_macOS_CPU.dmg</a> 
 
 

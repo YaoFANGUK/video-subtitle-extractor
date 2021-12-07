@@ -7,13 +7,16 @@
 """
 import configparser
 import os
+import re
+import time
 from pathlib import Path
 from enum import Enum
 from fsplit.filesplit import Filesplit
 from paddle import fluid
 
 fluid.install_check.run_check()
-
+# 判断代码路径是否合法
+IS_LEGAL_PATH = True
 config = configparser.ConfigParser()
 config_path = os.path.join(os.path.dirname(__file__), 'settings.ini')
 if not os.path.exists(config_path):
@@ -21,7 +24,7 @@ if not os.path.exists(config_path):
     with open(config_path, mode='w') as f:
         f.write('[DEFAULT]\n')
         f.write('Language = ch\n')
-        f.write('Mode = accurate')
+        f.write('Mode = fast')
 config.read(config_path)
 
 # 设置识别语言
@@ -40,6 +43,15 @@ if MODE_TYPE == 'fast':
 # --------------------- 请你不要改 start-----------------------------
 # 项目的base目录
 BASE_DIR = str(Path(os.path.abspath(__file__)).parent)
+# 是否包含中文
+if re.search(r"[\u4e00-\u9fa5]+", BASE_DIR):
+    IS_LEGAL_PATH = False
+# 是否包含空格
+if re.search(r"\s", BASE_DIR):
+    IS_LEGAL_PATH = False
+while not IS_LEGAL_PATH:
+    print('【警告】程序运行中断！路径不合法！请不要将程序放入带有空格和中文的路径下！！！请修改程序路径名后重新运行程序')
+    time.sleep(3)
 # 模型文件目录
 # 文本检测模型
 DET_MODEL_BASE = os.path.join(BASE_DIR, 'backend', 'models')
