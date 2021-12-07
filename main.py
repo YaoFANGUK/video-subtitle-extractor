@@ -26,6 +26,7 @@ import platform
 from reformat import reformat
 from srt2ass import write_srt_to_ass
 from translation import chs_to_cht
+from backend.sushi.sushi_main import subtitle_sync
 
 
 # 加载文本检测+识别模型
@@ -179,9 +180,7 @@ class SubtitleExtractor:
 
         if self.bd_video_path is not None:
             print("开始同步时间轴")
-            sushi_path = os.path.realpath('../Sushi/run_no_pause.bat')
-            print(sushi_path)
-            os.system(sushi_path + f' "{self.video_path}" "{self.bd_video_path}"  "{srt_filename}"')
+            subtitle_sync([self.video_path, self.bd_video_path, srt_filename])
             srt_filename = os.path.join(os.path.splitext(self.bd_video_path)[0] + '.zh.简体-英文.srt')
             srt_filename_cht = os.path.join(os.path.splitext(self.bd_video_path)[0] + '.zh.繁体-英文.srt')
             os.replace(os.path.join(os.path.splitext(self.bd_video_path)[0] + '.srt'), srt_filename)
