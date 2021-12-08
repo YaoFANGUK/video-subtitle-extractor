@@ -8,10 +8,9 @@
 import PySimpleGUI as sg
 import cv2
 import os
+import sys
 from threading import Thread
 from backend.tools.settings import set_language_mode
-# 确保在加载main模块前先设置语言和模式
-set_language_mode(os.path.join(os.path.dirname(__file__), 'settings.ini'))
 from main import SubtitleExtractor
 
 
@@ -43,17 +42,28 @@ class SubtitleExtractorGUI:
         self.xmax = None
         self.ymin = None
         self.ymax = None
+        self.bd_video_path = None
+        self.hd_video_path = None
 
     def run(self):
         # 创建布局
         self._create_layout()
         # 创建窗口
         self.window = sg.Window(title='硬字幕提取器', layout=self.layout)
+        once = False
         while True:
             # 循环读取事件
             event, values = self.window.read(timeout=10)
+            if once == False:
+                if self.hd_video_path is not None:
+                    self._file_event_handler('-FILE-', {'-FILE-': self.hd_video_path})
+                once = True
             # 处理【打开】事件
             self._file_event_handler(event, values)
+            # 处理【选择蓝光视频】事件
+            self._file_bd_event_handler(event, values)
+            # 处理【识别语言】事件
+            self._language_mode_event_handler(event, values)
             # 处理【滑动】事件
             self._slide_event_handler(event, values)
             # 处理【运行】事件
@@ -73,12 +83,18 @@ class SubtitleExtractorGUI:
                       key='-DISPLAY-')],
             # 打开按钮 + 快进快退条
             [sg.Input(key='-FILE-', visible=False, enable_events=True),
-             sg.FileBrowse('打开', file_types=(('所有文件', '*.*'), ('mp4文件', '*.mp4'),
+             sg.FileBrowse('打开硬字幕视频', file_types=(('所有文件', '*.*'), ('mp4文件', '*.mp4'),
                                              ('flv文件', '*.flv'), ('wmv文件', '*.wmv'), ('avi文件', '*.avi')),
                            key='-FILE_BTN-'),
              sg.Slider(size=(80, 20), range=(1, 1), key='-SLIDER-', orientation='h',
                        enable_events=True,
                        disable_number_display=True)
+             ],
+             [sg.Input(key='-FILE-BD-', visible=False, enable_events=True),
+             sg.FileBrowse('选择蓝光视频(同步时间轴)', file_types=(('所有文件', '*.*'), ('mp4文件', '*.mp4'),
+                                            ('flv文件', '*.flv'), ('wmv文件', '*.wmv'), ('avi文件', '*.avi')),
+                          key='-FILE-BD_BTN-'),
+             sg.Button(button_text='识别语言', key='-LANGUAGE-MODE-', size=(20, 1))
              ],
             # 输出区域
             [sg.Output(size=(70, 10), font='Courier 10'),
@@ -116,6 +132,7 @@ class SubtitleExtractorGUI:
         """
         if event == '-FILE-':
             self.video_path = values['-FILE-']
+            self.hd_video_path = self.video_path
             if self.video_path != '':
                 self.video_cap = cv2.VideoCapture(self.video_path)
             if self.video_cap is None:
@@ -149,6 +166,22 @@ class SubtitleExtractorGUI:
                     self.window['-X-SLIDER-'].update(self.frame_width * .15)
                     self.window['-X-SLIDER-W-'].update(self.frame_width * .7)
 
+    def _file_bd_event_handler(self, event, values):
+        if event != '-FILE-BD-':
+            return
+        self.bd_video_path = values['-FILE-BD-']
+        if os.path.samefile(self.hd_video_path, self.bd_video_path):
+            print(f'同步时间轴：选择了相同的文件')
+            return
+        print(f'同步时间轴：{self.bd_video_path}')
+
+    def _language_mode_event_handler(self, event, values):
+        if event != '-LANGUAGE-MODE-':
+            return
+        if 'OK' == set_language_mode(os.path.join(os.path.dirname(__file__), 'settings.ini')):
+            sg.popup('请重启程序使"识别语言"修改生效')
+            exit()
+
     def _run_event_handler(self, event, values):
         """
         当点击运行按钮时：
@@ -176,7 +209,7 @@ class SubtitleExtractorGUI:
                 self.ymax = int(values['-Y-SLIDER-'] + values['-Y-SLIDER-H-'])
                 print(f'字幕区域：({self.ymin},{self.ymax},{self.xmin},{self.xmax})')
                 subtitle_area = (self.ymin, self.ymax, self.xmin, self.xmax)
-                se = SubtitleExtractor(self.video_path, subtitle_area)
+                se = SubtitleExtractor(self.video_path, subtitle_area, self.bd_video_path)
                 Thread(target=se.run, daemon=True).start()
 
     def _slide_event_handler(self, event, values):
@@ -207,4 +240,18 @@ class SubtitleExtractorGUI:
 if __name__ == '__main__':
     # 运行图形化界面
     subtitleExtractorGUI = SubtitleExtractorGUI()
+    argc = len(sys.argv)
+    if argc > 2:
+        if os.path.getsize(sys.argv[1]) > os.path.getsize(sys.argv[2]):
+            subtitleExtractorGUI.hd_video_path = sys.argv[2]
+            subtitleExtractorGUI.bd_video_path = sys.argv[1]
+        else:
+            subtitleExtractorGUI.hd_video_path = sys.argv[1]
+            subtitleExtractorGUI.bd_video_path = sys.argv[2]
+        print(f"硬字幕: {subtitleExtractorGUI.hd_video_path}")
+        print(f"同步时间轴: {subtitleExtractorGUI.bd_video_path}")
+    elif argc > 1:
+        subtitleExtractorGUI.hd_video_path = sys.argv[1]
+    sys.argv = [sys.argv[0]]
+
     subtitleExtractorGUI.run()
