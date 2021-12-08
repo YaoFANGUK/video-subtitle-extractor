@@ -1,0 +1,14 @@
+name: videoEnv
+channels:
+  - defaults
+  - anaconda
+  - conda-forge
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/Paddle/
+dependencies:
+  - python=3.8
+  - paddlepaddle-gpu>2.1.3
+  - cudatoolkit=11.2
+  - ffmpeg
+  - pip
+  - pip:
+    - -r requirements_gpu.txt
