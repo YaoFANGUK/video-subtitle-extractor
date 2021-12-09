@@ -100,15 +100,11 @@ QQ交流群：210150985
   - 安装依赖：
 
     ```shell
-    conda create --name videoEnv python=3.8
+    conda env create -n videoEnv -f ./environment.yml
     ```
 
     ```shell
-    conda activate videoEnv  
-    ```
-
-    ```shell
-    pip install -r requirements.txt
+    conda activate videoEnv
     ```
 
 - GPU用户(有N卡)： **要达到高精度的识别率请使用GPU版**
@@ -116,7 +112,7 @@ QQ交流群：210150985
   - 安装依赖：
 
     ```shell
-    conda env create -n videoEnv -f ./environment.yml
+    conda env create -n videoEnv -f ./environment_gpu.yml
     ```
 
     ```shell
