@@ -29,6 +29,7 @@ MODE_KEY_NAME_MAP = {v: k for k, v in MODE_NAME_KEY_MAP.items()}
 
 def set_language_mode(config_file):
     language_def, mode_def = parse_config(config_file)
+    sg.theme('LightBrown12')
     window = sg.Window(title='字幕提取器',
                        layout=[
                            [sg.Text('选择视频字幕的语言:'), sg.DropDown(values=list(LANGUAGE_NAME_KEY_MAP.keys()), size=(30, 20), pad=(0, 20),

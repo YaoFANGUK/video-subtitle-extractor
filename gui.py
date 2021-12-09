@@ -5,13 +5,13 @@
 @FileName: gui.py
 @desc:
 """
+import sys
+
 import PySimpleGUI as sg
 import cv2
 import os
 from threading import Thread
 from backend.tools.settings import set_language_mode
-# 确保在加载main模块前先设置语言和模式
-set_language_mode(os.path.join(os.path.dirname(__file__), 'settings.ini'))
 from main import SubtitleExtractor
 
 
@@ -56,6 +56,8 @@ class SubtitleExtractorGUI:
             self._file_event_handler(event, values)
             # 处理【滑动】事件
             self._slide_event_handler(event, values)
+            # 处理【识别语言】事件
+            self._language_mode_event_handler(event, values)
             # 处理【运行】事件
             self._run_event_handler(event, values)
             # 如果关闭软件，退出
@@ -78,7 +80,7 @@ class SubtitleExtractorGUI:
                            key='-FILE_BTN-'),
              sg.Slider(size=(80, 20), range=(1, 1), key='-SLIDER-', orientation='h',
                        enable_events=True,
-                       disable_number_display=True)
+                       disable_number_display=True),
              ],
             # 输出区域
             [sg.Output(size=(70, 10), font='Courier 10'),
@@ -105,7 +107,9 @@ class SubtitleExtractorGUI:
              ],
 
             # 运行按钮 + 进度条
-            [sg.Button(button_text='运行', key='-RUN-', size=(20, 1))],
+            [sg.Button(button_text='运行', key='-RUN-', size=(20, 1)),
+             sg.Button(button_text='识别语言', key='-LANGUAGE-MODE-', size=(20, 1))
+             ],
         ]
 
     def _file_event_handler(self, event, values):
@@ -149,6 +153,14 @@ class SubtitleExtractorGUI:
                     self.window['-X-SLIDER-'].update(self.frame_width * .15)
                     self.window['-X-SLIDER-W-'].update(self.frame_width * .7)
 
+    def _language_mode_event_handler(self, event, values):
+        if event != '-LANGUAGE-MODE-':
+            return
+        if 'OK' == set_language_mode(os.path.join(os.path.dirname(__file__), 'settings.ini')):
+            # 如果是源码运行，则用python解释器 重启
+            python = sys.executable
+            os.execl(python, python, *sys.argv)
+
     def _run_event_handler(self, event, values):
         """
         当点击运行按钮时：
@@ -165,10 +177,11 @@ class SubtitleExtractorGUI:
                 self.window['-X-SLIDER-'].update(disabled=True)
                 self.window['-Y-SLIDER-H-'].update(disabled=True)
                 self.window['-X-SLIDER-W-'].update(disabled=True)
-                # 2) 禁止再次点击【运行】和【打开】按钮
+                # 2) 禁止再次点击【运行】、【打开】和【识别语言】按钮
                 self.window['-RUN-'].update(disabled=True)
                 self.window['-FILE-'].update(disabled=True)
                 self.window['-FILE_BTN-'].update(disabled=True)
+                self.window['-LANGUAGE-MODE-'].update(disabled=True)
                 # 3) 设定字幕区域位置
                 self.xmin = int(values['-X-SLIDER-'])
                 self.xmax = int(values['-X-SLIDER-'] + values['-X-SLIDER-W-'])
