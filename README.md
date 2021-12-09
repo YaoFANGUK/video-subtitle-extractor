@@ -17,7 +17,7 @@ video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕�
 - 生成srt字幕文件
 - 多语言：支持**中文/英文**、**繁体中文**、**日语**、**韩语**、**法语**、**德语**字幕的提取
 - 多模式：
-  - **快速** - 快速提取字幕但可能丢字幕
+  - **快速** - 快速提取字幕但可能丢字幕()
   - **精准** - 不丢字幕但速度较慢
 
 QQ交流群：210150985
@@ -25,11 +25,13 @@ QQ交流群：210150985
 **使用说明**：
 
 - 视频以及程序路径请**不要带中文和空格**，否则可能出现未知错误！！！
+
  > 如：以下存放视频和代码的路径都不行
- > 
+ >
  > D:\下载\vse\运行程序.exe（路径含中文）
- > 
+ >
  > E:\study\kaoyan\sanshang youya.mp4 （路径含空格） 
+
 - 直接下载压缩包解压运行，如果不能运行再按照下面的教程，尝试源码安装conda环境运行
 
 **下载地址**：
@@ -89,23 +91,21 @@ QQ交流群：210150985
 
 <a href="https://www.anaconda.com/products/individual">https://www.anaconda.com/products/individual#Downloads</a>
 
-#### 2. 使用conda创建项目虚拟环境并激活环境 (建议创建虚拟环境运行，以免后续出现问题)
+#### 2. 安装依赖文件
 
-```shell
-conda create --name videoEnv python=3.8
-```
-
-```shell
-conda activate videoEnv  
-```
-
-#### 3. 安装依赖文件
-
-请确保你已经安装 python 3.8+
+请确保你已经安装 python 3.8+，使用conda创建项目虚拟环境并激活环境 (建议创建虚拟环境运行，以免后续出现问题)
 
 - CPU用户 (mac用户) : 
 
   - 安装依赖：
+
+    ```shell
+    conda create --name videoEnv python=3.8
+    ```
+
+    ```shell
+    conda activate videoEnv  
+    ```
 
     ```shell
     pip install -r requirements.txt
@@ -113,65 +113,17 @@ conda activate videoEnv
 
 - GPU用户(有N卡)： **要达到高精度的识别率请使用GPU版**
 
-  - 安装CUDA 11.2和cuDNN 8.1.1
-
-    <details>
-        <summary>Linux用户</summary>
-        <h5>(1) 下载CUDA 11.2</h5>
-        <pre><code>wget https://developer.download.nvidia.com/compute/cuda/11.2.0/local_installers/cuda_11.2.0_460.27.04_linux.run</code></pre>
-        <h5>(2) 安装CUDA 11.2</h5>
-        <pre><code>sudo sh cuda_11.2.0_460.27.04_linux.run --override</code></pre>
-        <p>1. 输入accept</p>
-        <img src="https://z3.ax1x.com/2021/05/24/gv0AVU.png" width="500" alt="">
-        <p>2. 选中CUDA Toolkit 11.2（如果你没有安装nvidia驱动则选中Driver，如果你已经安装了nvidia驱动请不要选中driver），之后选中install，回车</p>
-        <img src="https://z3.ax1x.com/2021/10/11/5VnwfH.png" width="500" alt="">
-        <p>3. 添加环境变量</p>
-        <p>在 ~/.bashrc 加入以下内容</p>
-        <pre><code># CUDA
-    export PATH=/usr/local/cuda-11.2/bin${PATH:+:${PATH}}
-    export LD_LIBRARY_PATH=/usr/local/cuda-11.2/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}</code></pre>
-        <p>使其生效</p>
-        <pre><code>source ~/.bashrc</code></pre>
-        <h5>(3) 下载cuDNN 8.1.1</h5>
-        <p>国内：<a href="https://github.91chifun.workers.dev/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/cudnn-11.2-linux-x64-v8.1.1.33.tgz">cudnn-11.2-linux-x64-v8.1.1.33.tgz</a></p>
-        <p>国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/cudnn-11.2-linux-x64-v8.1.1.33.tgz">cudnn-11.2-linux-x64-v8.1.1.33.tgz</a></p>
-        <h5>(4) 安装cuDNN 8.1.1</h5>
-        <pre><code> tar -zxvf cudnn-11.2-linux-x64-v8.1.1.33.tgz
-     sudo cp ./cuda/include/* /usr/local/cuda-11.2/include/
-     sudo cp ./cuda/lib64/* /usr/local/cuda-11.2/lib64/
-     sudo chmod a+r /usr/local/cuda-11.2/lib64/*
-     sudo chmod a+r /usr/local/cuda-11.2/include/*</code></pre>
-    </details>
-  
-    <details>
-          <summary>Windows用户</summary>
-          <h5>(1) 下载CUDA 11.2</h5>
-          <a href="https://developer.download.nvidia.com/compute/cuda/11.2.0/local_installers/cuda_11.2.0_460.89_win10.exe">cuda_11.2.0_460.89_win10.exe</a>
-          <h5>(2) 安装CUDA 11.2</h5>
-          <h5>(3) 下载cuDNN 8.1.1</h5>
-          <p>国内：<a href="https://github.91chifun.workers.dev/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/cudnn-11.2-windows-x64-v8.1.1.33.zip">cudnn-11.2-windows-x64-v8.1.1.33.zip</a></p>
-          <p>国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/cudnn-11.2-windows-x64-v8.1.1.33.zip">cudnn-11.2-windows-x64-v8.1.1.33.zip</a></p>
-          <h5>(4) 安装cuDNN 8.1.1</h5>
-          <p>
-             将cuDNN解压后的cuda文件夹中的bin, include, lib目录下的文件复制到C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\对应目录下
-          </p>
-      </details>
-
-  - 安装paddlepaddle:
+  - 安装依赖：
 
     ```shell
-    conda install paddlepaddle-gpu==2.1.3 cudatoolkit=11.2 -c https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/Paddle/ -c conda-forge 
+    conda env create -n videoEnv -f ./environment.yml
     ```
-
-    > 如果安装cuda 10.2，请对应安装7.6.5的cuDNN, **请不要使用cuDNN v8.x 和 cuda 10.2的组合**
-
-  - 安装其他依赖:
 
     ```shell
-    pip install -r requirements_gpu.txt
+    conda activate videoEnv
     ```
 
-#### 4. 运行程序
+#### 3. 运行程序
 
 - 运行图形化界面版本(GUI)
 
@@ -189,9 +141,68 @@ python main.py
 
 ## 常见问题与解决方案
 
-#### 1. 运行不正常/没有结果
+#### 1. 运行不正常/没有结果/cuda及cudnn问题
 
-解决方案：如果你使用的是3060/3070/3080等安培架构的显卡，请使用最新的paddlepaddle版本以及最新的cuda 11+
+解决方案：如果你使用的是3060/3070/3080等安培架构的显卡，请使用最新的paddlepaddle版本以及最新的cuda 11.2，如果使用conda安装GPU环境失败，请尝试手动安装：
+
+- 安装CUDA 11.2和cuDNN 8.1.1
+
+  <details>
+      <summary>Linux用户</summary>
+      <h5>(1) 下载CUDA 11.2</h5>
+      <pre><code>wget https://developer.download.nvidia.com/compute/cuda/11.2.0/local_installers/cuda_11.2.0_460.27.04_linux.run</code></pre>
+      <h5>(2) 安装CUDA 11.2</h5>
+      <pre><code>sudo sh cuda_11.2.0_460.27.04_linux.run --override</code></pre>
+      <p>1. 输入accept</p>
+      <img src="https://z3.ax1x.com/2021/05/24/gv0AVU.png" width="500" alt="">
+      <p>2. 选中CUDA Toolkit 11.2（如果你没有安装nvidia驱动则选中Driver，如果你已经安装了nvidia驱动请不要选中driver），之后选中install，回车</p>
+      <img src="https://z3.ax1x.com/2021/10/11/5VnwfH.png" width="500" alt="">
+      <p>3. 添加环境变量</p>
+      <p>在 ~/.bashrc 加入以下内容</p>
+      <pre><code># CUDA
+  export PATH=/usr/local/cuda-11.2/bin${PATH:+:${PATH}}
+  export LD_LIBRARY_PATH=/usr/local/cuda-11.2/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}</code></pre>
+      <p>使其生效</p>
+      <pre><code>source ~/.bashrc</code></pre>
+      <h5>(3) 下载cuDNN 8.1.1</h5>
+      <p>国内：<a href="https://github.91chifun.workers.dev/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/cudnn-11.2-linux-x64-v8.1.1.33.tgz">cudnn-11.2-linux-x64-v8.1.1.33.tgz</a></p>
+      <p>国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/cudnn-11.2-linux-x64-v8.1.1.33.tgz">cudnn-11.2-linux-x64-v8.1.1.33.tgz</a></p>
+      <h5>(4) 安装cuDNN 8.1.1</h5>
+      <pre><code> tar -zxvf cudnn-11.2-linux-x64-v8.1.1.33.tgz
+   sudo cp ./cuda/include/* /usr/local/cuda-11.2/include/
+   sudo cp ./cuda/lib64/* /usr/local/cuda-11.2/lib64/
+   sudo chmod a+r /usr/local/cuda-11.2/lib64/*
+   sudo chmod a+r /usr/local/cuda-11.2/include/*</code></pre>
+  </details>
+
+
+  <details>
+        <summary>Windows用户</summary>
+        <h5>(1) 下载CUDA 11.2</h5>
+        <a href="https://developer.download.nvidia.com/compute/cuda/11.2.0/local_installers/cuda_11.2.0_460.89_win10.exe">cuda_11.2.0_460.89_win10.exe</a>
+        <h5>(2) 安装CUDA 11.2</h5>
+        <h5>(3) 下载cuDNN 8.1.1</h5>
+        <p>国内：<a href="https://github.91chifun.workers.dev/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/cudnn-11.2-windows-x64-v8.1.1.33.zip">cudnn-11.2-windows-x64-v8.1.1.33.zip</a></p>
+        <p>国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/cudnn-11.2-windows-x64-v8.1.1.33.zip">cudnn-11.2-windows-x64-v8.1.1.33.zip</a></p>
+        <h5>(4) 安装cuDNN 8.1.1</h5>
+        <p>
+           将cuDNN解压后的cuda文件夹中的bin, include, lib目录下的文件复制到C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\对应目录下
+        </p>
+    </details>
+
+- 安装paddlepaddle:
+
+  ```shell
+  conda install paddlepaddle-gpu==2.1.3 cudatoolkit=11.2 -c https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/Paddle/ -c conda-forge 
+  ```
+
+  > 如果安装cuda 10.2，请对应安装7.6.5的cuDNN, **请不要使用cuDNN v8.x 和 cuda 10.2的组合**
+
+- 安装其他依赖:
+
+  ```shell
+  pip install -r requirements_gpu.txt
+  ```
 
 
 #### 2. CondaHTTPError
@@ -220,3 +231,4 @@ pip uninstall Shapely -y
 ```shell
 conda install Shapely             
 ```
+
