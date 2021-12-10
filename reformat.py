@@ -15,6 +15,10 @@ def reformat(path):
         "Let'sqo": "Let's go",
         "Iife": "life",
     }
+    waterMarkMap = {
+        "扫码下载  ": "",
+    }
+
     for verb in verbForms:
         verbFormMap[verb.replace("'", "").lower()] = verb
     print(verbFormMap)
@@ -35,13 +39,18 @@ def reformat(path):
     def typoFix(text):
         for k,v in typoMap.items():
             text = text.replace(k, v)
-
-        print(text)
         return text
+
+    def waterMarkFix(text):
+        for k,v in waterMarkMap.items():
+            text = text.replace(k, v)
+        return text
+
 
     for sub in subs:
         # print(sub.text)
         sub.text = typoFix(sub.text)
+        sub.text = waterMarkFix(sub.text)
         seg = wordsegment.segment(sub.text)
         if (len(seg) == 1):
             seg = wordsegment.segment(re.sub(re.compile(f"(\ni)([^\\s])", re.I), "\\1 \\2", sub.text))
