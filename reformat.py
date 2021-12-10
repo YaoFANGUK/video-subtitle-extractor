@@ -14,6 +14,7 @@ def reformat(path):
         "l'm": "I'm",
         "Let'sqo": "Let's go",
         "Iife": "life",
+        "威筋": "威胁",
     }
     waterMarkMap = {
         "扫码下载  ": "",
