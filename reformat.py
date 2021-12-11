@@ -7,11 +7,12 @@ def reformat(path):
     wordsegment.load()
     subs = pysrt.open(path)
     subs.save(f"{path}.bak", encoding='utf-8')
-    verbForms = ["I'm","you're","he's","she's","we're","it's","isn't","aren't","they're","there's","wasn't","weren't","I've","you've","he's","she's","it's","we've","they've","there's","hasn't","haven't","I'd","you'd","he'd","she'd","it'd","we'd","they'd","doesn't","don't","didn't","I'll","you'll","he'll","she'll","we'll","they'll","there'll","I'd","you'd","he'd","she'd","it'd", "we've","they'd","there'd","there'd","can't","couldn't","daren't","hadn't","mightn't","mustn't","needn't","oughtn't","shan't","shouldn't","usedn't","won't","wouldn't","that's","what's"]
+    verbForms = ["I'm","you're","he's","she's","we're","it's","isn't","aren't","they're","there's","wasn't","weren't","I've","you've","he's","she's","it's","we've","they've","there's","hasn't","haven't","I'd","you'd","he'd","she'd","it'd","we'd","they'd","doesn't","don't","didn't","I'll","you'll","he'll","she'll","we'll","they'll","there'll","I'd","you'd","he'd","she'd","it'd", "we've","they'd","there'd","there'd","can't","couldn't","daren't","hadn't","mightn't","mustn't","needn't","oughtn't","shan't","shouldn't","usedn't","won't","wouldn't","that's","what's", "haven't"]
     verbFormMap = {}
 
     typoMap = {
         "l'm": "I'm",
+        "l just": "I just",
         "Let'sqo": "Let's go",
         "Iife": "life",
         "威筋": "威胁",
@@ -34,9 +35,6 @@ def reformat(path):
                 newSegs.append([seg])
         return newSegs
 
-    def regexGroupSplit(segs, ):
-        pass
-
     def typoFix(text):
         for k,v in typoMap.items():
             text = text.replace(k, v)
@@ -47,7 +45,34 @@ def reformat(path):
             text = text.replace(k, v)
         return text
 
-
+    # 逆向过滤seg
+    def removeInvalidSegment(seg, text):
+        segLen = len(seg)
+        span = None
+        newSeg = []
+        for i in range(segLen -1 , -1, -1):
+            s = seg[i]
+            if len(s) > 1:
+                regex = re.compile(f"({s[0]}|{s[1]})", re.I)
+            else:
+                regex = re.compile(f"({s[0]})", re.I)
+            try:
+                ss = [(i) for i in re.finditer(regex, text)][-1]
+            except IndexError:
+                ss = None
+            print(f"{s}: {ss}")
+            if ss is None:
+                continue
+            text = text[:ss.span()[0]]
+            print(text)
+            if span is None:
+                span = ss.span()
+                newSeg.append(s)
+                continue
+            if span > ss.span():
+                newSeg.append(s)
+                span = ss.span()
+        return list(reversed(newSeg))
     for sub in subs:
         # print(sub.text)
         sub.text = typoFix(sub.text)
@@ -63,6 +88,7 @@ def reformat(path):
         print(seg)
         lines = []
         remain = sub.text
+        seg = removeInvalidSegment(seg, sub.text)
         segLen = len(seg)
         for i in range(0, segLen):
             s = seg[i]
