@@ -87,8 +87,8 @@ class TextSystem(object):
     def __call__(self, img):
         ori_im = img.copy()
         dt_boxes, elapse = self.text_detector(img)
-        logger.info("dt_boxes num : {}, elapse : {}".format(
-            len(dt_boxes), elapse))
+        # logger.info("dt_boxes num : {}, elapse : {}".format(
+        #     len(dt_boxes), elapse))
         if dt_boxes is None:
             return None, None
         img_crop_list = []
@@ -102,12 +102,12 @@ class TextSystem(object):
         if self.use_angle_cls:
             img_crop_list, angle_list, elapse = self.text_classifier(
                 img_crop_list)
-            logger.info("cls num  : {}, elapse : {}".format(
-                len(img_crop_list), elapse))
+            # logger.info("cls num  : {}, elapse : {}".format(
+            #     len(img_crop_list), elapse))
 
         rec_res, elapse = self.text_recognizer(img_crop_list)
-        logger.info("rec_res num  : {}, elapse : {}".format(
-            len(rec_res), elapse))
+        # logger.info("rec_res num  : {}, elapse : {}".format(
+        #     len(rec_res), elapse))
         # self.print_draw_crop_rec_res(img_crop_list, rec_res)
         filter_boxes, filter_rec_res = [], []
         for box, rec_reuslt in zip(dt_boxes, rec_res):

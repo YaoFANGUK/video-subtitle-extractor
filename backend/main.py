@@ -16,12 +16,10 @@ from Levenshtein import ratio
 from PIL import Image
 from numpy import average, dot, linalg
 import numpy as np
-
-import config
+from backend import config
 from backend.tools.infer import utility
 from backend.tools.infer.predict_det import TextDetector
 from backend.tools.infer.predict_system import TextSystem
-from config import SubtitleArea
 import platform
 
 
@@ -78,7 +76,7 @@ class SubtitleExtractor:
         self.sub_area = sub_area
         self.sub_detector = SubtitleDetect()
         # 临时存储文件夹
-        self.temp_output_dir = os.path.join(config.BASE_DIR, 'output')
+        self.temp_output_dir = os.path.join(os.path.dirname(config.BASE_DIR), 'output')
         # 视频路径
         self.video_path = vd_path
         self.video_cap = cv2.VideoCapture(vd_path)
@@ -302,7 +300,7 @@ class SubtitleExtractor:
         # 删除缓存
         self.__delete_frame_cache()
         # 定义videoSubFinder所在路径
-        path_vsf = os.path.join(config.BASE_DIR, 'backend', 'subfinder', 'VideoSubFinderWXW.exe')
+        path_vsf = os.path.join(config.BASE_DIR, '', 'subfinder', 'VideoSubFinderWXW.exe')
         # ：图像上半部分所占百分比，取值【0-1】
         top_end = 1 - self.sub_area[0] / self.frame_height
         # bottom_end：图像下半部分所占百分比，取值【0-1】
@@ -671,11 +669,11 @@ class SubtitleExtractor:
         #     frames = cv2.resize(frames, None, fx=scale_rate, fy=scale_rate, interpolation=cv2.INTER_AREA)
         cropped = int(frame.shape[0] // 2)
         # 如果字幕出现的区域在下部分
-        if self.subtitle_area == SubtitleArea.LOWER_PART:
+        if self.subtitle_area == config.SubtitleArea.LOWER_PART:
             # 将视频帧切割为下半部分
             frame = frame[cropped:]
         # 如果字幕出现的区域在上半部分
-        elif self.subtitle_area == SubtitleArea.UPPER_PART:
+        elif self.subtitle_area == config.SubtitleArea.UPPER_PART:
             # 将视频帧切割为下半部分
             frame = frame[:cropped]
         return frame
