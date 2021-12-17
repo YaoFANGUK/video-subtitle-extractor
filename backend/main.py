@@ -17,6 +17,7 @@ from PIL import Image
 from numpy import average, dot, linalg
 import numpy as np
 from backend import config
+from backend.tools.reformat import reformat
 from backend.tools.infer import utility
 from backend.tools.infer.predict_det import TextDetector
 from backend.tools.infer.predict_system import TextSystem
@@ -151,7 +152,9 @@ class SubtitleExtractor:
                 print('【处理中】开始检测非字幕区域，并将非字幕区域的内容删除')
                 self.filter_scene_text()
                 print('【结束】已将非字幕区域的内容删除')
-
+            # 如果识别的字幕语言包含英文，则将英文分词
+            if config.REC_CHAR_TYPE in ('ch', 'EN', 'en'):
+                reformat(os.path.join(os.path.splitext(self.video_path)[0] + '.srt'))
             print('【处理中】开始生成字幕文件')
             # 判断是否开启精准模式
             if config.ACCURATE_MODE_ON:
