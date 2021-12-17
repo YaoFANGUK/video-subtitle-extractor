@@ -5,6 +5,8 @@
 @FileName: config.py
 @desc: 项目配置文件，可以在这里调参，牺牲时间换取精确度，或者牺牲准确度换取时间
 """
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 import configparser
 import os
 import re
@@ -18,14 +20,14 @@ fluid.install_check.run_check()
 # 判断代码路径是否合法
 IS_LEGAL_PATH = True
 config = configparser.ConfigParser()
-config_path = os.path.join(os.path.dirname(__file__), 'settings.ini')
-if not os.path.exists(config_path):
+MODE_CONFIG_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'settings.ini')
+if not os.path.exists(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'settings.ini')):
     # 如果没有配置文件，默认使用中文
-    with open(config_path, mode='w') as f:
+    with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'settings.ini'), mode='w') as f:
         f.write('[DEFAULT]\n')
         f.write('Language = ch\n')
         f.write('Mode = fast')
-config.read(config_path)
+config.read(MODE_CONFIG_PATH)
 
 # 设置识别语言
 REC_CHAR_TYPE = config['DEFAULT']['Language']
@@ -54,25 +56,25 @@ while not IS_LEGAL_PATH:
     time.sleep(3)
 # 模型文件目录
 # 文本检测模型
-DET_MODEL_BASE = os.path.join(BASE_DIR, 'backend', 'models')
+DET_MODEL_BASE = os.path.join(BASE_DIR, '', 'models')
 DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, 'ch_det')
 DET_MODEL_FAST_PATH = os.path.join(DET_MODEL_BASE, 'ch_det_fast')
 # 设置文本识别模型 + 字典
-REC_MODEL_BASE = os.path.join(BASE_DIR, 'backend', 'models')
+REC_MODEL_BASE = os.path.join(BASE_DIR, '', 'models')
 # 默认文本识别模型为中文
-REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, 'backend', 'models', 'ch_rec')
+REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, '', 'models', 'ch_rec')
 REC_MODEL_FAST_PATH = os.path.join(REC_MODEL_BASE, 'ch_rec_fast')
 # 默认字典路径为中文
-DICT_BASE = os.path.join(BASE_DIR, 'backend', 'ppocr', 'utils', 'dict')
-DICT_PATH = os.path.join(BASE_DIR, 'backend', 'ppocr', 'utils', 'ppocr_keys_v1.txt')
+DICT_BASE = os.path.join(BASE_DIR, '', 'ppocr', 'utils', 'dict')
+DICT_PATH = os.path.join(BASE_DIR, '', 'ppocr', 'utils', 'ppocr_keys_v1.txt')
 
 
 # 如果设置了识别文本语言类型，则设置为对应的语言
 if REC_CHAR_TYPE in ('ch', 'japan', 'korean', 'en', 'EN_symbol', 'french', 'german', 'it', 'es', 'pt', 'ru', 'ar',
                      'ta', 'ug', 'fa', 'ur', 'rs_latin', 'oc', 'rs_cyrillic', 'bg', 'uk', 'be', 'te', 'kn', 'ch_tra', 'hi', 'mr', 'ne', 'EN'):
-    REC_MODEL_PATH = os.path.join(BASE_DIR, 'backend', 'models', f'{REC_CHAR_TYPE}_rec')
+    REC_MODEL_PATH = os.path.join(BASE_DIR, '', 'models', f'{REC_CHAR_TYPE}_rec')
     REC_MODEL_FAST_PATH = os.path.join(REC_MODEL_BASE, f'{REC_CHAR_TYPE}_rec_fast')
-    DICT_PATH = os.path.join(BASE_DIR, 'backend', 'ppocr', 'utils', 'dict', f'{REC_CHAR_TYPE}_dict.txt')
+    DICT_PATH = os.path.join(BASE_DIR, '', 'ppocr', 'utils', 'dict', f'{REC_CHAR_TYPE}_dict.txt')
     if not os.path.exists(REC_MODEL_FAST_PATH):
         REC_MODEL_FAST_PATH = REC_MODEL_PATH
 
