@@ -98,7 +98,10 @@ def reformat(path, bd_video_path=None):
             seg = wordsegment.segment(re.sub(re.compile(f"(\ni)([^\\s])", re.I), "\\1 \\2", sub.text))
         seg = format_seg_list(seg)
 
+        # 替换中文前的多个空格成单个空格, 避免中英文分行出错
+        # TODO USE split_ch_and_eng
         sub.text = re.sub(' +([\\u4e00-\\u9fa5])', ' \\1', sub.text)
+        # 中英文分行
         sub.text = sub.text.replace("  ", "\n")
         lines = []
         remain = sub.text
@@ -125,22 +128,30 @@ def reformat(path, bd_video_path=None):
             ss = " ".join(lines)
         else:
             ss = remain
+        # 非大写字母的大写字母前加空格
         ss = re.sub("([^\\sA-Z])([A-Z])", "\\1 \\2", ss)
+        # 删除重复空格
         ss = ss.replace("  ", " ")
         ss = ss.replace("。", ".")
+        # 删除,?!,前的多个空格
         ss = re.sub(" *([\\.\\?\\!\\,])", "\\1", ss)
+        # 删除'的前后多个空格
         ss = re.sub(" *([\\']) *", "\\1", ss)
+        # 删除换行后的多个空格, 通常时第二行的开始的多个空格
         ss = re.sub('\n\\s*', '\n', ss)
+        # 删除开始的多个空格
         ss = re.sub('^\\s*', '', ss)
+        # 结尾·改成.
         ss = re.sub('·$', '.', ss)
         ss = ss.replace(" Dr. ", " Dr.")
         ss = ss.replace("\n\n", "\n")
         sub.text = ss.strip()
-    do_original_eng_sub_match(subs, bd_video_path)
+    do_original_eng_sub_match_and_replace(subs, bd_video_path)
     subs.save(path, encoding='utf-8')
 
 
-def do_original_eng_sub_match(subs, bd_video_path):
+# 用mkv中的英语字幕修复subs中的英语字幕错误
+def do_original_eng_sub_match_and_replace(subs, bd_video_path):
     srt_path = extract_subtitle_from_video(bd_video_path)
     if srt_path is None:
         print(f"Error: No English subtitle from '{bd_video_path}'")
@@ -181,6 +192,7 @@ def extract_subtitle_from_video(bd_video_path):
 
 def nlp_sentence_clean(text):
     text = text.replace("'", "")
+    # 删除非字母数字空格
     text = re.sub('[^a-zA-Z0-9\\s]', ' ', text)
     text = text.replace("  ", " ")
     return text
@@ -233,15 +245,21 @@ def find_similar_sub(eng_subs_nlp_map, eng_subs, sub):
     # print("max score", eng_subs_part_score_list_max, "index", eng_subs_part_score_list_max_index)
 
     if eng_subs_part_score_list_max >= 0.9:
+        # 如果权重>=0.9, 将他作为下一行字幕的基准
         last_correction_index = eng_subs_part_index_list[eng_subs_part_score_list_max_index]
         selected = True
     else:
+        # 如果权重<0.9, 用上一行作为基准+1行测算权重
+        # TODO 实际上可以更复杂, 比如+2+3+4+5+...
         if last_correction_index != -1:
+            # 看看有没有按顺序
             diff_index = eng_subs_part_index_list[eng_subs_part_score_list_max_index] - last_correction_index
             if diff_index not in [1, 2] and last_correction_index + 1 in eng_subs_part_index_list:
+                # 没有按顺序...
                 eng_subs_part_score_list_correction_index = eng_subs_part_index_list.index(last_correction_index + 1)
                 eng_subs_part_score_list_max_correction = eng_subs_part_score_list[
                     eng_subs_part_score_list_correction_index]
+                # 如果测算的权重变化在合理的范围, 比如0.06
                 diff_score = eng_subs_part_score_list_max_correction - eng_subs_part_score_list_max
                 if abs(diff_score) < 0.06:
                     selected = True
@@ -249,9 +267,8 @@ def find_similar_sub(eng_subs_nlp_map, eng_subs, sub):
                     eng_subs_part_score_list_max = eng_subs_part_score_list[eng_subs_part_score_list_max_index]
                     # print("fix score", eng_subs_part_score_list_max, "index", eng_subs_part_score_list_max_index,
                     #       'diff_score', diff_score, 'diff_index', diff_index)
-
-    return eng_subs[
-               eng_subs_part_index_list[eng_subs_part_score_list_max_index]], eng_subs_part_score_list_max, selected
+    similar_sub = eng_subs[eng_subs_part_index_list[eng_subs_part_score_list_max_index]]
+    return similar_sub, eng_subs_part_score_list_max, selected
 
 
 def split_ch_and_eng(text):
