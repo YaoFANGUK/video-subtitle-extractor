@@ -16,17 +16,14 @@ from Levenshtein import ratio
 from PIL import Image
 from numpy import average, dot, linalg
 import numpy as np
-
+import sys
+sys.path.insert(0, os.path.dirname(__file__))
 import config
-from backend.tools.infer import utility
-from backend.tools.infer.predict_det import TextDetector
-from backend.tools.infer.predict_system import TextSystem
-from config import SubtitleArea
+from tools.reformat import reformat
+from tools.infer import utility
+from tools.infer.predict_det import TextDetector
+from tools.infer.predict_system import TextSystem
 import platform
-from reformat import reformat
-from srt2ass import write_srt_to_ass
-from translation import chs_to_cht
-from backend.sushi.sushi_main import subtitle_sync
 
 
 # 加载文本检测+识别模型
@@ -77,12 +74,12 @@ class SubtitleExtractor:
     视频字幕提取类
     """
 
-    def __init__(self, vd_path, sub_area=None, bd_video_path=None):
+    def __init__(self, vd_path, sub_area=None):
         # 字幕区域位置
         self.sub_area = sub_area
         self.sub_detector = SubtitleDetect()
         # 临时存储文件夹
-        self.temp_output_dir = os.path.join(config.BASE_DIR, 'output')
+        self.temp_output_dir = os.path.join(os.path.dirname(config.BASE_DIR), 'output')
         # 视频路径
         self.video_path = vd_path
         self.video_cap = cv2.VideoCapture(vd_path)
@@ -111,7 +108,6 @@ class SubtitleExtractor:
         self.raw_subtitle_path = os.path.join(self.subtitle_output_dir, 'raw.txt')
         # 自定义ocr对象
         self.ocr = OcrRecogniser()
-        self.bd_video_path = bd_video_path
 
     def run(self):
         """
@@ -173,7 +169,9 @@ class SubtitleExtractor:
         srt_filename = os.path.join(os.path.splitext(self.video_path)[0] + '.zh.简体-英文.srt')
         srt_filename_cht = os.path.join(os.path.splitext(self.video_path)[0] + '.zh.繁体-英文.srt')
         os.replace(os.path.join(os.path.splitext(self.video_path)[0] + '.srt'), srt_filename)
-        reformat(srt_filename, self.bd_video_path)
+        # 如果识别的字幕语言包含英文，则将英文分词
+        if config.REC_CHAR_TYPE in ('ch', 'EN', 'en'):
+            reformat(srt_filename, self.bd_video_path)
         chs_to_cht(srt_filename, srt_filename_cht)
         write_srt_to_ass(srt_filename_cht)
         write_srt_to_ass(srt_filename)
@@ -324,7 +322,7 @@ class SubtitleExtractor:
         # 删除缓存
         self.__delete_frame_cache()
         # 定义videoSubFinder所在路径
-        path_vsf = os.path.join(config.BASE_DIR, 'backend', 'subfinder', 'VideoSubFinderWXW.exe')
+        path_vsf = os.path.join(config.BASE_DIR, '', 'subfinder', 'VideoSubFinderWXW.exe')
         # ：图像上半部分所占百分比，取值【0-1】
         top_end = 1 - self.sub_area[0] / self.frame_height
         # bottom_end：图像下半部分所占百分比，取值【0-1】
@@ -693,11 +691,11 @@ class SubtitleExtractor:
         #     frames = cv2.resize(frames, None, fx=scale_rate, fy=scale_rate, interpolation=cv2.INTER_AREA)
         cropped = int(frame.shape[0] // 2)
         # 如果字幕出现的区域在下部分
-        if self.subtitle_area == SubtitleArea.LOWER_PART:
+        if self.subtitle_area == config.SubtitleArea.LOWER_PART:
             # 将视频帧切割为下半部分
             frame = frame[cropped:]
         # 如果字幕出现的区域在上半部分
-        elif self.subtitle_area == SubtitleArea.UPPER_PART:
+        elif self.subtitle_area == config.SubtitleArea.UPPER_PART:
             # 将视频帧切割为下半部分
             frame = frame[:cropped]
         return frame
