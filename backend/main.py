@@ -315,7 +315,7 @@ class SubtitleExtractor:
         # re：图像右半部分所占百分比，取值【0-1】
         right_end = self.sub_area[3] / self.frame_width
         # 定义执行命令
-        cmd = path_vsf + " -c -r" + " -i " + self.video_path + " -o " + self.temp_output_dir + f' -ces {self.vsf_subtitle}' + f' -te {top_end}' + f' -be {bottom_end}' + f' -le {left_end}' + f' -re {right_end}'
+        cmd = path_vsf + " -c -r" + " -i \"" + self.video_path + "\" -o " + self.temp_output_dir + f' -ces {self.vsf_subtitle}' + f' -te {top_end}' + f' -be {bottom_end}' + f' -le {left_end}' + f' -re {right_end}'
         os.system(cmd)
         # 提取字幕帧
         cap = cv2.VideoCapture(self.video_path)
