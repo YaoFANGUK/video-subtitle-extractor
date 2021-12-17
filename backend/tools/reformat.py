@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-  
+# -*- coding: UTF-8 -*-
 """
 @author: eritpchy
 @file  : reformat.py
@@ -14,25 +14,27 @@ import wordsegment
 import re
 import os
 import spacy
+
 nlp = spacy.load("en_core_web_sm")
 
 NLP_MAP_KEY_WORD_SEGMENT = "wordsegment"
 NLP_MAP_KEY_SENTENCE = "sentence"
+
 
 def reformat(path, bd_video_path=None):
     wordsegment.load()
     subs = pysrt.open(path)
     subs.save(f"{path}.bak", encoding='utf-8')
     verb_forms = ["I'm", "you're", "he's", "she's", "we're", "it's", "isn't", "aren't", "they're", "there's", "wasn't",
-                 "weren't", "I've", "you've", "he's", "she's", "it's", "we've", "they've", "there's", "hasn't",
-                 "haven't", "I'd", "you'd", "he'd", "she'd", "it'd", "we'd", "they'd", "doesn't", "don't", "didn't",
-                 "I'll", "you'll", "he'll", "she'll", "we'll", "they'll", "there'll", "I'd", "you'd", "he'd", "she'd",
-                 "it'd", "we've", "they'd", "there'd", "there'd", "can't", "couldn't", "daren't", "hadn't", "mightn't",
-                 "mustn't", "needn't", "oughtn't", "shan't", "shouldn't", "usedn't", "won't", "wouldn't", "that's",
-                 "what's", "haven't"]
+                  "weren't", "I've", "you've", "he's", "she's", "it's", "we've", "they've", "there's", "hasn't",
+                  "haven't", "I'd", "you'd", "he'd", "she'd", "it'd", "we'd", "they'd", "doesn't", "don't", "didn't",
+                  "I'll", "you'll", "he'll", "she'll", "we'll", "they'll", "there'll", "I'd", "you'd", "he'd", "she'd",
+                  "it'd", "we've", "they'd", "there'd", "there'd", "can't", "couldn't", "daren't", "hadn't", "mightn't",
+                  "mustn't", "needn't", "oughtn't", "shan't", "shouldn't", "usedn't", "won't", "wouldn't", "that's",
+                  "what's", "haven't"]
     verb_form_map = {}
 
-    waterMarkMap = {
+    water_mark_map = {
         "扫码下载  ": "",
     }
 
@@ -42,7 +44,7 @@ def reformat(path, bd_video_path=None):
     for verb in verb_forms:
         verb_form_map[verb.replace("'", "").lower()] = verb
 
-    def formatSegList(seg_list):
+    def format_seg_list(seg_list):
         new_seg = []
         for seg in seg_list:
             if seg in verb_form_map:
@@ -51,17 +53,18 @@ def reformat(path, bd_video_path=None):
                 new_seg.append([seg])
         return new_seg
 
-    def typoFix(text):
+    def typo_fix(text):
         for k, v in typo_map.items():
             text = text.replace(k, v)
         return text
 
-    def waterMarkFix(text):
-        for k,v in waterMarkMap.items():
+    def water_mark_fix(text):
+        for k, v in water_mark_map.items():
             text = text.replace(k, v)
         return text
+
     # 逆向过滤seg
-    def removeInvalidSegment(seg, text):
+    def remove_invalid_segment(seg, text):
         seg_len = len(seg)
         span = None
         new_seg = []
@@ -88,18 +91,18 @@ def reformat(path, bd_video_path=None):
         return list(reversed(new_seg))
 
     for sub in subs:
-        sub.text = typoFix(sub.text)
-        sub.text = waterMarkFix(sub.text)
+        sub.text = typo_fix(sub.text)
+        sub.text = water_mark_fix(sub.text)
         seg = wordsegment.segment(sub.text)
         if len(seg) == 1:
             seg = wordsegment.segment(re.sub(re.compile(f"(\ni)([^\\s])", re.I), "\\1 \\2", sub.text))
-        seg = formatSegList(seg)
+        seg = format_seg_list(seg)
 
         sub.text = re.sub(' +([\\u4e00-\\u9fa5])', ' \\1', sub.text)
         sub.text = sub.text.replace("  ", "\n")
         lines = []
         remain = sub.text
-        seg = removeInvalidSegment(seg, sub.text)
+        seg = remove_invalid_segment(seg, sub.text)
         seg_len = len(seg)
         for i in range(0, seg_len):
             s = seg[i]
@@ -133,114 +136,125 @@ def reformat(path, bd_video_path=None):
         ss = ss.replace(" Dr. ", " Dr.")
         ss = ss.replace("\n\n", "\n")
         sub.text = ss.strip()
-    doOriginalEngSubMatch(subs, bd_video_path)
+    do_original_eng_sub_match(subs, bd_video_path)
     subs.save(path, encoding='utf-8')
 
-def doOriginalEngSubMatch(subs, bd_video_path):
-    srtPath = extractSubtitleFromVideo(bd_video_path)
-    if srtPath is None:
+
+def do_original_eng_sub_match(subs, bd_video_path):
+    srt_path = extract_subtitle_from_video(bd_video_path)
+    if srt_path is None:
         print(f"Error: No English subtitle from '{bd_video_path}'")
         return
-    engSubs = pysrt.open(srtPath)
-    engSubsLen = len(engSubs)
-    engSubsNlpMap = {}
-    for i in range(0, engSubsLen):
-        engSubs[i].text = filterOriginalEngSubText(engSubs[i].text)
-        engSubsNlpMap[i] = {
-            NLP_MAP_KEY_WORD_SEGMENT: nlp(' '.join(wordsegment.segment(engSubs[i].text)).lower()),
-            NLP_MAP_KEY_SENTENCE: nlp(nlpSentenceClean(engSubs[i].text).lower()),
+    eng_subs = pysrt.open(srt_path)
+    eng_subs_len = len(eng_subs)
+    eng_subs_nlp_map = {}
+    for i in range(0, eng_subs_len):
+        eng_subs[i].text = filter_original_eng_sub_text(eng_subs[i].text)
+        eng_subs_nlp_map[i] = {
+            NLP_MAP_KEY_WORD_SEGMENT: nlp(' '.join(wordsegment.segment(eng_subs[i].text)).lower()),
+            NLP_MAP_KEY_SENTENCE: nlp(nlp_sentence_clean(eng_subs[i].text).lower()),
         }
 
     for sub in subs:
-        ch, eng = splitChAndEng(sub.text)
-        originalSubText = sub.text
+        ch, eng = split_ch_and_eng(sub.text)
+        original_sub_text = sub.text
         sub.text = eng
-        similarSub, similarSubScore, selected = findSimilarSub(engSubsNlpMap, engSubs, sub)
+        similar_sub, similar_sub_score, selected = find_similar_sub(eng_subs_nlp_map, eng_subs, sub)
         if selected:
-            sub.text = joinChAndEng(ch, similarSub.text)
+            sub.text = join_ch_and_eng(ch, similar_sub.text)
         else:
-            sub.text = originalSubText
-    os.remove(srtPath)
+            sub.text = original_sub_text
+    os.remove(srt_path)
 
-def extractSubtitleFromVideo(bd_video_path):
+
+def extract_subtitle_from_video(bd_video_path):
     if bd_video_path is None:
         return None
-    srtPath = f"{bd_video_path}.eng.srt"
-    os.system('ffmpeg -y -i "{0}" -map "0:s:m:title:English" -c:s srt "{1}"'.format(bd_video_path, srtPath))
-    if os.path.isfile(srtPath) == False:
+    srt_path = f"{bd_video_path}.eng.srt"
+    os.system('ffmpeg -y -i "{0}" -map "0:s:m:title:English" -c:s srt "{1}"'.format(bd_video_path, srt_path))
+    if not os.path.isfile(srt_path):
         return None
-    if os.path.getsize(srtPath) <= 0:
+    if os.path.getsize(srt_path) <= 0:
         return None
-    return srtPath
+    return srt_path
 
 
-def nlpSentenceClean(text):
+def nlp_sentence_clean(text):
     text = text.replace("'", "")
-    text = re.sub('[^a-zA-Z0-9\s]', ' ', text)
+    text = re.sub('[^a-zA-Z0-9\\s]', ' ', text)
     text = text.replace("  ", " ")
     return text
 
-lastCorrectionIndex = -1
-def findSimilarSub(engSubsNlpMap, engSubs, sub):
-    selected = False
-    global lastCorrectionIndex
-    subEngPart = re.sub('.+[\r\n](.+)$', "\\1", sub.text)
-    subEngPart = re.sub('(.*: )', '', subEngPart)
-    subEngPartNlp = {
-        NLP_MAP_KEY_WORD_SEGMENT: nlp(' '.join(wordsegment.segment(subEngPart)).lower()),
-        NLP_MAP_KEY_SENTENCE: nlp(nlpSentenceClean(subEngPart).lower()),
-    }
-    # print('subEngPartNlp', subEngPartNlp)
-    engSubsPart = engSubs.slice(starts_after=sub.start + {'minutes': -1}, ends_before=sub.end + {'minutes': 1})
 
-    if len(engSubsPart) <= 0:
+last_correction_index = -1
+
+
+def find_similar_sub(eng_subs_nlp_map, eng_subs, sub):
+    selected = False
+    global last_correction_index
+    sub_eng_part = re.sub('.+[\r\n](.+)$', "\\1", sub.text)
+    sub_eng_part = re.sub('(.*: )', '', sub_eng_part)
+    sub_eng_part_nlp = {
+        NLP_MAP_KEY_WORD_SEGMENT: nlp(' '.join(wordsegment.segment(sub_eng_part)).lower()),
+        NLP_MAP_KEY_SENTENCE: nlp(nlp_sentence_clean(sub_eng_part).lower()),
+    }
+    # print('sub_eng_part_nlp', sub_eng_part_nlp)
+    eng_subs_part = eng_subs.slice(starts_after=sub.start + {'minutes': -1}, ends_before=sub.end + {'minutes': 1})
+
+    if len(eng_subs_part) <= 0:
         print("Out of range")
         return None, 0, False
 
-    engSubsPartScoreList = []
-    engSubsPartIndexList = []
+    eng_subs_part_score_list = []
+    eng_subs_part_index_list = []
     i = 0
-    for engSubPart in engSubsPart:
-        if engSubPart.index not in engSubsNlpMap:
-            engSubsPartScoreList.append(0)
-            engSubsPartIndexList.append(engSubPart.index)
+    for eng_sub_part in eng_subs_part:
+        if eng_sub_part.index not in eng_subs_nlp_map:
+            eng_subs_part_score_list.append(0)
+            eng_subs_part_index_list.append(eng_sub_part.index)
             continue
-        engSubPartTextWordSegmentNlp = engSubsNlpMap[engSubPart.index][NLP_MAP_KEY_WORD_SEGMENT]
-        wordSegmentScore = engSubPartTextWordSegmentNlp.similarity(subEngPartNlp[NLP_MAP_KEY_WORD_SEGMENT])
+        eng_sub_part_text_word_segment_nlp = eng_subs_nlp_map[eng_sub_part.index][NLP_MAP_KEY_WORD_SEGMENT]
+        word_segment_score = eng_sub_part_text_word_segment_nlp.similarity(sub_eng_part_nlp[NLP_MAP_KEY_WORD_SEGMENT])
 
-        engSubPartTextSentenceNlp = engSubsNlpMap[engSubPart.index][NLP_MAP_KEY_SENTENCE]
-        sentenceScore = engSubPartTextSentenceNlp.similarity(subEngPartNlp[NLP_MAP_KEY_SENTENCE])
+        eng_sub_part_text_sentence_nlp = eng_subs_nlp_map[eng_sub_part.index][NLP_MAP_KEY_SENTENCE]
+        sentence_score = eng_sub_part_text_sentence_nlp.similarity(sub_eng_part_nlp[NLP_MAP_KEY_SENTENCE])
 
-        # print('index', engSubPart.index, i, "engSubPartTextWordSegmentNlp", engSubPartTextWordSegmentNlp, "wordSegmentScore", wordSegmentScore, "sentenceScore", sentenceScore)
+        # print('index', eng_sub_part.index, i, "eng_sub_part_text_word_segment_nlp",
+        #       eng_sub_part_text_word_segment_nlp, "word_segment_score", word_segment_score, "sentence_score",
+        #       sentence_score)
 
-        engSubsPartScoreList.append(max(wordSegmentScore, sentenceScore))
-        engSubsPartIndexList.append(engSubPart.index)
+        eng_subs_part_score_list.append(max(word_segment_score, sentence_score))
+        eng_subs_part_index_list.append(eng_sub_part.index)
         i = i + 1
 
-    engSubsPartScoreListMax = max(engSubsPartScoreList)
-    engSubsPartScoreListMaxIndex = engSubsPartScoreList.index(engSubsPartScoreListMax)
+    eng_subs_part_score_list_max = max(eng_subs_part_score_list)
+    eng_subs_part_score_list_max_index = eng_subs_part_score_list.index(eng_subs_part_score_list_max)
 
-    # print("max score", engSubsPartScoreListMax, "index", engSubsPartScoreListMaxIndex)
+    # print("max score", eng_subs_part_score_list_max, "index", eng_subs_part_score_list_max_index)
 
-    if (engSubsPartScoreListMax >= 0.9):
-        lastCorrectionIndex = engSubsPartIndexList[engSubsPartScoreListMaxIndex]
+    if eng_subs_part_score_list_max >= 0.9:
+        last_correction_index = eng_subs_part_index_list[eng_subs_part_score_list_max_index]
         selected = True
     else:
-        if lastCorrectionIndex != -1:
-            diffIndex = engSubsPartIndexList[engSubsPartScoreListMaxIndex] - lastCorrectionIndex
-            if diffIndex not in [1,2] and lastCorrectionIndex + 1 in engSubsPartIndexList:
-                engSubsPartScoreListCorrectionIndex = engSubsPartIndexList.index(lastCorrectionIndex + 1)
-                engSubsPartScoreListMaxCorrection = engSubsPartScoreList[engSubsPartScoreListCorrectionIndex]
-                diffScore = engSubsPartScoreListMaxCorrection - engSubsPartScoreListMax
-                if abs(diffScore) < 0.06:
+        if last_correction_index != -1:
+            diff_index = eng_subs_part_index_list[eng_subs_part_score_list_max_index] - last_correction_index
+            if diff_index not in [1, 2] and last_correction_index + 1 in eng_subs_part_index_list:
+                eng_subs_part_score_list_correction_index = eng_subs_part_index_list.index(last_correction_index + 1)
+                eng_subs_part_score_list_max_correction = eng_subs_part_score_list[
+                    eng_subs_part_score_list_correction_index]
+                diff_score = eng_subs_part_score_list_max_correction - eng_subs_part_score_list_max
+                if abs(diff_score) < 0.06:
                     selected = True
-                    engSubsPartScoreListMaxIndex = engSubsPartScoreListCorrectionIndex
-                    engSubsPartScoreListMax = engSubsPartScoreList[engSubsPartScoreListMaxIndex]
-                    # print("fix score", engSubsPartScoreListMax, "index", engSubsPartScoreListMaxIndex, 'diffScore', diffScore, 'diffIndex', diffIndex)
+                    eng_subs_part_score_list_max_index = eng_subs_part_score_list_correction_index
+                    eng_subs_part_score_list_max = eng_subs_part_score_list[eng_subs_part_score_list_max_index]
+                    # print("fix score", eng_subs_part_score_list_max, "index", eng_subs_part_score_list_max_index,
+                    #       'diff_score', diff_score, 'diff_index', diff_index)
 
-    return engSubs[engSubsPartIndexList[engSubsPartScoreListMaxIndex]], engSubsPartScoreListMax, selected
+    return eng_subs[
+               eng_subs_part_index_list[eng_subs_part_score_list_max_index]], eng_subs_part_score_list_max, selected
 
-def splitChAndEng(text):
+
+def split_ch_and_eng(text):
     chs = []
     eng = ''
     while len(text) > 0:
@@ -253,31 +267,34 @@ def splitChAndEng(text):
     eng = re.sub('[\r\n]', ' ', eng)
     return ' '.join(chs), eng
 
-def joinChAndEng(ch, eng):
+
+def join_ch_and_eng(ch, eng):
     if len(ch) <= 0:
         return eng
     if len(eng) <= 0:
         return ch
     return f"{ch}\n{eng}"
 
-def filterOriginalEngSubText(text):
-    #删掉结尾(语气词)
+
+def filter_original_eng_sub_text(text):
+    # 删掉结尾(语气词)
     text = re.sub(" ?\\([^\\(]+?\\)$", '', text)
-    #删掉(声音等):
+    # 删掉(声音等):
     text = re.sub("^\\-?\\(.+?\\):? ?[\r\n]*", '', text)
-    #删掉(一些神奇的内容)
+    # 删掉(一些神奇的内容)
     text = re.sub(" *\\(.+?\\)", '', text)
-    #删掉人名:
+    # 删掉人名:
     text = re.sub("^[A-Za-z0-9\']+:[\r\n]+", '', text)
-    #清理多余字符
+    # 清理多余字符
     text = text.strip()
-    #所有字幕整理成一行
+    # 所有字幕整理成一行
     text = re.sub('[\r\n]', ' ', text)
-    #清理多余空格
+    # 清理多余空格
     text = re.sub(' +', ' ', text)
-    #再清理一遍多余字符
+    # 再清理一遍多余字符
     text = text.strip()
     return text
+
 
 if __name__ == '__main__':
     reformat(sys.argv[1])
