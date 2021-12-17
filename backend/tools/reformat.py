@@ -18,12 +18,12 @@ def reformat(path):
     wordsegment.load()
     subs = pysrt.open(path)
     verb_forms = ["I'm", "you're", "he's", "she's", "we're", "it's", "isn't", "aren't", "they're", "there's", "wasn't",
-                 "weren't", "I've", "you've", "he's", "she's", "it's", "we've", "they've", "there's", "hasn't",
-                 "haven't", "I'd", "you'd", "he'd", "she'd", "it'd", "we'd", "they'd", "doesn't", "don't", "didn't",
-                 "I'll", "you'll", "he'll", "she'll", "we'll", "they'll", "there'll", "I'd", "you'd", "he'd", "she'd",
-                 "it'd", "we've", "they'd", "there'd", "there'd", "can't", "couldn't", "daren't", "hadn't", "mightn't",
-                 "mustn't", "needn't", "oughtn't", "shan't", "shouldn't", "usedn't", "won't", "wouldn't", "that's",
-                 "what's", "haven't"]
+                  "weren't", "I've", "you've", "he's", "she's", "it's", "we've", "they've", "there's", "hasn't",
+                  "haven't", "I'd", "you'd", "he'd", "she'd", "it'd", "we'd", "they'd", "doesn't", "don't", "didn't",
+                  "I'll", "you'll", "he'll", "she'll", "we'll", "they'll", "there'll", "I'd", "you'd", "he'd", "she'd",
+                  "it'd", "we've", "they'd", "there'd", "there'd", "can't", "couldn't", "daren't", "hadn't", "mightn't",
+                  "mustn't", "needn't", "oughtn't", "shan't", "shouldn't", "usedn't", "won't", "wouldn't", "that's",
+                  "what's", "haven't"]
     verb_form_map = {}
 
     with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'configs', 'typoMap.json'), 'r') as load_f:
@@ -32,7 +32,7 @@ def reformat(path):
     for verb in verb_forms:
         verb_form_map[verb.replace("'", "").lower()] = verb
 
-    def formatSegList(seg_list):
+    def format_seg_list(seg_list):
         new_seg = []
         for seg in seg_list:
             if seg in verb_form_map:
@@ -41,13 +41,13 @@ def reformat(path):
                 new_seg.append([seg])
         return new_seg
 
-    def typoFix(text):
+    def typo_fix(text):
         for k, v in typo_map.items():
             text = text.replace(k, v)
         return text
 
     # 逆向过滤seg
-    def removeInvalidSegment(seg, text):
+    def remove_invalid_segment(seg, text):
         seg_len = len(seg)
         span = None
         new_seg = []
@@ -74,11 +74,11 @@ def reformat(path):
         return list(reversed(new_seg))
 
     for sub in subs:
-        sub.text = typoFix(sub.text)
+        sub.text = typo_fix(sub.text)
         seg = wordsegment.segment(sub.text)
         if len(seg) == 1:
             seg = wordsegment.segment(re.sub(re.compile(f"(\ni)([^\\s])", re.I), "\\1 \\2", sub.text))
-        seg = formatSegList(seg)
+        seg = format_seg_list(seg)
 
         # 替换中文前的多个空格成单个空格, 避免中英文分行出错
         sub.text = re.sub(' +([\\u4e00-\\u9fa5])', ' \\1', sub.text)
@@ -86,7 +86,7 @@ def reformat(path):
         sub.text = sub.text.replace("  ", "\n")
         lines = []
         remain = sub.text
-        seg = removeInvalidSegment(seg, sub.text)
+        seg = remove_invalid_segment(seg, sub.text)
         seg_len = len(seg)
         for i in range(0, seg_len):
             s = seg[i]
