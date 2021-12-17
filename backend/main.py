@@ -20,6 +20,9 @@ import sys
 sys.path.insert(0, os.path.dirname(__file__))
 import config
 from tools.reformat import reformat
+from tools.srt2ass import write_srt_to_ass
+from tools.translation import chs_to_cht
+from sushi.sushi_main import subtitle_sync
 from tools.infer import utility
 from tools.infer.predict_det import TextDetector
 from tools.infer.predict_system import TextSystem
@@ -74,7 +77,7 @@ class SubtitleExtractor:
     视频字幕提取类
     """
 
-    def __init__(self, vd_path, sub_area=None):
+    def __init__(self, vd_path, sub_area=None, bd_video_path=None):
         # 字幕区域位置
         self.sub_area = sub_area
         self.sub_detector = SubtitleDetect()
@@ -108,6 +111,7 @@ class SubtitleExtractor:
         self.raw_subtitle_path = os.path.join(self.subtitle_output_dir, 'raw.txt')
         # 自定义ocr对象
         self.ocr = OcrRecogniser()
+        self.bd_video_path = bd_video_path
 
     def run(self):
         """
