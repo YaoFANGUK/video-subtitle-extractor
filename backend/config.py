@@ -5,6 +5,8 @@
 @FileName: config.py
 @desc: 项目配置文件，可以在这里调参，牺牲时间换取精确度，或者牺牲准确度换取时间
 """
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 import configparser
 import os
 import re
