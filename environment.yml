@@ -6,6 +6,8 @@ channels:
 dependencies:
   - python=3.8
   - ffmpeg
+  - spacy==3.1.4
+  - spacy-model-en_core_web_sm==3.2.0
   - pip
   - pip:
     - -r requirements.txt

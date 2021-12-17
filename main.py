@@ -173,7 +173,7 @@ class SubtitleExtractor:
         srt_filename = os.path.join(os.path.splitext(self.video_path)[0] + '.zh.简体-英文.srt')
         srt_filename_cht = os.path.join(os.path.splitext(self.video_path)[0] + '.zh.繁体-英文.srt')
         os.replace(os.path.join(os.path.splitext(self.video_path)[0] + '.srt'), srt_filename)
-        reformat(srt_filename)
+        reformat(srt_filename, self.bd_video_path)
         chs_to_cht(srt_filename, srt_filename_cht)
         write_srt_to_ass(srt_filename_cht)
         write_srt_to_ass(srt_filename)
