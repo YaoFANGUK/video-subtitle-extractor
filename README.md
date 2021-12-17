@@ -129,8 +129,8 @@ python gui.py
 
 - 运行命令行版本(CLI)
 
-```shell    
-python main.py
+```shell
+python ./backend/main.py
 ```
 
 

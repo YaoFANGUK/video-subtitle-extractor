@@ -5,18 +5,20 @@
 @FileName: gui.py
 @desc:
 """
+import configparser
 import sys
-
 import PySimpleGUI as sg
 import cv2
 import os
 from threading import Thread
-from backend.tools.settings import set_language_mode
-from main import SubtitleExtractor
 
 
 class SubtitleExtractorGUI:
     def __init__(self):
+        sg.theme('LightBrown12')
+        if not os.path.exists(os.path.join(os.path.dirname(__file__), 'settings.ini')):
+            # 如果没有配置文件，默认弹出语言选择界面
+            LanguageModeGUI().run()
         # 获取窗口分辨率
         self.screen_width, self.screen_height = sg.Window.get_screen_size()
         # 设置视频预览区域大小
@@ -57,7 +59,7 @@ class SubtitleExtractorGUI:
             # 处理【滑动】事件
             self._slide_event_handler(event, values)
             # 处理【识别语言】事件
-            self._language_mode_event_handler(event, values)
+            self._language_mode_event_handler(event)
             # 处理【运行】事件
             self._run_event_handler(event, values)
             # 如果关闭软件，退出
@@ -68,7 +70,6 @@ class SubtitleExtractorGUI:
         """
         创建字幕提取器布局
         """
-        sg.theme('LightBrown12')
         self.layout = [
             # 显示视频预览
             [sg.Image(size=(self.video_preview_width, self.video_preview_height), background_color='black',
@@ -153,10 +154,11 @@ class SubtitleExtractorGUI:
                     self.window['-X-SLIDER-'].update(self.frame_width * .15)
                     self.window['-X-SLIDER-W-'].update(self.frame_width * .7)
 
-    def _language_mode_event_handler(self, event, values):
+    @staticmethod
+    def _language_mode_event_handler(event):
         if event != '-LANGUAGE-MODE-':
             return
-        if 'OK' == set_language_mode(os.path.join(os.path.dirname(__file__), 'settings.ini')):
+        if 'OK' == LanguageModeGUI().run():
             # 如果是源码运行，则用python解释器 重启
             python = sys.executable
             os.execl(python, python, *sys.argv)
@@ -189,6 +191,7 @@ class SubtitleExtractorGUI:
                 self.ymax = int(values['-Y-SLIDER-'] + values['-Y-SLIDER-H-'])
                 print(f'字幕区域：({self.ymin},{self.ymax},{self.xmin},{self.xmax})')
                 subtitle_area = (self.ymin, self.ymax, self.xmin, self.xmax)
+                from backend.main import SubtitleExtractor
                 se = SubtitleExtractor(self.video_path, subtitle_area)
                 Thread(target=se.run, daemon=True).start()
 
@@ -215,6 +218,79 @@ class SubtitleExtractorGUI:
                     resized_frame = cv2.resize(src=draw, dsize=(self.video_preview_width, self.video_preview_height))
                     # 显示视频帧
                     self.window['-DISPLAY-'].update(data=cv2.imencode('.png', resized_frame)[1].tobytes())
+
+
+class LanguageModeGUI:
+    def __init__(self):
+        self.config_file = os.path.join(os.path.dirname(__file__), 'settings.ini')
+        # 设置语言
+        self.LANGUAGE_DEF = '中文/英文'
+        self.LANGUAGE_NAME_KEY_MAP = {
+            '中文/英文': 'ch',
+            '繁体中文': 'ch_tra',
+            '日语': 'japan',
+            '韩语': 'korean',
+            '法语': 'french',
+            '德语': 'german',
+        }
+        self.LANGUAGE_KEY_NAME_MAP = {v: k for k, v in self.LANGUAGE_NAME_KEY_MAP.items()}
+        self.MODE_DEF = '快速'
+        self.MODE_NAME_KEY_MAP = {
+            '快速': 'fast',
+            '精准': 'accurate',
+        }
+        self.MODE_KEY_NAME_MAP = {v: k for k, v in self.MODE_NAME_KEY_MAP.items()}
+
+    def run(self):
+        language_def, mode_def = self.parse_config(self.config_file)
+        window = sg.Window(title='字幕提取器',
+                           layout=[
+                               [sg.Text('选择视频字幕的语言:'),
+                                sg.DropDown(values=list(self.LANGUAGE_NAME_KEY_MAP.keys()), size=(30, 20),
+                                            pad=(0, 20),
+                                            key='-LANGUAGE-', readonly=True, default_value=language_def)],
+                               [sg.Text('选择识别模式:'),
+                                sg.DropDown(values=list(self.MODE_NAME_KEY_MAP.keys()), size=(30, 20), pad=(0, 20),
+                                            key='-MODE-', readonly=True, default_value=mode_def)],
+                               [sg.OK(), sg.Cancel()]
+                           ])
+        event, values = window.read()
+        if event == 'OK':
+            # 设置模型语言配置
+            language = None
+            mode = None
+            language_str = values['-LANGUAGE-']
+            print('选择语言:', language_str)
+            if language_str in self.LANGUAGE_NAME_KEY_MAP:
+                language = self.LANGUAGE_NAME_KEY_MAP[language_str]
+            # 设置模型语言配置
+            mode_str = values['-MODE-']
+            print('选择模式:', mode_str)
+            if mode_str in self.MODE_NAME_KEY_MAP:
+                mode = self.MODE_NAME_KEY_MAP[mode_str]
+            self.set_config(self.config_file, language, mode)
+        window.close()
+        return event
+
+    @staticmethod
+    def set_config(config_file, language_code, mode):
+        # 写入配置文件
+        with open(config_file, mode='w') as f:
+            f.write('[DEFAULT]\n')
+            f.write(f'Language = {language_code}\n')
+            f.write(f'Mode = {mode}\n')
+
+    def parse_config(self, config_file):
+        if not os.path.exists(config_file):
+            return self.LANGUAGE_DEF, self.MODE_DEF
+        config = configparser.ConfigParser()
+        config.read(config_file)
+        language = config['DEFAULT']['Language']
+        mode = config['DEFAULT']['Mode']
+        language_def = self.LANGUAGE_KEY_NAME_MAP[language] if language in self.LANGUAGE_KEY_NAME_MAP else \
+            self.LANGUAGE_DEF
+        mode_def = self.MODE_KEY_NAME_MAP[mode] if mode in self.MODE_KEY_NAME_MAP else self.MODE_DEF
+        return language_def, mode_def
 
 
 if __name__ == '__main__':
