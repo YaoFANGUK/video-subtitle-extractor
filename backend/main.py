@@ -18,11 +18,11 @@ from numpy import average, dot, linalg
 import numpy as np
 import sys
 sys.path.insert(0, os.path.dirname(__file__))
-from backend import config
-from backend.tools.reformat import reformat
-from backend.tools.infer import utility
-from backend.tools.infer.predict_det import TextDetector
-from backend.tools.infer.predict_system import TextSystem
+import config
+from tools.reformat import reformat
+from tools.infer import utility
+from tools.infer.predict_det import TextDetector
+from tools.infer.predict_system import TextSystem
 import platform
 
 
