@@ -28,3 +28,5 @@ scipy==1.6.2
 six==1.15.0
 tifffile==2021.4.8
 urllib3==1.26.4
+pysrt==1.1.2
+wordsegment==1.3.1
