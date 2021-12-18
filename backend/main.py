@@ -166,6 +166,12 @@ class SubtitleExtractor:
                 self.generate_subtitle_file_vsf()
             else:
                 self.generate_subtitle_file()
+        self.subtitle_final_process()
+        print('【结束】字幕文件生成成功')
+
+
+    # 字幕后期处理
+    def subtitle_final_process(self):
         srt_filename = os.path.join(os.path.splitext(self.video_path)[0] + '.zh.简体-英文.srt')
         srt_filename_cht = os.path.join(os.path.splitext(self.video_path)[0] + '.zh.繁体-英文.srt')
         os.replace(os.path.join(os.path.splitext(self.video_path)[0] + '.srt'), srt_filename)
@@ -185,7 +191,7 @@ class SubtitleExtractor:
             chs_to_cht(srt_filename, srt_filename_cht)
             write_srt_to_ass(srt_filename_cht)
             write_srt_to_ass(srt_filename)
-        print('【结束】字幕文件生成成功')
+
 
     def extract_frame(self):
         """
