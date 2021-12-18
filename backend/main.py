@@ -151,9 +151,6 @@ class SubtitleExtractor:
             print('【处理中】开始检测非字幕区域，并将非字幕区域的内容删除')
             self.filter_scene_text()
             print('【结束】已将非字幕区域的内容删除')
-        # 如果识别的字幕语言包含英文，则将英文分词
-        if config.REC_CHAR_TYPE in ('ch', 'EN', 'en'):
-            reformat(os.path.join(os.path.splitext(self.video_path)[0] + '.srt'))
         print('【处理中】开始生成字幕文件')
         # 判断是否开启精准模式
         if config.ACCURATE_MODE_ON:
@@ -165,6 +162,9 @@ class SubtitleExtractor:
                 self.generate_subtitle_file_vsf()
             else:
                 self.generate_subtitle_file()
+        # 如果识别的字幕语言包含英文，则将英文分词
+        if config.REC_CHAR_TYPE in ('ch', 'EN', 'en', 'ch_tra'):
+            reformat(os.path.join(os.path.splitext(self.video_path)[0] + '.srt'))
         print('【结束】字幕文件生成成功')
 
     def extract_frame(self):
