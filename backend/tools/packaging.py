@@ -2,7 +2,7 @@
 from qpt.executor import CreateExecutableModule as CEM
 import os
 
-WORK_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+WORK_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 print(WORK_DIR)
 LAUNCH_PATH = os.path.join(WORK_DIR, 'gui.py')
 SAVE_PATH = os.path.join(os.path.dirname(WORK_DIR), 'vse_out')
