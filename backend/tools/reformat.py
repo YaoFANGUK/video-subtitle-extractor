@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-  
+# -*- coding: UTF-8 -*-
 """
 @author: eritpchy
 @file  : reformat.py
@@ -80,7 +80,9 @@ def reformat(path):
             seg = wordsegment.segment(re.sub(re.compile(f"(\ni)([^\\s])", re.I), "\\1 \\2", sub.text))
         seg = formatSegList(seg)
 
+        # 替换中文前的多个空格成单个空格, 避免中英文分行出错
         sub.text = re.sub(' +([\\u4e00-\\u9fa5])', ' \\1', sub.text)
+        # 中英文分行
         sub.text = sub.text.replace("  ", "\n")
         lines = []
         remain = sub.text
@@ -107,13 +109,20 @@ def reformat(path):
             ss = " ".join(lines)
         else:
             ss = remain
+        # 非大写字母的大写字母前加空格
         ss = re.sub("([^\\sA-Z])([A-Z])", "\\1 \\2", ss)
+        # 删除重复空格
         ss = ss.replace("  ", " ")
         ss = ss.replace("。", ".")
+        # 删除,?!,前的多个空格
         ss = re.sub(" *([\\.\\?\\!\\,])", "\\1", ss)
+        # 删除'的前后多个空格
         ss = re.sub(" *([\\']) *", "\\1", ss)
+        # 删除换行后的多个空格, 通常时第二行的开始的多个空格
         ss = re.sub('\n\\s*', '\n', ss)
+        # 删除开始的多个空格
         ss = re.sub('^\\s*', '', ss)
+        # 结尾·改成.
         ss = re.sub('·$', '.', ss)
         ss = ss.replace(" Dr. ", " Dr.")
         ss = ss.replace("\n\n", "\n")
