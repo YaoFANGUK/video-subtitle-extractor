@@ -117,48 +117,44 @@ class SubtitleExtractor:
         """
         运行整个提取视频的步骤
         """
-        if not self.__is_legal_video_path(self.video_path):
-            print('【警告】程序运行中断！路径不合法！视频路径请不要带有空格！！！请修改路径名或者文件名后重新运行程序')
-        else:
-            print('【处理中】开启提取视频关键帧...')
-            if self.sub_area is not None:
-                # 如果开启精准模式
-                if config.ACCURATE_MODE_ON:
-                    # 开启精准模式并且有GPU加速
-                    if config.USE_GPU:
-                        self.extract_frame_by_det()
-                    else:
-                        self.extract_frame_by_fps()
-                # 如果没有开启精准模式
+        print('【处理中】开启提取视频关键帧...')
+        if self.sub_area is not None:
+            # 如果开启精准模式
+            if config.ACCURATE_MODE_ON:
+                # 开启精准模式并且有GPU加速
+                if config.USE_GPU:
+                    self.extract_frame_by_det()
                 else:
-                    # 没有开启精准模式且操作系统为Windows
-                    if platform.system() == 'Windows':
-                        self.extract_frame_by_vsf()
-                    else:
-                        self.extract_frame_by_fps()
+                    self.extract_frame_by_fps()
+            # 如果没有开启精准模式
             else:
-                self.extract_frame_by_fps()
-            print('【结束】提取视频关键帧完毕...')
-
-            print('【处理中】开始提取字幕信息，此步骤可能花费较长时间，请耐心等待...')
-            self.extract_subtitles()
-            print('【结束】完成字幕提取，生成原始字幕文件...')
-
-            if self.sub_area is None:
-                print('【处理中】开始检测并过滤水印区域内容')
-                # 询问用户视频是否有水印区域
-                user_input = input('视频是否存在水印区域，存在的话输入y，不存在的话输入n: ').strip()
-                if user_input == 'y':
-                    self.filter_watermark()
-                    print('【结束】已经成功过滤水印区域内容')
+                # 没有开启精准模式且操作系统为Windows
+                if platform.system() == 'Windows':
+                    self.extract_frame_by_vsf()
                 else:
-                    print('-----------------------------')
+                    self.extract_frame_by_fps()
+        else:
+            self.extract_frame_by_fps()
+        print('【结束】提取视频关键帧完毕...')
 
-            if self.sub_area is None:
-                print('【处理中】开始检测非字幕区域，并将非字幕区域的内容删除')
-                self.filter_scene_text()
-                print('【结束】已将非字幕区域的内容删除')
+        print('【处理中】开始提取字幕信息，此步骤可能花费较长时间，请耐心等待...')
+        self.extract_subtitles()
+        print('【结束】完成字幕提取，生成原始字幕文件...')
 
+        if self.sub_area is None:
+            print('【处理中】开始检测并过滤水印区域内容')
+            # 询问用户视频是否有水印区域
+            user_input = input('视频是否存在水印区域，存在的话输入y，不存在的话输入n: ').strip()
+            if user_input == 'y':
+                self.filter_watermark()
+                print('【结束】已经成功过滤水印区域内容')
+            else:
+                print('-----------------------------')
+
+        if self.sub_area is None:
+            print('【处理中】开始检测非字幕区域，并将非字幕区域的内容删除')
+            self.filter_scene_text()
+            print('【结束】已将非字幕区域的内容删除')
         print('【处理中】开始生成字幕文件')
         # 判断是否开启精准模式
         if config.ACCURATE_MODE_ON:
@@ -905,17 +901,6 @@ class SubtitleExtractor:
             return True
         else:
             return False
-
-    @staticmethod
-    def __is_legal_video_path(video_path):
-        """
-        判断视频路径是否合法， 如果不合法则修改路径
-        """
-        is_legal = True
-        # 是否包含空格
-        if re.search(r"\s", video_path):
-            is_legal = False
-        return is_legal
 
     @staticmethod
     def __get_coordinates(dt_box):
