@@ -235,6 +235,7 @@ class LanguageModeGUI:
             '俄语': 'ru',
             '西班牙语': 'es',
             '葡萄牙语': 'pt',
+            '意大利语': 'it',
         }
         self.LANGUAGE_KEY_NAME_MAP = {v: k for k, v in self.LANGUAGE_NAME_KEY_MAP.items()}
         self.MODE_DEF = '快速'
