@@ -15,7 +15,7 @@ implementations:
 - filter non-subtitle text
 - remove duplicated subtitle line
 - generate srt file
-- multiple language support: **Chinese/English**, **Traditional Chinese**, **Japanese**, **Korean**, **French**, **German**
+- multiple language support: **Chinese/English**, **Traditional Chinese**, **Japanese**, **Korean**, **French**, **German**, **Russian**, **Spanish**, **Portuguese**
 - multiple mode:
   - **fast**: high extraction speed while few subtitle missing (**Recommended**)
   - **accurate**: no subtitle missing while low extraction speed
