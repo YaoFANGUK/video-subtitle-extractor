@@ -232,6 +232,9 @@ class LanguageModeGUI:
             '韩语': 'korean',
             '法语': 'french',
             '德语': 'german',
+            '俄语': 'ru',
+            '西班牙语': 'es',
+            '葡萄牙语': 'pt',
         }
         self.LANGUAGE_KEY_NAME_MAP = {v: k for k, v in self.LANGUAGE_NAME_KEY_MAP.items()}
         self.MODE_DEF = '快速'
