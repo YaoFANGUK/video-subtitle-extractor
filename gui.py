@@ -222,25 +222,30 @@ class SubtitleExtractorGUI:
 class LanguageModeGUI:
     def __init__(self):
         self.config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'settings.ini')
-        if not os.path.exists(self.config_file):
-            self.interface_def = 'ch'
-        self.interface_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backend', 'interface',
-                                           f"{self.interface_def}.ini")
-        self.interface_config = configparser.ConfigParser()
         # 设置界面
-        self.INTERFACE_DEF = None
+        self.INTERFACE_DEF = '简体中文'
+        if not os.path.exists(self.config_file):
+            self.interface_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backend', 'interface',
+                                               "ch.ini")
+        self.interface_config = configparser.ConfigParser()
         # 设置语言
-        self.LANGUAGE_DEF = None
+        self.INTERFACE_KEY_NAME_MAP = {
+            '简体中文': 'ch',
+            '繁體中文': 'ch_tra',
+            'English': 'EN',
+        }
+        # 设置语言
+        self.LANGUAGE_DEF = 'ch'
         self.LANGUAGE_NAME_KEY_MAP = None
-        self.INTERFACE_KEY_NAME_MAP = None
         self.LANGUAGE_KEY_NAME_MAP = None
-        self.MODE_DEF = None
+        self.MODE_DEF = 'fast'
         self.MODE_NAME_KEY_MAP = None
         self.MODE_KEY_NAME_MAP = None
         # 语言选择布局
         self.layout = None
         # 语言选择窗口
         self.window = None
+
 
     def run(self):
         # 创建布局
@@ -263,12 +268,6 @@ class LanguageModeGUI:
 
     def _load_interface_text(self):
         self.interface_config.read(self.interface_file)
-        # 设置语言
-        self.INTERFACE_KEY_NAME_MAP = {
-            '简体中文': 'ch',
-            '繁体中文': 'ch_tra',
-            'English': 'en',
-        }
         # 设置界面
         self.INTERFACE_DEF = self.interface_config["LanguageModeGUI"]["InterfaceDefault"]
 
@@ -350,9 +349,12 @@ class LanguageModeGUI:
     def _interface_event_handler(self, event, values):
         if event == '-INTERFACE-OK-':
             self.interface_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backend', 'interface',
-                                          f"{self.INTERFACE_KEY_NAME_MAP[values['-INTERFACE-']]}.ini")
-            print(self.interface_file)
+                                               f"{self.INTERFACE_KEY_NAME_MAP[values['-INTERFACE-']]}.ini")
             self.interface_config.read(self.interface_file)
+            config = configparser.ConfigParser()
+            config.read(self.config_file)
+            self.set_config(self.config_file, values['-INTERFACE-'], config['DEFAULT']['Language'],
+                            config['DEFAULT']['Mode'])
             self.window.close()
             title = self._create_layout()
             self.window = sg.Window(title=title, layout=self.layout)
@@ -378,6 +380,9 @@ class LanguageModeGUI:
         interface = config['DEFAULT']['Interface']
         language = config['DEFAULT']['Language']
         mode = config['DEFAULT']['Mode']
+        self.interface_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backend', 'interface',
+                                           f"{self.INTERFACE_KEY_NAME_MAP[interface]}.ini")
+        self._load_interface_text()
         interface_def = interface if interface in self.INTERFACE_KEY_NAME_MAP else \
             self.INTERFACE_DEF
         language_def = self.LANGUAGE_KEY_NAME_MAP[language] if language in self.LANGUAGE_KEY_NAME_MAP else \

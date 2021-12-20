@@ -33,6 +33,8 @@ config.read(MODE_CONFIG_PATH)
 # 设置识别语言
 REC_CHAR_TYPE = config['DEFAULT']['Language']
 print(f'识别字幕语言：{REC_CHAR_TYPE}')
+if REC_CHAR_TYPE == 'en':
+    REC_CHAR_TYPE = 'ch'
 
 # 设置识别模式
 MODE_TYPE = config['DEFAULT']['Mode']
