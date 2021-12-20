@@ -333,7 +333,7 @@ class LanguageModeGUI:
             # 设置界面语言
             interface_str = values['-INTERFACE-']
             if interface_str in self.INTERFACE_KEY_NAME_MAP:
-                interface = self.INTERFACE_KEY_NAME_MAP[interface_str]
+                interface = interface_str
             language_str = values['-LANGUAGE-']
             # 设置字幕语言
             print(self.interface_config["LanguageModeGUI"]["SubtitleLanguage"], language_str)
@@ -378,7 +378,7 @@ class LanguageModeGUI:
         interface = config['DEFAULT']['Interface']
         language = config['DEFAULT']['Language']
         mode = config['DEFAULT']['Mode']
-        interface_def = self.INTERFACE_KEY_NAME_MAP[interface] if interface in self.INTERFACE_KEY_NAME_MAP else \
+        interface_def = interface if interface in self.INTERFACE_KEY_NAME_MAP else \
             self.INTERFACE_DEF
         language_def = self.LANGUAGE_KEY_NAME_MAP[language] if language in self.LANGUAGE_KEY_NAME_MAP else \
             self.LANGUAGE_DEF
