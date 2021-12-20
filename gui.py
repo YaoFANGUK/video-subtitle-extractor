@@ -352,9 +352,10 @@ class LanguageModeGUI:
                                                f"{self.INTERFACE_KEY_NAME_MAP[values['-INTERFACE-']]}.ini")
             self.interface_config.read(self.interface_file)
             config = configparser.ConfigParser()
-            config.read(self.config_file)
-            self.set_config(self.config_file, values['-INTERFACE-'], config['DEFAULT']['Language'],
-                            config['DEFAULT']['Mode'])
+            if os.path.exists(self_config_file):
+                config.read(self.config_file)
+                self.set_config(self.config_file, values['-INTERFACE-'], config['DEFAULT']['Language'],
+                                config['DEFAULT']['Mode'])
             self.window.close()
             title = self._create_layout()
             self.window = sg.Window(title=title, layout=self.layout)
