@@ -6,7 +6,6 @@
 @desc:
 """
 import configparser
-import sys
 import PySimpleGUI as sg
 import cv2
 import os
@@ -159,9 +158,8 @@ class SubtitleExtractorGUI:
         if event != '-LANGUAGE-MODE-':
             return
         if 'OK' == LanguageModeGUI().run():
-            # 如果是源码运行，则用python解释器 重启
-            python = sys.executable
-            os.execl(python, python, *sys.argv)
+            # 重新加载config
+            from backend.main import SubtitleExtractor
 
     def _run_event_handler(self, event, values):
         """
@@ -201,7 +199,8 @@ class SubtitleExtractorGUI:
         1) 判断视频是否存在，如果存在则显示对应的视频帧
         2) 绘制rectangle
         """
-        if event == '-SLIDER-' or event == '-Y-SLIDER-' or event == '-Y-SLIDER-H-' or event == '-X-SLIDER-' or event == '-X-SLIDER-W-':
+        if event == '-SLIDER-' or event == '-Y-SLIDER-' or event == '-Y-SLIDER-H-' or event == '-X-SLIDER-' or event \
+                == '-X-SLIDER-W-':
             if self.video_cap is not None and self.video_cap.isOpened():
                 frame_no = int(values['-SLIDER-'])
                 self.video_cap.set(cv2.CAP_PROP_POS_FRAMES, frame_no)
@@ -222,79 +221,169 @@ class SubtitleExtractorGUI:
 
 class LanguageModeGUI:
     def __init__(self):
-        self.config_file = os.path.join(os.path.dirname(__file__), 'settings.ini')
+        self.config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'settings.ini')
+        if not os.path.exists(self.config_file):
+            self.interface_def = 'ch'
+        self.interface_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backend', 'interface',
+                                           f"{self.interface_def}.ini")
+        self.interface_config = configparser.ConfigParser()
+        # 设置界面
+        self.INTERFACE_DEF = None
         # 设置语言
-        self.LANGUAGE_DEF = '中文/英文'
-        self.LANGUAGE_NAME_KEY_MAP = {
-            '中文/英文': 'ch',
+        self.LANGUAGE_DEF = None
+        self.LANGUAGE_NAME_KEY_MAP = None
+        self.INTERFACE_KEY_NAME_MAP = None
+        self.LANGUAGE_KEY_NAME_MAP = None
+        self.MODE_DEF = None
+        self.MODE_NAME_KEY_MAP = None
+        self.MODE_KEY_NAME_MAP = None
+        # 语言选择布局
+        self.layout = None
+        # 语言选择窗口
+        self.window = None
+
+    def run(self):
+        # 创建布局
+        title = self._create_layout()
+        # 创建窗口
+        self.window = sg.Window(title=title, layout=self.layout)
+        while True:
+            # 循环读取事件
+            event, values = self.window.read(timeout=10)
+            # 处理【OK】事件
+            self._ok_event_handler(event, values)
+            # 处理【切换界面语言】事件
+            self._interface_event_handler(event, values)
+            # 如果关闭软件，退出
+            if event == sg.WIN_CLOSED:
+                break
+            # 处理【Cancel】事件
+            if event == 'Cancel':
+                break
+
+    def _load_interface_text(self):
+        self.interface_config.read(self.interface_file)
+        # 设置语言
+        self.INTERFACE_KEY_NAME_MAP = {
+            '简体中文': 'ch',
             '繁体中文': 'ch_tra',
-            '日语': 'japan',
-            '韩语': 'korean',
-            '法语': 'french',
-            '德语': 'german',
-            '俄语': 'ru',
-            '西班牙语': 'es',
-            '葡萄牙语': 'pt',
-            '意大利语': 'it',
+            'English': 'en',
         }
+        # 设置界面
+        self.INTERFACE_DEF = self.interface_config["LanguageModeGUI"]["InterfaceDefault"]
+
+        self.LANGUAGE_DEF = self.interface_config["LanguageModeGUI"]["LanguageSimplifiedChinese"]
+        self.LANGUAGE_NAME_KEY_MAP = {
+            self.interface_config["LanguageModeGUI"]["LanguageSimplifiedChinese"]: 'ch',
+            self.interface_config["LanguageModeGUI"]["LanguageTraditionalChinese"]: 'ch_tra',
+            self.interface_config["LanguageModeGUI"]["LanguageEnglish"]: 'en',
+            self.interface_config["LanguageModeGUI"]["LanguageJapanese"]: 'japan',
+            self.interface_config["LanguageModeGUI"]["LanguageKorean"]: 'korean',
+            self.interface_config["LanguageModeGUI"]["LanguageFrench"]: 'french',
+            self.interface_config["LanguageModeGUI"]["LanguageGerman"]: 'german',
+            self.interface_config["LanguageModeGUI"]["LanguageRussian"]: 'ru',
+            self.interface_config["LanguageModeGUI"]["LanguageSpanish"]: 'es',
+            self.interface_config["LanguageModeGUI"]["LanguagePortuguese"]: 'pt',
+            self.interface_config["LanguageModeGUI"]["LanguageItalian"]: 'it',
+        }
+
         self.LANGUAGE_KEY_NAME_MAP = {v: k for k, v in self.LANGUAGE_NAME_KEY_MAP.items()}
-        self.MODE_DEF = '快速'
+        self.MODE_DEF = self.interface_config["LanguageModeGUI"]['ModeFast']
         self.MODE_NAME_KEY_MAP = {
-            '快速': 'fast',
-            '精准': 'accurate',
+            self.interface_config["LanguageModeGUI"]['ModeFast']: 'fast',
+            self.interface_config["LanguageModeGUI"]['ModeAccurate']: 'accurate',
         }
         self.MODE_KEY_NAME_MAP = {v: k for k, v in self.MODE_NAME_KEY_MAP.items()}
 
-    def run(self):
-        language_def, mode_def = self.parse_config(self.config_file)
-        window = sg.Window(title='字幕提取器',
-                           layout=[
-                               [sg.Text('选择视频字幕的语言:'),
-                                sg.DropDown(values=list(self.LANGUAGE_NAME_KEY_MAP.keys()), size=(30, 20),
-                                            pad=(0, 20),
-                                            key='-LANGUAGE-', readonly=True, default_value=language_def)],
-                               [sg.Text('选择识别模式:'),
-                                sg.DropDown(values=list(self.MODE_NAME_KEY_MAP.keys()), size=(30, 20), pad=(0, 20),
-                                            key='-MODE-', readonly=True, default_value=mode_def)],
-                               [sg.OK(), sg.Cancel()]
-                           ])
-        event, values = window.read()
+    def _create_layout(self):
+        interface_def, language_def, mode_def = self.parse_config(self.config_file)
+        # 加载界面文本
+        self._load_interface_text()
+        choose_language_text = self.interface_config["LanguageModeGUI"]["InterfaceLanguage"]
+        choose_sub_lang_text = self.interface_config["LanguageModeGUI"]["SubtitleLanguage"]
+        choose_mode_text = self.interface_config["LanguageModeGUI"]["Mode"]
+        self.layout = [
+            # 显示选择界面语言
+            [sg.Text(choose_language_text),
+             sg.DropDown(values=list(self.INTERFACE_KEY_NAME_MAP.keys()), size=(30, 20),
+                         pad=(0, 20),
+                         key='-INTERFACE-', readonly=True,
+                         default_value=interface_def),
+             sg.OK(key='-INTERFACE-OK-')],
+            # 显示选择字幕语言
+            [sg.Text(choose_sub_lang_text),
+             sg.DropDown(values=list(self.LANGUAGE_NAME_KEY_MAP.keys()), size=(30, 20),
+                         pad=(0, 20),
+                         key='-LANGUAGE-', readonly=True, default_value=language_def)],
+            # 显示识别模式
+            [sg.Text(choose_mode_text),
+             sg.DropDown(values=list(self.MODE_NAME_KEY_MAP.keys()), size=(30, 20), pad=(0, 20),
+                         key='-MODE-', readonly=True, default_value=mode_def)],
+            # 显示确认关闭按钮
+            [sg.OK(), sg.Cancel()]
+        ]
+        return self.interface_config["LanguageModeGUI"]["Title"]
+
+    def _ok_event_handler(self, event, values):
         if event == 'OK':
             # 设置模型语言配置
+            interface = None
             language = None
             mode = None
+            # 设置界面语言
+            interface_str = values['-INTERFACE-']
+            if interface_str in self.INTERFACE_KEY_NAME_MAP:
+                interface = self.INTERFACE_KEY_NAME_MAP[interface_str]
             language_str = values['-LANGUAGE-']
-            print('选择语言:', language_str)
+            # 设置字幕语言
+            print(self.interface_config["LanguageModeGUI"]["SubtitleLanguage"], language_str)
             if language_str in self.LANGUAGE_NAME_KEY_MAP:
                 language = self.LANGUAGE_NAME_KEY_MAP[language_str]
             # 设置模型语言配置
             mode_str = values['-MODE-']
-            print('选择模式:', mode_str)
+            print(self.interface_config["LanguageModeGUI"]["Mode"], mode_str)
             if mode_str in self.MODE_NAME_KEY_MAP:
                 mode = self.MODE_NAME_KEY_MAP[mode_str]
-            self.set_config(self.config_file, language, mode)
-        window.close()
-        return event
+            self.set_config(self.config_file, interface, language, mode)
+            self.window.close()
+
+    def _interface_event_handler(self, event, values):
+        if event == '-INTERFACE-OK-':
+            self.interface_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backend', 'interface',
+                                          f"{self.INTERFACE_KEY_NAME_MAP[values['-INTERFACE-']]}.ini")
+            print(self.interface_file)
+            self.interface_config.read(self.interface_file)
+            self.window.close()
+            title = self._create_layout()
+            self.window = sg.Window(title=title, layout=self.layout)
 
     @staticmethod
-    def set_config(config_file, language_code, mode):
+    def set_config(config_file, interface, language_code, mode):
         # 写入配置文件
         with open(config_file, mode='w') as f:
             f.write('[DEFAULT]\n')
+            f.write(f'Interface = {interface}\n')
             f.write(f'Language = {language_code}\n')
             f.write(f'Mode = {mode}\n')
 
     def parse_config(self, config_file):
         if not os.path.exists(config_file):
-            return self.LANGUAGE_DEF, self.MODE_DEF
+            self.interface_config.read(self.interface_file)
+            interface_def = self.interface_config['LanguageModeGUI']['InterfaceDefault']
+            language_def = self.interface_config['LanguageModeGUI']['InterfaceDefault']
+            mode_def = self.interface_config['LanguageModeGUI']['ModeFast']
+            return interface_def, language_def, mode_def
         config = configparser.ConfigParser()
         config.read(config_file)
+        interface = config['DEFAULT']['Interface']
         language = config['DEFAULT']['Language']
         mode = config['DEFAULT']['Mode']
+        interface_def = self.INTERFACE_KEY_NAME_MAP[interface] if interface in self.INTERFACE_KEY_NAME_MAP else \
+            self.INTERFACE_DEF
         language_def = self.LANGUAGE_KEY_NAME_MAP[language] if language in self.LANGUAGE_KEY_NAME_MAP else \
             self.LANGUAGE_DEF
         mode_def = self.MODE_KEY_NAME_MAP[mode] if mode in self.MODE_KEY_NAME_MAP else self.MODE_DEF
-        return language_def, mode_def
+        return interface_def, language_def, mode_def
 
 
 if __name__ == '__main__':

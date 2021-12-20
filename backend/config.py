@@ -25,6 +25,7 @@ if not os.path.exists(os.path.join(os.path.dirname(os.path.dirname(__file__)), '
     # 如果没有配置文件，默认使用中文
     with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'settings.ini'), mode='w') as f:
         f.write('[DEFAULT]\n')
+        f.write('Interface = ch\n')
         f.write('Language = ch\n')
         f.write('Mode = fast')
 config.read(MODE_CONFIG_PATH)
