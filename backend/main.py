@@ -19,7 +19,7 @@ import numpy as np
 import sys
 sys.path.insert(0, os.path.dirname(__file__))
 import config
-from tools.reformat import reformat
+from tools.reformat_en import reformat
 from tools.infer import utility
 from tools.infer.predict_det import TextDetector
 from tools.infer.predict_system import TextSystem
