@@ -28,7 +28,7 @@ if not os.path.exists(os.path.join(os.path.dirname(os.path.dirname(__file__)), '
         f.write('Interface = 简体中文\n')
         f.write('Language = ch\n')
         f.write('Mode = fast')
-config.read(MODE_CONFIG_PATH)
+config.read(MODE_CONFIG_PATH, encoding='utf-8')
 
 
 interface_config = configparser.ConfigParser()
@@ -39,7 +39,7 @@ INTERFACE_KEY_NAME_MAP = {
 }
 interface_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'interface',
                               f"{INTERFACE_KEY_NAME_MAP[config['DEFAULT']['Interface']]}.ini")
-interface_config.read(interface_file)
+interface_config.read(interface_file, encoding='utf-8')
 # 设置识别语言
 REC_CHAR_TYPE = config['DEFAULT']['Language']
 print(f"{interface_config['Main']['RecSubLang']}：{REC_CHAR_TYPE}")

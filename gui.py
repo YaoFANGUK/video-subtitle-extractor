@@ -26,10 +26,10 @@ class SubtitleExtractorGUI:
             '繁體中文': 'ch_tra',
             'English': 'en',
         }
-        self.config.read(self.config_file)
+        self.config.read(self.config_file, encoding='utf-8')
         self.interface_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backend', 'interface',
                                            f"{self.INTERFACE_KEY_NAME_MAP[self.config['DEFAULT']['Interface']]}.ini")
-        self.interface_config.read(self.interface_file)
+        self.interface_config.read(self.interface_file, encoding='utf-8')
         # 获取窗口分辨率
         self.screen_width, self.screen_height = sg.Window.get_screen_size()
         # 设置视频预览区域大小
@@ -288,7 +288,7 @@ class LanguageModeGUI:
                     exit(0)
 
     def _load_interface_text(self):
-        self.interface_config.read(self.interface_file)
+        self.interface_config.read(self.interface_file, encoding='utf-8')
         # 设置界面
         self.INTERFACE_DEF = self.interface_config["LanguageModeGUI"]["InterfaceDefault"]
 
@@ -371,10 +371,10 @@ class LanguageModeGUI:
         if event == '-INTERFACE-OK-':
             self.interface_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backend', 'interface',
                                                f"{self.INTERFACE_KEY_NAME_MAP[values['-INTERFACE-']]}.ini")
-            self.interface_config.read(self.interface_file)
+            self.interface_config.read(self.interface_file, encoding='utf-8')
             config = configparser.ConfigParser()
             if os.path.exists(self.config_file):
-                config.read(self.config_file)
+                config.read(self.config_file, encoding='utf-8')
                 self.set_config(self.config_file, values['-INTERFACE-'], config['DEFAULT']['Language'],
                                 config['DEFAULT']['Mode'])
             self.window.close()
@@ -392,13 +392,13 @@ class LanguageModeGUI:
 
     def parse_config(self, config_file):
         if not os.path.exists(config_file):
-            self.interface_config.read(self.interface_file)
+            self.interface_config.read(self.interface_file, encoding='utf-8')
             interface_def = self.interface_config['LanguageModeGUI']['InterfaceDefault']
             language_def = self.interface_config['LanguageModeGUI']['InterfaceDefault']
             mode_def = self.interface_config['LanguageModeGUI']['ModeFast']
             return interface_def, language_def, mode_def
         config = configparser.ConfigParser()
-        config.read(config_file)
+        config.read(config_file, encoding='utf-8')
         interface = config['DEFAULT']['Interface']
         language = config['DEFAULT']['Language']
         mode = config['DEFAULT']['Mode']
