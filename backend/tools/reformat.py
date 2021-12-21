@@ -267,7 +267,7 @@ def find_similar_sub(eng_subs_nlp_map, eng_subs, sub):
                     eng_subs_part_score_list_max = eng_subs_part_score_list[eng_subs_part_score_list_max_index]
                     # print("fix score", eng_subs_part_score_list_max, "index", eng_subs_part_score_list_max_index,
                     #       'diff_score', diff_score, 'diff_index', diff_index)
-    similar_sub = eng_subs[eng_subs_part_index_list[eng_subs_part_score_list_max_index]]
+    similar_sub = eng_subs[eng_subs_part_index_list[eng_subs_part_score_list_max_index] - 1] # srt字幕起点为1
     return similar_sub, eng_subs_part_score_list_max, selected
 
 
@@ -314,4 +314,4 @@ def filter_original_eng_sub_text(text):
 
 
 if __name__ == '__main__':
-    reformat(sys.argv[1])
+    reformat(sys.argv[1], sys.argv[2])
