@@ -384,7 +384,7 @@ class LanguageModeGUI:
     @staticmethod
     def set_config(config_file, interface, language_code, mode):
         # 写入配置文件
-        with open(config_file, mode='w') as f:
+        with open(config_file, mode='w', encoding='uft-8') as f:
             f.write('[DEFAULT]\n')
             f.write(f'Interface = {interface}\n')
             f.write(f'Language = {language_code}\n')

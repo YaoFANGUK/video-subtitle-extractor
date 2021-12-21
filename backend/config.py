@@ -23,7 +23,7 @@ config = configparser.ConfigParser()
 MODE_CONFIG_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'settings.ini')
 if not os.path.exists(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'settings.ini')):
     # 如果没有配置文件，默认使用中文
-    with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'settings.ini'), mode='w') as f:
+    with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'settings.ini'), mode='w', encoding='uft-8') as f:
         f.write('[DEFAULT]\n')
         f.write('Interface = 简体中文\n')
         f.write('Language = ch\n')
