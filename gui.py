@@ -440,6 +440,7 @@ class LanguageModeGUI:
 if __name__ == '__main__':
     # 运行图形化界面
     subtitleExtractorGUI = SubtitleExtractorGUI()
+    import sys
     argc = len(sys.argv)
     if argc > 2:
         if os.path.getsize(sys.argv[1]) > os.path.getsize(sys.argv[2]):
