@@ -232,7 +232,7 @@ class LanguageModeGUI:
         self.INTERFACE_KEY_NAME_MAP = {
             '简体中文': 'ch',
             '繁體中文': 'ch_tra',
-            'English': 'EN',
+            'English': 'en',
         }
         # 设置语言
         self.LANGUAGE_DEF = 'ch'
@@ -351,11 +351,15 @@ class LanguageModeGUI:
             self.interface_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backend', 'interface',
                                                f"{self.INTERFACE_KEY_NAME_MAP[values['-INTERFACE-']]}.ini")
             self.interface_config.read(self.interface_file)
+            print(self.interface_file)
             config = configparser.ConfigParser()
-            if os.path.exists(self_config_file):
+            if os.path.exists(self.config_file):
                 config.read(self.config_file)
                 self.set_config(self.config_file, values['-INTERFACE-'], config['DEFAULT']['Language'],
                                 config['DEFAULT']['Mode'])
+            else:
+                self.set_config(self.config_file, values['-INTERFACE-'], self.interface_config['LanguageModeGUI']['InterfaceDefault'],
+                                self.interface_config['LanguageModeGUI']['ModeFast'])
             self.window.close()
             title = self._create_layout()
             self.window = sg.Window(title=title, layout=self.layout)
