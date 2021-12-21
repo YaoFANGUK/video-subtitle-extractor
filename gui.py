@@ -15,9 +15,21 @@ from threading import Thread
 class SubtitleExtractorGUI:
     def __init__(self):
         sg.theme('LightBrown12')
-        if not os.path.exists(os.path.join(os.path.dirname(__file__), 'settings.ini')):
+        self.config_file = os.path.join(os.path.dirname(__file__), 'settings.ini')
+        self.config = configparser.ConfigParser()
+        self.interface_config = configparser.ConfigParser()
+        if not os.path.exists(self.config_file):
             # 如果没有配置文件，默认弹出语言选择界面
             LanguageModeGUI().run()
+        self.INTERFACE_KEY_NAME_MAP = {
+            '简体中文': 'ch',
+            '繁體中文': 'ch_tra',
+            'English': 'en',
+        }
+        self.config.read(self.config_file)
+        self.interface_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backend', 'interface',
+                                           f"{self.INTERFACE_KEY_NAME_MAP[self.config['DEFAULT']['Interface']]}.ini")
+        self.interface_config.read(self.interface_file)
         # 获取窗口分辨率
         self.screen_width, self.screen_height = sg.Window.get_screen_size()
         # 设置视频预览区域大小
@@ -49,7 +61,7 @@ class SubtitleExtractorGUI:
         # 创建布局
         self._create_layout()
         # 创建窗口
-        self.window = sg.Window(title='硬字幕提取器', layout=self.layout)
+        self.window = sg.Window(title=self.interface_config['SubtitleExtractorGUI']['Title'], layout=self.layout)
         while True:
             # 循环读取事件
             event, values = self.window.read(timeout=10)
@@ -75,8 +87,11 @@ class SubtitleExtractorGUI:
                       key='-DISPLAY-')],
             # 打开按钮 + 快进快退条
             [sg.Input(key='-FILE-', visible=False, enable_events=True),
-             sg.FileBrowse('打开', file_types=(('所有文件', '*.*'), ('mp4文件', '*.mp4'),
-                                             ('flv文件', '*.flv'), ('wmv文件', '*.wmv'), ('avi文件', '*.avi')),
+             sg.FileBrowse(self.interface_config['SubtitleExtractorGUI']['Open'], file_types=((
+                           self.interface_config['SubtitleExtractorGUI']['AllFile'], '*.*'), ('mp4', '*.mp4'),
+                                                                                              ('flv', '*.flv'),
+                                                                                              ('wmv', '*.wmv'),
+                                                                                              ('avi', '*.avi')),
                            key='-FILE_BTN-'),
              sg.Slider(size=(80, 20), range=(1, 1), key='-SLIDER-', orientation='h',
                        enable_events=True,
@@ -84,7 +99,7 @@ class SubtitleExtractorGUI:
              ],
             # 输出区域
             [sg.Output(size=(70, 10), font='Courier 10'),
-             sg.Frame(title='垂直方向', layout=[[
+             sg.Frame(title=self.interface_config['SubtitleExtractorGUI']['Vertical'], layout=[[
                  sg.Slider(range=(0, 0), orientation='v', size=(10, 20),
                            # disable_number_display=True,
                            enable_events=True,
@@ -94,7 +109,7 @@ class SubtitleExtractorGUI:
                            enable_events=True,
                            default_value=0, key='-Y-SLIDER-H-'),
              ]], pad=((15, 5), (0, 0))),
-             sg.Frame(title='水平方向', layout=[[
+             sg.Frame(title=self.interface_config['SubtitleExtractorGUI']['Horizontal'], layout=[[
                  sg.Slider(range=(0, 0), orientation='v', size=(10, 20),
                            # disable_number_display=True,
                            enable_events=True,
@@ -107,8 +122,9 @@ class SubtitleExtractorGUI:
              ],
 
             # 运行按钮 + 进度条
-            [sg.Button(button_text='运行', key='-RUN-', size=(20, 1)),
-             sg.Button(button_text='识别语言', key='-LANGUAGE-MODE-', size=(20, 1))
+            [sg.Button(button_text=self.interface_config['SubtitleExtractorGUI']['Run'], key='-RUN-', size=(20, 1)),
+             sg.Button(button_text=self.interface_config['SubtitleExtractorGUI']['Setting'], key='-LANGUAGE-MODE-',
+                       size=(20, 1))
              ],
         ]
 
@@ -127,7 +143,7 @@ class SubtitleExtractorGUI:
             if self.video_cap.isOpened():
                 ret, frame = self.video_cap.read()
                 if ret:
-                    print(f'成功打开视频：{self.video_path}')
+                    print(f"{self.interface_config['SubtitleExtractorGUI']['OpenVideoSuccess']}：{self.video_path}")
                     # 获取视频的帧数
                     self.frame_count = self.video_cap.get(cv2.CAP_PROP_FRAME_COUNT)
                     # 获取视频的高度
@@ -170,7 +186,7 @@ class SubtitleExtractorGUI:
         """
         if event == '-RUN-':
             if self.video_cap is None:
-                print('请先打开视频')
+                print(self.interface_config['SubtitleExtractorGUI']['OpenVideoFirst'])
             else:
                 # 1) 禁止修改字幕滑块区域
                 self.window['-Y-SLIDER-'].update(disabled=True)
@@ -187,7 +203,7 @@ class SubtitleExtractorGUI:
                 self.xmax = int(values['-X-SLIDER-'] + values['-X-SLIDER-W-'])
                 self.ymin = int(values['-Y-SLIDER-'])
                 self.ymax = int(values['-Y-SLIDER-'] + values['-Y-SLIDER-H-'])
-                print(f'字幕区域：({self.ymin},{self.ymax},{self.xmin},{self.xmax})')
+                print(f"{self.interface_config['SubtitleExtractorGUI']['SubtitleArea']}：({self.ymin},{self.ymax},{self.xmin},{self.xmax})")
                 subtitle_area = (self.ymin, self.ymax, self.xmin, self.xmax)
                 from backend.main import SubtitleExtractor
                 se = SubtitleExtractor(self.video_path, subtitle_area)

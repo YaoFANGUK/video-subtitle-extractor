@@ -19,6 +19,7 @@ import numpy as np
 import sys
 sys.path.insert(0, os.path.dirname(__file__))
 import config
+from config import interface_config
 from tools.reformat_en import reformat
 from tools.infer import utility
 from tools.infer.predict_det import TextDetector
@@ -92,7 +93,7 @@ class SubtitleExtractor:
         self.frame_width = int(self.video_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         # 字幕出现区域
         self.subtitle_area = config.SUBTITLE_AREA
-        print(f'帧数：{self.frame_count}，帧率：{self.fps}')
+        print(f"{interface_config['Main']['FrameCount']}：{self.frame_count}，{interface_config['Main']['FrameRate']}：{self.fps}")
         # 提取的视频帧储存目录
         self.frame_output_dir = os.path.join(self.temp_output_dir, 'frames')
         # 提取的字幕文件存储目录
@@ -113,7 +114,7 @@ class SubtitleExtractor:
         """
         运行整个提取视频的步骤
         """
-        print('【处理中】开启提取视频关键帧...')
+        print(interface_config['Main']['StartProcessFrame'])
         if self.sub_area is not None:
             # 如果开启精准模式
             if config.ACCURATE_MODE_ON:
@@ -131,27 +132,27 @@ class SubtitleExtractor:
                     self.extract_frame_by_fps()
         else:
             self.extract_frame_by_fps()
-        print('【结束】提取视频关键帧完毕...')
+        print(interface_config['Main']['FinishProcessFrame'])
 
-        print('【处理中】开始提取字幕信息，此步骤可能花费较长时间，请耐心等待...')
+        print(interface_config['Main']['StartFindSub'])
         self.extract_subtitles()
-        print('【结束】完成字幕提取，生成原始字幕文件...')
+        print(interface_config['Main']['FinishFindSub'])
 
         if self.sub_area is None:
-            print('【处理中】开始检测并过滤水印区域内容')
+            print(interface_config['Main']['StartDetectWaterMark'])
             # 询问用户视频是否有水印区域
-            user_input = input('视频是否存在水印区域，存在的话输入y，不存在的话输入n: ').strip()
+            user_input = input(interface_config['Main']['checkWaterMark']).strip()
             if user_input == 'y':
                 self.filter_watermark()
-                print('【结束】已经成功过滤水印区域内容')
+                print(interface_config['Main']['FinishDetectWaterMark'])
             else:
                 print('-----------------------------')
 
         if self.sub_area is None:
-            print('【处理中】开始检测非字幕区域，并将非字幕区域的内容删除')
+            print(interface_config['Main']['StartDeleteNonSub'])
             self.filter_scene_text()
-            print('【结束】已将非字幕区域的内容删除')
-        print('【处理中】开始生成字幕文件')
+            print(interface_config['Main']['FinishDeleteNonSub'])
+        print(interface_config['Main']['StartGenerateSub'])
         # 判断是否开启精准模式
         if config.ACCURATE_MODE_ON:
             # 如果开启精准模式则使用原生字幕生成
@@ -165,7 +166,7 @@ class SubtitleExtractor:
         # 如果识别的字幕语言包含英文，则将英文分词
         if config.REC_CHAR_TYPE in ('ch', 'EN', 'en', 'ch_tra'):
             reformat(os.path.join(os.path.splitext(self.video_path)[0] + '.srt'))
-        print('【结束】字幕文件生成成功')
+        print(interface_config['Main']['FinishGenerateSub'])
 
     def extract_frame(self):
         """
@@ -291,7 +292,7 @@ class SubtitleExtractor:
                                     # 删除最后一张，将当前帧设置为最后一帧
                                     os.remove(os.path.join(self.frame_output_dir, frame_list[-1]))
                             cv2.imwrite(filename, frame)
-                        print(f'字幕帧：{frame_no}, 耗时: {elapse}')
+                        print(f"{interface_config['Main']['SubFrameNo']}：{frame_no}, {interface_config['Main']['Elapse']}: {elapse}")
 
         self.video_cap.release()
 
@@ -337,7 +338,7 @@ class SubtitleExtractor:
         # 获取字幕帧列表
         subtitle_frame_list = self._analyse_subtitle_frame()
         if subtitle_frame_list is None:
-            print('请指定字幕区域')
+            print(interface_config['Main']['ChooseSubArea'])
             return
         cap = cv2.VideoCapture(self.video_path)
         idx = 0
@@ -434,12 +435,11 @@ class SubtitleExtractor:
 
         sample_frame_file_path = os.path.join(os.path.dirname(self.frame_output_dir), 'watermark_area.jpg')
         cv2.imwrite(sample_frame_file_path, sample_frame)
-        print(f'请查看图片, 确定水印区域: {sample_frame_file_path}')
+        print(f"{interface_config['Main']['WatchPicture']}: {sample_frame_file_path}")
 
         area_num = ['E', 'D', 'C', 'B', 'A']
         for watermark_area in watermark_areas:
-            user_input = input(f'是否去除区域{area_num.pop()}{str(watermark_area)}中的字幕?'
-                               f'\n输入 "y" 或 "回车" 表示去除，输入"n"或其他表示不去除: ').strip()
+            user_input = input(f"{area_num.pop()}{str(watermark_area)} {interface_config['Main']['QuestionDelete']}").strip()
             if user_input == 'y' or user_input == '\n':
                 with open(self.raw_subtitle_path, mode='r+', encoding='utf-8') as f:
                     content = f.readlines()
@@ -448,8 +448,8 @@ class SubtitleExtractor:
                         if i.find(str(watermark_area[0])) == -1:
                             f.write(i)
                     f.truncate()
-                print(f'已经删除该区域字幕...')
-        print('水印区域字幕过滤完毕...')
+                print(interface_config['Main']['FinishDelete'])
+        print(interface_config['Main']['FinishWaterMarkFilter'])
         # 删除缓存
         if os.path.exists(sample_frame_file_path):
             os.remove(sample_frame_file_path)
@@ -474,10 +474,9 @@ class SubtitleExtractor:
         cv2.rectangle(sample_frame, pt1=(0, ymin), pt2=(sample_frame.shape[1], ymax), color=(0, 0, 255), thickness=3)
         sample_frame_file_path = os.path.join(os.path.dirname(self.frame_output_dir), 'subtitle_area.jpg')
         cv2.imwrite(sample_frame_file_path, sample_frame)
-        print(f'请查看图片, 确定字幕区域是否正确: {sample_frame_file_path}')
+        print(f"{interface_config['Main']['CheckSubArea']} {sample_frame_file_path}")
 
-        user_input = input(f'是否去除红色框区域外{(ymin, ymax)}的字幕?'
-                           f'\n输入 "y" 或 "回车" 表示去除，输入"n"或其他表示不去除: ').strip()
+        user_input = input(f"{(ymin, ymax)} {interface_config['Main']['DeleteNoSubArea']}").strip()
         if user_input == 'y' or user_input == '\n':
             with open(self.raw_subtitle_path, mode='r+', encoding='utf-8') as f:
                 content = f.readlines()
@@ -488,7 +487,7 @@ class SubtitleExtractor:
                     if ymin <= i_ymin and i_ymax <= ymax:
                         f.write(i)
                 f.truncate()
-            print('去除完毕')
+            print(interface_config['Main']['FinishDeleteNoSubArea'])
         # 删除缓存
         if os.path.exists(sample_frame_file_path):
             os.remove(sample_frame_file_path)
@@ -514,7 +513,7 @@ class SubtitleExtractor:
                 frame_content = content[2]
                 subtitle_line = f'{line_code}\n{frame_start} --> {frame_end}\n{frame_content}\n'
                 f.write(subtitle_line)
-        print(f'字幕文件生成位置：{srt_filename}')
+        print(f"{interface_config['Main']['SubLocation']} {srt_filename}")
         # 返回持续时间低于1s的字幕行
         return post_process_subtitle
 
@@ -547,7 +546,7 @@ class SubtitleExtractor:
                     f.write(f'{i + 1}\n')
                     f.write(f'{subtitle_line[0]}\n')
                     f.write(f'{subtitle_line[1]}\n')
-            print(f'字幕文件生成位置：{srt_filename}')
+            print(f"{interface_config['Main']['SubLocation']} {srt_filename}")
         except FileNotFoundError:
             self.generate_subtitle_file()
 
@@ -935,9 +934,9 @@ class SubtitleExtractor:
 
 if __name__ == '__main__':
     # 提示用户输入视频路径
-    video_path = input("请输入视频完整路径：").strip()
+    video_path = input(f"{interface_config['Main']['InputVideo']}").strip()
     # 提示用户输入字幕区域
-    ymin, ymax, xmin, xmax = map(int, input("请输入字幕区域(ymin ymax xmin xmax)：").split())
+    ymin, ymax, xmin, xmax = map(int, input(f"{interface_config['Main']['ChooseSubArea']} (ymin ymax xmin xmax)：").split())
     subtitle_area = (ymin, ymax, xmin, xmax)
     # 新建字幕提取对象
     se = SubtitleExtractor(video_path, subtitle_area)
