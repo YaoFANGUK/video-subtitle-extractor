@@ -15,10 +15,10 @@ implementations:
 - filter non-subtitle text
 - remove duplicated subtitle line
 - generate srt file
-- multiple language support: **Chinese/English(中文/英文)**, **Traditional Chinese(繁体中文)**, **Japanese(日语)**, **Korean(韩语)**, **French(法语)**, **German(德语)**
+- multiple language support: **Chinese/English**, **Traditional Chinese**, **Japanese**, **Korean**, **French**, **German**, **Russian**, **Spanish**, **Portuguese**, **Italian**
 - multiple mode:
-  - **fast(快速)**: high extraction speed while few subtitle missing
-  - **accurate(精准)**: no subtitle missing while low extraction speed
+  - **fast**: high extraction speed while few subtitle missing (**Recommended**)
+  - **accurate**: no subtitle missing while low extraction speed
 
 **Download**：
 
@@ -65,29 +65,54 @@ implementations:
 
 <a href="https://www.anaconda.com/products/individual">https://www.anaconda.com/products/individual#Downloads</a>
 
-#### 2. Create and activate a conda virtual environment
+#### 2. Install Dependencies
 
-```shell
-conda create --name videoEnv python=3.8
-```
+make sure you have python 3.8+ installed. Create and activate a conda virtual environment, and install dependencies.
 
-```shell
-conda activate videoEnv  
-```
+- For Mac users and users who have CPU only: 
 
-#### 3. Install dependencies via pip
+  - Install dependencies：
+  
+    ```shell
+    conda env create -n videoEnv -f ./environment.yml
+    ```
 
-make sure you have python 3.8 installed
+    ```shell
+    conda activate videoEnv  
+    ```
 
-- For macOS users and users who have CPU only:: 
+- For users who have Nvidia graphic card： **GPU version can achieve better accuracy**
 
   - Install dependencies：
 
     ```shell
-    pip install -r requirements.txt
+    conda env create -n videoEnv -f ./environment_gpu.yml
     ```
 
-- For users who have Nvidia graphic card： **GPU version can achieve better accuracy**
+    ```shell
+    conda activate videoEnv  
+    ```
+
+
+#### 3. Running the program
+
+- Run GUI version
+
+```shell
+python gui.py
+```
+
+- Run CLI version
+
+```shell    
+python ./backend/main.py
+```
+
+## Q & A
+
+#### 1. Running Failure or Environment Problem 
+
+Solution: If you are using a nvidia ampere architecture graphics such as 3060/3070/3080, please use the latest PaddlePaddle version and CUDA 11.2, if you falied to install the GPU environment with Conda, please try manual installation:
 
   - Install **CUDA 11.2** and **cuDNN 8.1.1**
 
@@ -149,23 +174,7 @@ make sure you have python 3.8 installed
     ```
 
 
-#### 4. Running the program
-
-- Run GUI version
-
-```shell
-python gui.py
-```
-
-- Run CLI version
-
-```shell    
-python main.py
-```
-
-## Q & A
-
-- For Windows users, if you encounter errors related to "geos_c.dll"
+#### 2. For Windows users, if you encounter errors related to "geos_c.dll"
 
 ```text
     _lgeos = CDLL(os.path.join(sys.prefix, 'Library', 'bin', 'geos_c.dll'))
