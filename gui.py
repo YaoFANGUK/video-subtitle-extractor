@@ -3,7 +3,7 @@
 @Author  : Fang Yao 
 @Time    : 2021/4/1 6:07 下午
 @FileName: gui.py
-@desc:
+@desc: 字幕提取器图形化界面
 """
 import configparser
 import PySimpleGUI as sg
@@ -246,7 +246,6 @@ class LanguageModeGUI:
         # 语言选择窗口
         self.window = None
 
-
     def run(self):
         # 创建布局
         title = self._create_layout()
@@ -261,10 +260,16 @@ class LanguageModeGUI:
             self._interface_event_handler(event, values)
             # 如果关闭软件，退出
             if event == sg.WIN_CLOSED:
-                break
-            # 处理【Cancel】事件
+                if os.path.exists(self.config_file):
+                    break
+                else:
+                    exit(0)
             if event == 'Cancel':
-                break
+                if os.path.exists(self.config_file):
+                    self.window.close()
+                    break
+                else:
+                    exit(0)
 
     def _load_interface_text(self):
         self.interface_config.read(self.interface_file)
@@ -351,15 +356,11 @@ class LanguageModeGUI:
             self.interface_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backend', 'interface',
                                                f"{self.INTERFACE_KEY_NAME_MAP[values['-INTERFACE-']]}.ini")
             self.interface_config.read(self.interface_file)
-            print(self.interface_file)
             config = configparser.ConfigParser()
             if os.path.exists(self.config_file):
                 config.read(self.config_file)
                 self.set_config(self.config_file, values['-INTERFACE-'], config['DEFAULT']['Language'],
                                 config['DEFAULT']['Mode'])
-            else:
-                self.set_config(self.config_file, values['-INTERFACE-'], self.interface_config['LanguageModeGUI']['InterfaceDefault'],
-                                self.interface_config['LanguageModeGUI']['ModeFast'])
             self.window.close()
             title = self._create_layout()
             self.window = sg.Window(title=title, layout=self.layout)
