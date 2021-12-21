@@ -25,17 +25,30 @@ if not os.path.exists(os.path.join(os.path.dirname(os.path.dirname(__file__)), '
     # 如果没有配置文件，默认使用中文
     with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'settings.ini'), mode='w') as f:
         f.write('[DEFAULT]\n')
+        f.write('Interface = 简体中文\n')
         f.write('Language = ch\n')
         f.write('Mode = fast')
 config.read(MODE_CONFIG_PATH)
 
+
+interface_config = configparser.ConfigParser()
+INTERFACE_KEY_NAME_MAP = {
+    '简体中文': 'ch',
+    '繁體中文': 'ch_tra',
+    'English': 'en',
+}
+interface_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'interface',
+                              f"{INTERFACE_KEY_NAME_MAP[config['DEFAULT']['Interface']]}.ini")
+interface_config.read(interface_file)
 # 设置识别语言
 REC_CHAR_TYPE = config['DEFAULT']['Language']
-print(f'识别字幕语言：{REC_CHAR_TYPE}')
+print(f"{interface_config['Main']['RecSubLang']}：{REC_CHAR_TYPE}")
+if REC_CHAR_TYPE == 'en':
+    REC_CHAR_TYPE = 'ch'
 
 # 设置识别模式
 MODE_TYPE = config['DEFAULT']['Mode']
-print(f'识别模式：{MODE_TYPE}')
+print(f"{interface_config['Main']['RecMode']}：{MODE_TYPE}")
 ACCURATE_MODE_ON = False
 if MODE_TYPE == 'accurate':
     ACCURATE_MODE_ON = True
@@ -52,7 +65,7 @@ if re.search(r"[\u4e00-\u9fa5]+", BASE_DIR):
 if re.search(r"\s", BASE_DIR):
     IS_LEGAL_PATH = False
 while not IS_LEGAL_PATH:
-    print('【警告】程序运行中断！路径不合法！请不要将程序放入带有空格和中文的路径下！！！请修改程序路径名后重新运行程序')
+    print(interface_config['Main']['IllegalPathWarning'])
     time.sleep(3)
 # 模型文件目录
 # 文本检测模型
@@ -114,7 +127,7 @@ if fluid.is_compiled_with_cuda():
     if len(fluid.cuda_places()) > 0:
         # 如果有GPU则使用GPU
         USE_GPU = True
-        print('使用GPU进行加速')
+        print(interface_config['Main']['GPUSpeedUp'])
 
 # 使用快速字幕检测算法时，背景颜色
 BG_MOD = BackgroundColor.DARK
