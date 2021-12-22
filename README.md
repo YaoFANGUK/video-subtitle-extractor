@@ -139,7 +139,9 @@ python ./backend/main.py
 
 #### 1. 运行不正常/没有结果/cuda及cudnn问题
 
-解决方案：如果你使用的是3060/3070/3080等安培架构的显卡，请使用最新的paddlepaddle版本以及最新的cuda 11.2，如果使用conda安装GPU环境失败，请尝试手动安装：
+解决方案：
+
+> 如果你是下载的gpu版本压缩包解压运行闪退，则只需要安装cuda 11.2和cuDNN 8.1.1即可
 
 - 安装CUDA 11.2和cuDNN 8.1.1
 
@@ -161,7 +163,7 @@ python ./backend/main.py
       <p>使其生效</p>
       <pre><code>source ~/.bashrc</code></pre>
       <h5>(3) 下载cuDNN 8.1.1</h5>
-      <p>国内：<a href="https://github.91chifun.workers.dev/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/cudnn-11.2-linux-x64-v8.1.1.33.tgz">cudnn-11.2-linux-x64-v8.1.1.33.tgz</a></p>
+      <p>国内：<a href="https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/cudnn-11.2-linux-x64-v8.1.1.33.tgz">cudnn-11.2-linux-x64-v8.1.1.33.tgz</a></p>
       <p>国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/cudnn-11.2-linux-x64-v8.1.1.33.tgz">cudnn-11.2-linux-x64-v8.1.1.33.tgz</a></p>
       <h5>(4) 安装cuDNN 8.1.1</h5>
       <pre><code> tar -zxvf cudnn-11.2-linux-x64-v8.1.1.33.tgz
@@ -178,13 +180,17 @@ python ./backend/main.py
         <a href="https://developer.download.nvidia.com/compute/cuda/11.2.0/local_installers/cuda_11.2.0_460.89_win10.exe">cuda_11.2.0_460.89_win10.exe</a>
         <h5>(2) 安装CUDA 11.2</h5>
         <h5>(3) 下载cuDNN 8.1.1</h5>
-        <p>国内：<a href="https://github.91chifun.workers.dev/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/cudnn-11.2-windows-x64-v8.1.1.33.zip">cudnn-11.2-windows-x64-v8.1.1.33.zip</a></p>
+        <p>国内：<a href="https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/cudnn-11.2-windows-x64-v8.1.1.33.zip">cudnn-11.2-windows-x64-v8.1.1.33.zip</a></p>
         <p>国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/cudnn-11.2-windows-x64-v8.1.1.33.zip">cudnn-11.2-windows-x64-v8.1.1.33.zip</a></p>
         <h5>(4) 安装cuDNN 8.1.1</h5>
         <p>
            将cuDNN解压后的cuda文件夹中的bin, include, lib目录下的文件复制到C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\对应目录下
         </p>
     </details>
+
+> 如果你使用的是3060/3070/3080等安培架构的显卡，请使用最新的paddlepaddle版本以及最新的cuda 11.2
+
+> 如果使用conda安装GPU环境失败，请尝试手动安装：
 
 - 安装paddlepaddle:
 
