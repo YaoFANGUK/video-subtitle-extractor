@@ -172,6 +172,7 @@ class SubtitleExtractor:
         if config.REC_CHAR_TYPE in ('ch', 'EN', 'en', 'ch_tra'):
             reformat(os.path.join(os.path.splitext(self.video_path)[0] + '.srt'))
         print(interface_config['Main']['FinishGenerateSub'])
+        self.progress = 100
 
     def extract_frame(self):
         """
@@ -311,19 +312,23 @@ class SubtitleExtractor:
        通过调用videoSubFinder获取字幕帧
        """
         def count_process():
-            duration_ms = (self.frame_count * self.fps) * 1000
+            duration_ms = (self.frame_count / self.fps) * 1000
             while True:
-                rgb_images = sorted(os.listdir(os.path.join(self.temp_output_dir, 'RGBImages')))
-                if len(os.listdir(self.frame_output_dir)) > 0:
-                    break
-                if len(rgb_images) > 0:
-                    rgb_images_last = rgb_images[-1]
-                    h, m, s, ms = rgb_images_last.split('__')[0].split('_')
-                    total_ms = int(ms) + int(s) * 1000 + int(m) * 60 * 1000 + int(h) * 60 * 60 * 1000
-                    if total_ms / duration_ms > 1:
-                        self.progress = 100
-                    else:
-                        self.progress = (total_ms / duration_ms) * 100
+                rgb_images_path = os.path.join(self.temp_output_dir, 'RGBImages')
+                if os.path.exists(rgb_images_path):
+                    rgb_images = sorted(os.listdir(rgb_images_path))
+                    if len(os.listdir(self.frame_output_dir)) > 0:
+                        break
+                    if len(rgb_images) > 0:
+                        rgb_images_last = rgb_images[-1]
+                        h, m, s, ms = rgb_images_last.split('__')[0].split('_')
+                        total_ms = int(ms) + int(s) * 1000 + int(m) * 60 * 1000 + int(h) * 60 * 60 * 1000
+                        if total_ms / duration_ms > 1:
+                            self.progress = 100
+                        else:
+                            self.progress = (total_ms / duration_ms) * 100
+                else:
+                    continue
 
         # 删除缓存
         self.__delete_frame_cache()
