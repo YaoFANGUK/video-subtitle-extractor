@@ -230,3 +230,13 @@ pip uninstall Shapely -y
 conda install Shapely             
 ```
 
+
+#### 4. Nuitka打包代码闪退
+
+使用以下打包命令
+
+```shell
+ python -m nuitka --standalone --mingw64 --include-data-dir=D:\vse\backend=backend --nofollow-imports --windows-icon-from-ico=D:\vse\design\vse.ico --plugin-enable=tk-inter --output-dir=out .\gui.py
+```
+
+把paddle库dataset下image.py的有关subprocess代码全部注释了
