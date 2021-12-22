@@ -203,6 +203,8 @@ python ./backend/main.py
 
 #### 2. CondaHTTPError
 
+将项目中的.condarc放在用户目录下(C:\Users\<xxx>)，如果用户目录已经存在该文件则覆盖
+
 解决方案：<a href="https://zhuanlan.zhihu.com/p/260034241">https://zhuanlan.zhihu.com/p/260034241</a>
 
 #### 3. Windows下出现geos_c.dll错误
