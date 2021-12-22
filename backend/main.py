@@ -10,6 +10,7 @@ import os
 import random
 from collections import Counter
 import unicodedata
+from threading import Thread
 
 import cv2
 from Levenshtein import ratio
@@ -109,6 +110,8 @@ class SubtitleExtractor:
         self.raw_subtitle_path = os.path.join(self.subtitle_output_dir, 'raw.txt')
         # 自定义ocr对象
         self.ocr = OcrRecogniser()
+        # 处理进度
+        self.progress = 0
 
     def run(self):
         """
@@ -135,6 +138,8 @@ class SubtitleExtractor:
         print(interface_config['Main']['FinishProcessFrame'])
 
         print(interface_config['Main']['StartFindSub'])
+        # 重置进度条
+        self.progress = 0
         self.extract_subtitles()
         print(interface_config['Main']['FinishFindSub'])
 
@@ -201,6 +206,8 @@ class SubtitleExtractor:
                     ret, frame_next = self.video_cap.read()
                     if ret:
                         frame_no += 1
+                        # 更新进度条
+                        self.progress = (frame_no / self.frame_count) * 100
                         frame_next = self._frame_preprocess(frame_next)
                         cosine_distance = self._compute_image_similarity(Image.fromarray(frame),
                                                                          Image.fromarray(frame_next))
@@ -249,6 +256,8 @@ class SubtitleExtractor:
                     ret, _ = self.video_cap.read()
                     if ret:
                         frame_no += 1
+                        # 更新进度条
+                        self.progress = (frame_no / self.frame_count) * 100
 
         self.video_cap.release()
 
@@ -292,6 +301,7 @@ class SubtitleExtractor:
                                     # 删除最后一张，将当前帧设置为最后一帧
                                     os.remove(os.path.join(self.frame_output_dir, frame_list[-1]))
                             cv2.imwrite(filename, frame)
+                        self.progress = (frame_no / self.frame_count) * 100
                         print(f"{interface_config['Main']['SubFrameNo']}：{frame_no}, {interface_config['Main']['Elapse']}: {elapse}")
 
         self.video_cap.release()
@@ -300,6 +310,21 @@ class SubtitleExtractor:
         """
        通过调用videoSubFinder获取字幕帧
        """
+        def count_process():
+            duration_ms = (self.frame_count * self.fps) * 1000
+            while True:
+                rgb_images = sorted(os.listdir(os.path.join(self.temp_output_dir, 'RGBImages')))
+                if len(os.listdir(self.frame_output_dir)) > 0:
+                    break
+                if len(rgb_images) > 0:
+                    rgb_images_last = rgb_images[-1]
+                    h, m, s, ms = rgb_images_last.split('__')[0].split('_')
+                    total_ms = int(ms) + int(s) * 1000 + int(m) * 60 * 1000 + int(h) * 60 * 60 * 1000
+                    if total_ms / duration_ms > 1:
+                        self.progress = 100
+                    else:
+                        self.progress = (total_ms / duration_ms) * 100
+
         # 删除缓存
         self.__delete_frame_cache()
         # 定义videoSubFinder所在路径
@@ -314,6 +339,8 @@ class SubtitleExtractor:
         right_end = self.sub_area[3] / self.frame_width
         # 定义执行命令
         cmd = path_vsf + " -c -r" + " -i \"" + self.video_path + "\" -o " + self.temp_output_dir + f' -ces {self.vsf_subtitle}' + f' -te {top_end}' + f' -be {bottom_end}' + f' -le {left_end}' + f' -re {right_end}'
+        # 计算进度
+        Thread(target=count_process, daemon=True).start()
         os.system(cmd)
         # 提取字幕帧
         cap = cv2.VideoCapture(self.video_path)
@@ -371,7 +398,7 @@ class SubtitleExtractor:
         # 新建文件
         f = open(self.raw_subtitle_path, mode='w+', encoding='utf-8')
 
-        for frame in frame_list:
+        for i, frame in enumerate(frame_list):
             # 读取视频帧
             img = cv2.imread(os.path.join(self.frame_output_dir, frame))
             # 获取检测结果
@@ -380,6 +407,8 @@ class SubtitleExtractor:
             coordinates = self.__get_coordinates(dt_box)
             # 将结果写入txt文本中
             text_res = [(res[0], res[1]) for res in rec_res]
+            # 进度条
+            self.progress = i / len(frame_list) * 100
             for content, coordinate in zip(text_res, coordinates):
                 if self.sub_area is not None:
                     s_ymin = self.sub_area[0]
