@@ -74,7 +74,7 @@ make sure you have python 3.8+ installed. Create and activate a conda virtual en
   - Install dependencies：
   
     ```shell
-    conda env create -n videoEnv -f ./environment.yml
+    conda create -n videoEnv -f ./environment.yml
     ```
 
     ```shell
@@ -86,7 +86,7 @@ make sure you have python 3.8+ installed. Create and activate a conda virtual en
   - Install dependencies：
 
     ```shell
-    conda env create -n videoEnv -f ./environment_gpu.yml
+    conda create -n videoEnv -f ./environment_gpu.yml
     ```
 
     ```shell
