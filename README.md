@@ -100,7 +100,7 @@ QQ交流群：210150985
   - 安装依赖：
 
     ```shell
-    conda env create -n videoEnv -f ./environment.yml
+    conda create -n videoEnv -f ./environment.yml
     ```
 
     ```shell
@@ -112,7 +112,7 @@ QQ交流群：210150985
   - 安装依赖：
 
     ```shell
-    conda env create -n videoEnv -f ./environment_gpu.yml
+    conda create -n videoEnv -f ./environment_gpu.yml
     ```
 
     ```shell
