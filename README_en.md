@@ -22,7 +22,7 @@ implementations:
 
 **Download**：
 
-- Windows GPU version：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_GPU.7z">vse_windows_GPU.7z</a>
+- Windows GPU version：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.3.0/vse_windows_GPU.7z">vse_windows_GPU.7z</a>
 
 - Windows CPU version：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_CPU.zip">vse_windows_CPU.zip</a>
 

@@ -26,10 +26,10 @@ class SubtitleExtractorGUI:
             '繁體中文': 'ch_tra',
             'English': 'en',
         }
-        self.config.read(self.config_file)
+        self.config.read(self.config_file, encoding='utf-8')
         self.interface_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backend', 'interface',
                                            f"{self.INTERFACE_KEY_NAME_MAP[self.config['DEFAULT']['Interface']]}.ini")
-        self.interface_config.read(self.interface_file)
+        self.interface_config.read(self.interface_file, encoding='utf-8')
         # 获取窗口分辨率
         self.screen_width, self.screen_height = sg.Window.get_screen_size()
         # 设置视频预览区域大小
@@ -58,6 +58,8 @@ class SubtitleExtractorGUI:
         self.ymax = None
         self.bd_video_path = None
         self.hd_video_path = None
+        # 字幕提取器
+        self.se = None
 
     def run(self):
         # 创建布局
@@ -85,6 +87,9 @@ class SubtitleExtractorGUI:
             # 如果关闭软件，退出
             if event == sg.WIN_CLOSED:
                 break
+            # 更新进度条
+            if self.se is not None:
+                self.window['-PROG-'].update(self.se.progress)
 
     def _create_layout(self):
         """
@@ -138,7 +143,8 @@ class SubtitleExtractorGUI:
             # 运行按钮 + 进度条
             [sg.Button(button_text=self.interface_config['SubtitleExtractorGUI']['Run'], key='-RUN-', size=(20, 1)),
              sg.Button(button_text=self.interface_config['SubtitleExtractorGUI']['Setting'], key='-LANGUAGE-MODE-',
-                       size=(20, 1))
+                       size=(20, 1)),
+             sg.ProgressBar(100, orientation='h', size=(44, 20), key='-PROG-')
              ],
         ]
 
@@ -230,8 +236,8 @@ class SubtitleExtractorGUI:
                 print(f"{self.interface_config['SubtitleExtractorGUI']['SubtitleArea']}：({self.ymin},{self.ymax},{self.xmin},{self.xmax})")
                 subtitle_area = (self.ymin, self.ymax, self.xmin, self.xmax)
                 from backend.main import SubtitleExtractor
-                se = SubtitleExtractor(self.video_path, subtitle_area, self.bd_video_path)
-                Thread(target=se.run, daemon=True).start()
+                self.se = SubtitleExtractor(self.video_path, subtitle_area, self.bd_video_path)
+                Thread(target=self.se.run, daemon=True).start()
 
     def _slide_event_handler(self, event, values):
         """
@@ -312,7 +318,7 @@ class LanguageModeGUI:
                     exit(0)
 
     def _load_interface_text(self):
-        self.interface_config.read(self.interface_file)
+        self.interface_config.read(self.interface_file, encoding='utf-8')
         # 设置界面
         self.INTERFACE_DEF = self.interface_config["LanguageModeGUI"]["InterfaceDefault"]
 
@@ -395,10 +401,10 @@ class LanguageModeGUI:
         if event == '-INTERFACE-OK-':
             self.interface_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backend', 'interface',
                                                f"{self.INTERFACE_KEY_NAME_MAP[values['-INTERFACE-']]}.ini")
-            self.interface_config.read(self.interface_file)
+            self.interface_config.read(self.interface_file, encoding='utf-8')
             config = configparser.ConfigParser()
             if os.path.exists(self.config_file):
-                config.read(self.config_file)
+                config.read(self.config_file, encoding='utf-8')
                 self.set_config(self.config_file, values['-INTERFACE-'], config['DEFAULT']['Language'],
                                 config['DEFAULT']['Mode'])
             self.window.close()
@@ -408,7 +414,7 @@ class LanguageModeGUI:
     @staticmethod
     def set_config(config_file, interface, language_code, mode):
         # 写入配置文件
-        with open(config_file, mode='w') as f:
+        with open(config_file, mode='w', encoding='utf-8') as f:
             f.write('[DEFAULT]\n')
             f.write(f'Interface = {interface}\n')
             f.write(f'Language = {language_code}\n')
@@ -416,13 +422,13 @@ class LanguageModeGUI:
 
     def parse_config(self, config_file):
         if not os.path.exists(config_file):
-            self.interface_config.read(self.interface_file)
+            self.interface_config.read(self.interface_file, encoding='utf-8')
             interface_def = self.interface_config['LanguageModeGUI']['InterfaceDefault']
             language_def = self.interface_config['LanguageModeGUI']['InterfaceDefault']
             mode_def = self.interface_config['LanguageModeGUI']['ModeFast']
             return interface_def, language_def, mode_def
         config = configparser.ConfigParser()
-        config.read(config_file)
+        config.read(config_file, encoding='utf-8')
         interface = config['DEFAULT']['Interface']
         language = config['DEFAULT']['Language']
         mode = config['DEFAULT']['Mode']
