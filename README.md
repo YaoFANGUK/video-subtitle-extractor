@@ -209,7 +209,7 @@ python ./backend/main.py
 
 #### 2. CondaHTTPError
 
-将项目中的.condarc放在用户目录下(C:\Users\<xxx>)，如果用户目录已经存在该文件则覆盖
+将项目中的.condarc放在用户目录下(C:\Users\\<你的用户名>)，如果用户目录已经存在该文件则覆盖
 
 解决方案：<a href="https://zhuanlan.zhihu.com/p/260034241">https://zhuanlan.zhihu.com/p/260034241</a>
 
@@ -245,4 +245,4 @@ conda install Shapely
  python -m nuitka --standalone --mingw64 --include-data-dir=D:\vse\backend=backend --nofollow-imports --windows-icon-from-ico=D:\vse\design\vse.ico --plugin-enable=tk-inter --output-dir=out .\gui.py
 ```
 
-把paddle库dataset下image.py的有关subprocess代码全部注释了
+把paddle库dataset下image.py的有关subprocess代码全部注释了，然后再把conda虚拟机环境Lib文件夹的site- packages的内容拷贝到输出目录即可
