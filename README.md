@@ -245,4 +245,9 @@ conda install Shapely
  python -m nuitka --standalone --mingw64 --include-data-dir=D:\vse\backend=backend --nofollow-imports --windows-icon-from-ico=D:\vse\design\vse.ico --plugin-enable=tk-inter --output-dir=out .\gui.py
 ```
 
+编译成单个文件
+```shell
+ python -m nuitka --standalone --windows-disable-console --mingw64 --lto no --include-data-dir=D:\vse\backend=backend --include-data-dir=D:\vse\dependencies=dependencies  --nofollow-imports --windows-icon-from-ico=D:\vse\design\vse.ico --plugin-enable=tk-inter --output-dir=out --onefile .\gui.py
+```
+
 把paddle库dataset下image.py的有关subprocess代码全部注释了，然后再把conda虚拟机环境Lib文件夹的site- packages的内容拷贝到输出目录即可
