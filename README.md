@@ -36,13 +36,17 @@ QQ交流群：210150985
 
 **下载地址**：
 
+- Windows 单文件版本(双击直接运行，每次打开时会有一点慢，**推荐小白使用**)
+  - 国内：<a href=https://github.91chi.fun//https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.3.0/vse.exe>vse.exe</a>
+  - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.3.0/vse.exe">vse.exe</a> 
+
 - Windows GPU版本：
   - 国内：<a href="https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.3.0/vse_windows_GPU.7z">vse_windows_GPU.7z</a>
   - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.3.0/vse_windows_GPU.7z">vse_windows_GPU.7z</a>
 
 - Windows CPU版本：
-  - 国内：<a href=https://github.91chi.fun//https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_CPU.zip>vse_windows_CPU.zip</a>
-  - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_CPU.zip">vse_windows_CPU.zip</a> 
+  - 国内：<a href=https://github.91chi.fun//https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.3.0/vse_windows_CPU.zip>vse_windows_CPU.zip</a>
+  - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.3.0/vse_windows_CPU.zip">vse_windows_CPU.zip</a> 
 
 - MacOS CPU版本：
   - 国内：<a href="https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/vse_macOS_CPU.dmg">vse_macOS_CPU.dmg</a>
@@ -100,7 +104,7 @@ QQ交流群：210150985
   - 安装依赖：
 
     ```shell
-    conda env create -n videoEnv -f ./environment.yml
+    conda create -n videoEnv -f ./environment.yml
     ```
 
     ```shell
@@ -112,7 +116,7 @@ QQ交流群：210150985
   - 安装依赖：
 
     ```shell
-    conda env create -n videoEnv -f ./environment_gpu.yml
+    conda create -n videoEnv -f ./environment_gpu.yml
     ```
 
     ```shell
@@ -139,7 +143,9 @@ python ./backend/main.py
 
 #### 1. 运行不正常/没有结果/cuda及cudnn问题
 
-解决方案：如果你使用的是3060/3070/3080等安培架构的显卡，请使用最新的paddlepaddle版本以及最新的cuda 11.2，如果使用conda安装GPU环境失败，请尝试手动安装：
+解决方案：
+
+> 如果你是下载的gpu版本压缩包解压运行闪退，则只需要安装cuda 11.2和cuDNN 8.1.1即可
 
 - 安装CUDA 11.2和cuDNN 8.1.1
 
@@ -161,7 +167,7 @@ python ./backend/main.py
       <p>使其生效</p>
       <pre><code>source ~/.bashrc</code></pre>
       <h5>(3) 下载cuDNN 8.1.1</h5>
-      <p>国内：<a href="https://github.91chifun.workers.dev/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/cudnn-11.2-linux-x64-v8.1.1.33.tgz">cudnn-11.2-linux-x64-v8.1.1.33.tgz</a></p>
+      <p>国内：<a href="https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/cudnn-11.2-linux-x64-v8.1.1.33.tgz">cudnn-11.2-linux-x64-v8.1.1.33.tgz</a></p>
       <p>国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/cudnn-11.2-linux-x64-v8.1.1.33.tgz">cudnn-11.2-linux-x64-v8.1.1.33.tgz</a></p>
       <h5>(4) 安装cuDNN 8.1.1</h5>
       <pre><code> tar -zxvf cudnn-11.2-linux-x64-v8.1.1.33.tgz
@@ -178,13 +184,17 @@ python ./backend/main.py
         <a href="https://developer.download.nvidia.com/compute/cuda/11.2.0/local_installers/cuda_11.2.0_460.89_win10.exe">cuda_11.2.0_460.89_win10.exe</a>
         <h5>(2) 安装CUDA 11.2</h5>
         <h5>(3) 下载cuDNN 8.1.1</h5>
-        <p>国内：<a href="https://github.91chifun.workers.dev/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/cudnn-11.2-windows-x64-v8.1.1.33.zip">cudnn-11.2-windows-x64-v8.1.1.33.zip</a></p>
+        <p>国内：<a href="https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/cudnn-11.2-windows-x64-v8.1.1.33.zip">cudnn-11.2-windows-x64-v8.1.1.33.zip</a></p>
         <p>国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/cudnn-11.2-windows-x64-v8.1.1.33.zip">cudnn-11.2-windows-x64-v8.1.1.33.zip</a></p>
         <h5>(4) 安装cuDNN 8.1.1</h5>
         <p>
            将cuDNN解压后的cuda文件夹中的bin, include, lib目录下的文件复制到C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\对应目录下
         </p>
     </details>
+
+> 如果你使用的是3060/3070/3080等安培架构的显卡，请使用最新的paddlepaddle版本以及最新的cuda 11.2
+
+> 如果使用conda安装GPU环境失败，请尝试手动安装：
 
 - 安装paddlepaddle:
 
@@ -202,6 +212,8 @@ python ./backend/main.py
 
 
 #### 2. CondaHTTPError
+
+将项目中的.condarc放在用户目录下(C:\Users\\<你的用户名>)，如果用户目录已经存在该文件则覆盖
 
 解决方案：<a href="https://zhuanlan.zhihu.com/p/260034241">https://zhuanlan.zhihu.com/p/260034241</a>
 
@@ -227,4 +239,28 @@ pip uninstall Shapely -y
 ```shell
 conda install Shapely             
 ```
+
+
+#### 4. Nuitka打包代码闪退
+
+将conda虚拟环境Lib文件夹下site-packages的所有文件复制到dependencies文件夹中，把paddle库dataset下image.py的有关subprocess代码全部注释了，使用以下打包命令：
+
+```shell
+ python -m nuitka --standalone --windows-disable-console --mingw64 --include-data-dir=D:\vse\backend=backend --include-data-dir=D:\vse\dependencies=dependencies  --nofollow-imports --windows-icon-from-ico=D:\vse\design\vse.ico --plugin-enable=tk-inter --output-dir=out .\gui.py
+```
+
+编译成单个文件
+```shell
+ python -m nuitka --standalone --windows-disable-console --mingw64 --lto no --include-data-dir=D:\vse\backend=backend --include-data-dir=D:\vse\dependencies=dependencies  --nofollow-imports --windows-icon-from-ico=D:\vse\design\vse.ico --plugin-enable=tk-inter --output-dir=out --onefile .\gui.py
+```
+
+
+
+## 社区支持
+
+#### Jetbrains 全家桶支持
+本项目开发所使用的IDE由Jetbrains支持。
+<div align=center>
+  <a href="https://jb.gg/OpenSourceSupport"><img src="https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.png" alt="JetBrains Logo (Main) logo." width="80"></a>
+</div>
 
