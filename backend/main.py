@@ -372,7 +372,8 @@ class SubtitleExtractor:
         cmd = path_vsf + " -c -r" + " -i \"" + self.video_path + "\" -o " + self.temp_output_dir + f' -ces {self.vsf_subtitle}' + f' -te {top_end}' + f' -be {bottom_end}' + f' -le {left_end}' + f' -re {right_end}'
         # 计算进度
         Thread(target=count_process, daemon=True).start()
-        os.system(cmd)
+        import subprocess
+        subprocess.run(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         # 提取字幕帧
         cap = cv2.VideoCapture(self.video_path)
         for i, frame_name in enumerate(os.listdir(os.path.join(self.temp_output_dir, 'RGBImages'))):

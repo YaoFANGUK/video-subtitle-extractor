@@ -22,9 +22,11 @@ implementations:
 
 **Download**：
 
+- Windows executable(a little bit slow when initial run): <a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.3.0/vse.exe">vse.exe</a> 
+
 - Windows GPU version：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.3.0/vse_windows_GPU.7z">vse_windows_GPU.7z</a>
 
-- Windows CPU version：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/vse_windows_CPU.zip">vse_windows_CPU.zip</a>
+- Windows CPU version：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.3.0/vse_windows_CPU.zip">vse_windows_CPU.zip</a>
 
 - MacOS：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/vse_macOS_CPU.dmg">vse_macOS_CPU.dmg</a>
 
@@ -74,7 +76,7 @@ make sure you have python 3.8+ installed. Create and activate a conda virtual en
   - Install dependencies：
   
     ```shell
-    conda env create -n videoEnv -f ./environment.yml
+    conda create -n videoEnv -f ./environment.yml
     ```
 
     ```shell
@@ -86,7 +88,7 @@ make sure you have python 3.8+ installed. Create and activate a conda virtual en
   - Install dependencies：
 
     ```shell
-    conda env create -n videoEnv -f ./environment_gpu.yml
+    conda create -n videoEnv -f ./environment_gpu.yml
     ```
 
     ```shell
@@ -196,4 +198,15 @@ pip uninstall Shapely -y
 ```shell
 conda install Shapely             
 ```
+
+
+
+
+## Community Support
+
+#### Jetbrains All Products Pack
+The IDE this project used is supported by Jetbrains
+<div align=center>
+  <a href="https://jb.gg/OpenSourceSupport"><img src="https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.png" alt="JetBrains Logo (Main) logo." width="80"></a>
+</div>
 
