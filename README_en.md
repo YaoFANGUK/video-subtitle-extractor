@@ -199,3 +199,14 @@ pip uninstall Shapely -y
 conda install Shapely             
 ```
 
+
+
+
+## Community Support
+
+#### Jetbrains All Products Pack
+The IDE this project used is supported by Jetbrains
+<div align=center>
+  <a href="https://jb.gg/OpenSourceSupport"><img src="https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.png" alt="JetBrains Logo (Main) logo." width="80"></a>
+</div>
+
