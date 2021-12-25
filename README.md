@@ -254,3 +254,11 @@ conda install Shapely
  python -m nuitka --standalone --windows-disable-console --mingw64 --lto no --include-data-dir=D:\vse\backend=backend --include-data-dir=D:\vse\dependencies=dependencies  --nofollow-imports --windows-icon-from-ico=D:\vse\design\vse.ico --plugin-enable=tk-inter --output-dir=out --onefile .\gui.py
 ```
 
+
+
+## 社区支持
+
+#### Jetbrains 全家桶支持
+本项目开发所使用的IDE由Jetbrains支持。
+<div align=center><img alt="https://jb.gg/OpenSource" src="ext/img/jetbrains.png" width="80" /></div>
+
