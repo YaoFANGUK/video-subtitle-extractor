@@ -260,5 +260,7 @@ conda install Shapely
 
 #### Jetbrains 全家桶支持
 本项目开发所使用的IDE由Jetbrains支持。
-<div align=center><img alt="https://jb.gg/OpenSource" src="ext/img/jetbrains.png" width="80" /></div>
+<div align=center>
+  <img src="https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.png" alt="JetBrains Logo (Main) logo." width="80">
+</div>
 
