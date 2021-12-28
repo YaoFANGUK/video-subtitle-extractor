@@ -267,8 +267,12 @@ def find_similar_sub(eng_subs_nlp_map, eng_subs, sub):
                     eng_subs_part_score_list_max = eng_subs_part_score_list[eng_subs_part_score_list_max_index]
                     # print("fix score", eng_subs_part_score_list_max, "index", eng_subs_part_score_list_max_index,
                     #       'diff_score', diff_score, 'diff_index', diff_index)
-    similar_sub = eng_subs[eng_subs_part_index_list[eng_subs_part_score_list_max_index] - 1] # srt字幕起点为1
-    return similar_sub, eng_subs_part_score_list_max, selected
+    try:
+        similar_sub = eng_subs[eng_subs_part_index_list[eng_subs_part_score_list_max_index]]
+        return similar_sub, eng_subs_part_score_list_max, selected
+    except IndexError:
+        print("Index out of range")
+        return None, 0, False
 
 
 def split_ch_and_eng(text):
