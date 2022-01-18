@@ -86,6 +86,18 @@ class SubtitleExtractorGUI:
             # 更新进度条
             if self.se is not None:
                 self.window['-PROG-'].update(self.se.progress)
+                if self.se.isFinished:
+                    # 1) 打开修改字幕滑块区域按钮
+                    self.window['-Y-SLIDER-'].update(disabled=False)
+                    self.window['-X-SLIDER-'].update(disabled=False)
+                    self.window['-Y-SLIDER-H-'].update(disabled=False)
+                    self.window['-X-SLIDER-W-'].update(disabled=False)
+                    # 2) 打开【运行】、【打开】和【识别语言】按钮
+                    self.window['-RUN-'].update(disabled=False)
+                    self.window['-FILE-'].update(disabled=False)
+                    self.window['-FILE_BTN-'].update(disabled=False)
+                    self.window['-LANGUAGE-MODE-'].update(disabled=False)
+
 
     def _create_layout(self):
         """

@@ -112,6 +112,8 @@ class SubtitleExtractor:
         self.ocr = OcrRecogniser()
         # 处理进度
         self.progress = 0
+        # 是否完成
+        self.isFinished = False
 
     def run(self):
         """
@@ -173,6 +175,7 @@ class SubtitleExtractor:
             reformat(os.path.join(os.path.splitext(self.video_path)[0] + '.srt'))
         print(interface_config['Main']['FinishGenerateSub'])
         self.progress = 100
+        self.isFinished = True
 
     def extract_frame(self):
         """
