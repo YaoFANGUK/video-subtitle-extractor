@@ -26,6 +26,7 @@ from tools.reformat_en import reformat
 from tools.infer import utility
 from tools.infer.predict_det import TextDetector
 from tools.infer.predict_system import TextSystem
+import threading
 import platform
 
 
@@ -78,6 +79,8 @@ class SubtitleExtractor:
     """
 
     def __init__(self, vd_path, sub_area=None):
+        # 线程锁
+        self.lock = threading.RLock()
         # 字幕区域位置
         self.sub_area = sub_area
         self.sub_detector = SubtitleDetect()
@@ -121,6 +124,7 @@ class SubtitleExtractor:
         """
         运行整个提取视频的步骤
         """
+        self.lock.acquire()
         print(interface_config['Main']['StartProcessFrame'])
         if self.sub_area is not None:
             # 如果开启精准模式
@@ -180,6 +184,7 @@ class SubtitleExtractor:
         self.isFinished = True
         # 删除缓存文件
         self.empty_cache()
+        self.lock.release()
 
     def extract_frame(self):
         """
