@@ -103,6 +103,10 @@ class SubtitleExtractorGUI:
         """
         创建字幕提取器布局
         """
+        garbage = os.path.join(os.path.dirname(__file__), 'output')
+        if os.path.exists(garbage):
+            import shutil
+            shutil.rmtree(garbage, True)
         self.layout = [
             # 显示视频预览
             [sg.Image(size=(self.video_preview_width, self.video_preview_height), background_color='black',
