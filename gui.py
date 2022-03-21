@@ -113,8 +113,8 @@ class SubtitleExtractorGUI:
                       key='-DISPLAY-')],
             # 打开按钮 + 快进快退条
             [sg.Input(key='-FILE-', visible=False, enable_events=True),
-             sg.FileBrowse(self.interface_config['SubtitleExtractorGUI']['Open'], file_types=((
-                           self.interface_config['SubtitleExtractorGUI']['AllFile'], '*.*'), ('mp4', '*.mp4'),
+             sg.FilesBrowse(self.interface_config['SubtitleExtractorGUI']['Open'], file_types=((
+                            self.interface_config['SubtitleExtractorGUI']['AllFile'], '*.*'), ('mp4', '*.mp4'),
                                                                                               ('flv', '*.flv'),
                                                                                               ('wmv', '*.wmv'),
                                                                                               ('avi', '*.avi')),
@@ -162,7 +162,8 @@ class SubtitleExtractorGUI:
         2）获取视频信息，初始化进度条滑块范围
         """
         if event == '-FILE-':
-            self.video_path = values['-FILE-']
+            self.video_paths = values['-FILE-'].split(';')
+            self.video_path = self.video_paths[0]
             if self.video_path != '':
                 self.video_cap = cv2.VideoCapture(self.video_path)
             if self.video_cap is None:
@@ -233,8 +234,9 @@ class SubtitleExtractorGUI:
                 print(f"{self.interface_config['SubtitleExtractorGUI']['SubtitleArea']}：({self.ymin},{self.ymax},{self.xmin},{self.xmax})")
                 subtitle_area = (self.ymin, self.ymax, self.xmin, self.xmax)
                 from backend.main import SubtitleExtractor
-                self.se = SubtitleExtractor(self.video_path, subtitle_area)
-                Thread(target=self.se.run, daemon=True).start()
+                for video_path in self.video_paths:
+                    self.se = SubtitleExtractor(video_path, subtitle_area)
+                    Thread(target=self.se.run, daemon=True).start()
 
     def _slide_event_handler(self, event, values):
         """
