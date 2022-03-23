@@ -44,7 +44,7 @@ interface_config.read(interface_file, encoding='utf-8')
 REC_CHAR_TYPE = config['DEFAULT']['Language']
 print(f"{interface_config['Main']['RecSubLang']}：{REC_CHAR_TYPE}")
 if REC_CHAR_TYPE == 'en':
-    REC_CHAR_TYPE = 'ch'
+    REC_CHAR_TYPE = 'EN'
 
 # 设置识别模式
 MODE_TYPE = config['DEFAULT']['Mode']
