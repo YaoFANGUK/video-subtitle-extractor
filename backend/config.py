@@ -43,8 +43,6 @@ interface_config.read(interface_file, encoding='utf-8')
 # 设置识别语言
 REC_CHAR_TYPE = config['DEFAULT']['Language']
 print(f"{interface_config['Main']['RecSubLang']}：{REC_CHAR_TYPE}")
-if REC_CHAR_TYPE == 'en':
-    REC_CHAR_TYPE = 'EN'
 
 # 设置识别模式
 MODE_TYPE = config['DEFAULT']['Mode']
@@ -85,9 +83,13 @@ DICT_PATH = os.path.join(BASE_DIR, '', 'ppocr', 'utils', 'ppocr_keys_v1.txt')
 # 如果设置了识别文本语言类型，则设置为对应的语言
 if REC_CHAR_TYPE in ('ch', 'japan', 'korean', 'en', 'EN_symbol', 'french', 'german', 'it', 'es', 'pt', 'ru', 'ar',
                      'ta', 'ug', 'fa', 'ur', 'rs_latin', 'oc', 'rs_cyrillic', 'bg', 'uk', 'be', 'te', 'kn', 'ch_tra', 'hi', 'mr', 'ne', 'EN'):
-    REC_MODEL_PATH = os.path.join(BASE_DIR, '', 'models', f'{REC_CHAR_TYPE}_rec')
     REC_MODEL_FAST_PATH = os.path.join(REC_MODEL_BASE, f'{REC_CHAR_TYPE}_rec_fast')
-    DICT_PATH = os.path.join(BASE_DIR, '', 'ppocr', 'utils', 'dict', f'{REC_CHAR_TYPE}_dict.txt')
+    if REC_CHAR_TYPE == 'en':
+        REC_MODEL_PATH = os.path.join(BASE_DIR, '', 'models', 'ch_rec')
+        DICT_PATH = os.path.join(BASE_DIR, '', 'ppocr', 'utils', 'dict', 'ch_dict.txt')
+    else:
+        REC_MODEL_PATH = os.path.join(BASE_DIR, '', 'models', f'{REC_CHAR_TYPE}_rec')
+        DICT_PATH = os.path.join(BASE_DIR, '', 'ppocr', 'utils', 'dict', f'{REC_CHAR_TYPE}_dict.txt')
     if not os.path.exists(REC_MODEL_FAST_PATH):
         REC_MODEL_FAST_PATH = REC_MODEL_PATH
 

@@ -56,7 +56,10 @@ class OcrRecogniser:
         # 设置字典路径
         self.args.rec_char_dict_path = config.DICT_PATH
         # 设置识别文本的类型
-        self.args.rec_char_type = config.REC_CHAR_TYPE
+        if config.REC_CHAR_TYPE == 'en':
+            self.args.rec_char_type = 'ch'
+        else:
+            self.args.rec_char_type = config.REC_CHAR_TYPE
         return TextSystem(self.args)
 
 
@@ -99,7 +102,6 @@ class SubtitleExtractor:
         self.frame_width = int(self.video_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         # 字幕出现区域
         self.subtitle_area = config.SUBTITLE_AREA
-        print(f"{interface_config['Main']['FrameCount']}：{self.frame_count}，{interface_config['Main']['FrameRate']}：{self.fps}")
         # 提取的视频帧储存目录
         self.frame_output_dir = os.path.join(self.temp_output_dir, 'frames')
         # 提取的字幕文件存储目录
@@ -125,6 +127,7 @@ class SubtitleExtractor:
         运行整个提取视频的步骤
         """
         self.lock.acquire()
+        print(f"{interface_config['Main']['FrameCount']}：{self.frame_count}，{interface_config['Main']['FrameRate']}：{self.fps}")
         print(interface_config['Main']['StartProcessFrame'])
         if self.sub_area is not None:
             # 如果开启精准模式
@@ -424,7 +427,11 @@ class SubtitleExtractor:
             # 获取文本坐标
             coordinates = self.__get_coordinates(dt_box)
             # 将结果写入txt文本中
-            text_res = [(res[0], res[1]) for res in rec_res]
+            if config.REC_CHAR_TYPE == 'en':
+                # 如果识别语言为英文，则去除中文
+                text_res = [(re.sub('[\u4e00-\u9fa5]', '', res[0]), res[1]) for res in rec_res]
+            else:
+                text_res = [(res[0], res[1]) for res in rec_res]
             # 进度条
             self.progress = i / len(frame_list) * 100
             for content, coordinate in zip(text_res, coordinates):
@@ -945,8 +952,6 @@ class SubtitleExtractor:
                 (x4, y4) = int(i[3][0]), int(i[3][1])
                 xmin = max(x1, x4)
                 xmax = min(x2, x3)
-                ymin = max(y1, y2)
-                ymax = min(y3, y4)
                 coordinate_list.append((xmin, xmax, ymin, ymax))
         return coordinate_list
 
@@ -990,8 +995,11 @@ if __name__ == '__main__':
     # 提示用户输入视频路径
     video_path = input(f"{interface_config['Main']['InputVideo']}").strip()
     # 提示用户输入字幕区域
-    ymin, ymax, xmin, xmax = map(int, input(f"{interface_config['Main']['ChooseSubArea']} (ymin ymax xmin xmax)：").split())
-    subtitle_area = (ymin, ymax, xmin, xmax)
+    try:
+        ymin, ymax, xmin, xmax = map(int, input(f"{interface_config['Main']['ChooseSubArea']} (ymin ymax xmin xmax)：").split())
+        subtitle_area = (ymin, ymax, xmin, xmax)
+    except ValueError as e:
+        subtitle_area = None
     # 新建字幕提取对象
     se = SubtitleExtractor(video_path, subtitle_area)
     # 开始提取字幕

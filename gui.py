@@ -171,7 +171,8 @@ class SubtitleExtractorGUI:
             if self.video_cap.isOpened():
                 ret, frame = self.video_cap.read()
                 if ret:
-                    print(f"{self.interface_config['SubtitleExtractorGUI']['OpenVideoSuccess']}：{self.video_path}")
+                    for video in self.video_paths:
+                        print(f"{self.interface_config['SubtitleExtractorGUI']['OpenVideoSuccess']}：{video}")
                     # 获取视频的帧数
                     self.frame_count = self.video_cap.get(cv2.CAP_PROP_FRAME_COUNT)
                     # 获取视频的高度
