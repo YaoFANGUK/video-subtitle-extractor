@@ -192,8 +192,8 @@ class SubtitleExtractorGUI:
                     self.window['-Y-SLIDER-H-'].update(self.frame_height * .146)
                     self.window['-X-SLIDER-'].update(range=(0, self.frame_width), disabled=False)
                     self.window['-X-SLIDER-W-'].update(range=(0, self.frame_width), disabled=False)
-                    self.window['-X-SLIDER-'].update(self.frame_width * .15)
-                    self.window['-X-SLIDER-W-'].update(self.frame_width * .7)
+                    self.window['-X-SLIDER-'].update(self.frame_width * .07)
+                    self.window['-X-SLIDER-W-'].update(self.frame_width * .86)
 
     def _file_bd_event_handler(self, event, values):
         if event != '-FILE-BD-':
