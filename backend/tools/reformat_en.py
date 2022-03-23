@@ -14,6 +14,7 @@ import wordsegment
 import re
 import os
 import spacy
+import subprocess
 
 nlp = spacy.load("en_core_web_sm")
 
@@ -101,6 +102,9 @@ def reformat(path, bd_video_path=None):
         sub.text = re.sub(' +([\\u4e00-\\u9fa5])', ' \\1', sub.text)
         # 中英文分行
         sub.text = sub.text.replace("  ", "\n")
+        if bool(re.search('[\\u4e00-\\u9fa5]', 'sub.text')):
+            ch, eng = split_ch_and_eng(sub.text)
+            sub.text = join_ch_and_eng(ch, eng)
         lines = []
         remain = sub.text
         seg = remove_invalid_segment(seg, sub.text)
@@ -158,6 +162,8 @@ def reformat(path, bd_video_path=None):
 def do_original_eng_sub_match_and_replace(subs, bd_video_path):
     srt_path = extract_subtitle_from_video(bd_video_path)
     if srt_path is None:
+        srt_path = extract_subtitle_from_video_by_ffprobe(bd_video_path)
+    if srt_path is None:
         print(f"Error: No English subtitle from '{bd_video_path}'")
         return
     eng_subs = pysrt.open(srt_path)
@@ -165,10 +171,31 @@ def do_original_eng_sub_match_and_replace(subs, bd_video_path):
     eng_subs_nlp_map = {}
     for i in range(0, eng_subs_len):
         eng_subs[i].text = filter_original_eng_sub_text(eng_subs[i].text)
-        eng_subs_nlp_map[i] = {
-            NLP_MAP_KEY_WORD_SEGMENT: nlp(' '.join(wordsegment.segment(eng_subs[i].text)).lower()),
-            NLP_MAP_KEY_SENTENCE: nlp(nlp_sentence_clean(eng_subs[i].text).lower()),
-        }
+        nlps = []
+        text = eng_subs[i].text.strip()
+        text_parts = list(filter(len, re.split(r'\- +| +\-|^- *|[~\!@#$%\^&\*\(\)\+\.]- *', text)))
+        if len(text_parts) > 1:
+            text_parts.insert(0, text)
+        else:
+            text_parts = list([text])
+
+        for idx, text in enumerate(text_parts):
+            nlps.append({
+                'nlp':  nlp(' '.join(wordsegment.segment(text)).lower()),
+                'text': text.strip(),
+                'type': NLP_MAP_KEY_WORD_SEGMENT,
+                'primary': idx == 0
+            })
+            nlps.append({
+                'nlp':  nlp(nlp_sentence_clean(text).lower()),
+                'text': text.strip(),
+                'type': NLP_MAP_KEY_SENTENCE,
+                'primary': idx == 0
+            })
+
+        eng_subs_nlp_map[i] = nlps
+
+    eng_subs.save(srt_path, encoding='utf-8')
 
     for sub in subs:
         ch, eng = split_ch_and_eng(sub.text)
@@ -179,13 +206,40 @@ def do_original_eng_sub_match_and_replace(subs, bd_video_path):
             sub.text = join_ch_and_eng(ch, similar_sub.text)
         else:
             sub.text = original_sub_text
-    os.remove(srt_path)
+    # os.remove(srt_path)
 
+def extract_subtitle_from_video_by_ffprobe(bd_video_path):
+    if bd_video_path is None:
+        return None
+    srt_path = os.path.join(os.path.splitext(bd_video_path)[0] + '.eng.srt')
+    try:
+        output = subprocess.check_output('ffprobe -v error -show_entries stream=index,codec_name,codec_type:stream_tags=language,title -select_streams s  -of json "{0}"'.format(bd_video_path), shell=True)
+    except subprocess.CalledProcessError as e:
+        print(e.output)
+        return None
+    info = json.loads(output)
+    if 'streams' not in info:
+        return None
+    subtitle_index = None
+    for s in info['streams']:
+        if 'tags' not in s:
+            continue
+        if 'title' in s['tags'] and s['tags']['title'] == 'SDH':
+            continue
+        subtitle_index = s['index']
+    if subtitle_index is None:
+        return None
+    os.system('ffmpeg -y -i "{0}" -map "0:2" -c:s srt "{1}"'.format(bd_video_path, srt_path))
+    if not os.path.isfile(srt_path):
+        return None
+    if os.path.getsize(srt_path) <= 0:
+        return None
+    return srt_path
 
 def extract_subtitle_from_video(bd_video_path):
     if bd_video_path is None:
         return None
-    srt_path = f"{bd_video_path}.eng.srt"
+    srt_path = os.path.join(os.path.splitext(bd_video_path)[0] + '.eng.srt')
     os.system('ffmpeg -y -i "{0}" -map "0:s:m:title:English" -c:s srt "{1}"'.format(bd_video_path, srt_path))
     if not os.path.isfile(srt_path):
         return None
@@ -210,6 +264,10 @@ def find_similar_sub(eng_subs_nlp_map, eng_subs, sub):
     global last_correction_index
     sub_eng_part = re.sub('.+[\r\n](.+)$', "\\1", sub.text)
     sub_eng_part = re.sub('(.*: )', '', sub_eng_part)
+    sub_eng_part = sub_eng_part.strip()
+    if len(sub_eng_part) <= 0:
+        print("Empty eng line at index: " + str(sub.index))
+        return None, 0, False
     sub_eng_part_nlp = {
         NLP_MAP_KEY_WORD_SEGMENT: nlp(' '.join(wordsegment.segment(sub_eng_part)).lower()),
         NLP_MAP_KEY_SENTENCE: nlp(nlp_sentence_clean(sub_eng_part).lower()),
@@ -223,24 +281,24 @@ def find_similar_sub(eng_subs_nlp_map, eng_subs, sub):
 
     eng_subs_part_score_list = []
     eng_subs_part_index_list = []
+    eng_subs_part_nlp_list = []
     i = 0
     for eng_sub_part in eng_subs_part:
         if eng_sub_part.index not in eng_subs_nlp_map:
             eng_subs_part_score_list.append(0)
             eng_subs_part_index_list.append(eng_sub_part.index)
+            eng_subs_part_nlp_list.append({
+                'primary': True
+            })
             continue
-        eng_sub_part_text_word_segment_nlp = eng_subs_nlp_map[eng_sub_part.index][NLP_MAP_KEY_WORD_SEGMENT]
-        word_segment_score = eng_sub_part_text_word_segment_nlp.similarity(sub_eng_part_nlp[NLP_MAP_KEY_WORD_SEGMENT])
-
-        eng_sub_part_text_sentence_nlp = eng_subs_nlp_map[eng_sub_part.index][NLP_MAP_KEY_SENTENCE]
-        sentence_score = eng_sub_part_text_sentence_nlp.similarity(sub_eng_part_nlp[NLP_MAP_KEY_SENTENCE])
-
-        # print('index', eng_sub_part.index, i, "eng_sub_part_text_word_segment_nlp",
-        #       eng_sub_part_text_word_segment_nlp, "word_segment_score", word_segment_score, "sentence_score",
-        #       sentence_score)
-
-        eng_subs_part_score_list.append(max(word_segment_score, sentence_score))
+        nlps = eng_subs_nlp_map[eng_sub_part.index]
+        scores = []
+        for n in nlps:
+            scores.append(n['nlp'].similarity(sub_eng_part_nlp[n['type']]))
+        max_score = max(scores)
+        eng_subs_part_score_list.append(max_score)
         eng_subs_part_index_list.append(eng_sub_part.index)
+        eng_subs_part_nlp_list.append(nlps[scores.index(max_score)])
         i = i + 1
 
     eng_subs_part_score_list_max = max(eng_subs_part_score_list)
@@ -250,7 +308,8 @@ def find_similar_sub(eng_subs_nlp_map, eng_subs, sub):
 
     if eng_subs_part_score_list_max >= 0.9:
         # 如果权重>=0.9, 将他作为下一行字幕的基准
-        last_correction_index = eng_subs_part_index_list[eng_subs_part_score_list_max_index]
+        if eng_subs_part_nlp_list[eng_subs_part_score_list_max_index]['primary']: # 如果是primary才能作为基准, 拆分的不算
+            last_correction_index = eng_subs_part_index_list[eng_subs_part_score_list_max_index]
         selected = True
     else:
         # 如果权重<0.9, 用上一行作为基准+1行测算权重
@@ -263,9 +322,9 @@ def find_similar_sub(eng_subs_nlp_map, eng_subs, sub):
                 eng_subs_part_score_list_correction_index = eng_subs_part_index_list.index(last_correction_index + 1)
                 eng_subs_part_score_list_max_correction = eng_subs_part_score_list[
                     eng_subs_part_score_list_correction_index]
-                # 如果测算的权重变化在合理的范围, 比如0.06
+                # 如果测算的权重变化在合理的范围, 比如0.1
                 diff_score = eng_subs_part_score_list_max_correction - eng_subs_part_score_list_max
-                if abs(diff_score) < 0.06:
+                if abs(diff_score) < 0.1:
                     selected = True
                     eng_subs_part_score_list_max_index = eng_subs_part_score_list_correction_index
                     eng_subs_part_score_list_max = eng_subs_part_score_list[eng_subs_part_score_list_max_index]
@@ -273,6 +332,8 @@ def find_similar_sub(eng_subs_nlp_map, eng_subs, sub):
                     #       'diff_score', diff_score, 'diff_index', diff_index)
     try:
         similar_sub = eng_subs[eng_subs_part_index_list[eng_subs_part_score_list_max_index]]
+        if eng_subs_part_nlp_list[eng_subs_part_score_list_max_index]['primary'] == False: # 如果不是primary
+            similar_sub.text = eng_subs_part_nlp_list[eng_subs_part_score_list_max_index]['text']
         return similar_sub, eng_subs_part_score_list_max, selected
     except IndexError:
         print("Index out of range")
@@ -302,6 +363,8 @@ def join_ch_and_eng(ch, eng):
 
 
 def filter_original_eng_sub_text(text):
+    # 删掉xml标签
+    text = re.sub("</?[^>]+/?>", '', text)
     # 删掉结尾(语气词)
     text = re.sub(" ?\\([^\\(]+?\\)$", '', text)
     # 删掉(声音等):
