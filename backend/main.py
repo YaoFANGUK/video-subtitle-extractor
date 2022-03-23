@@ -19,6 +19,8 @@ from numpy import average, dot, linalg
 import numpy as np
 import sys
 sys.path.insert(0, os.path.dirname(__file__))
+from pathlib import Path
+import zipfile
 import config
 from config import interface_config
 from tools.reformat_en import reformat
@@ -179,9 +181,10 @@ class SubtitleExtractor:
 
     # 字幕后期处理
     def subtitle_final_process(self):
-        srt_filename = os.path.join(os.path.splitext(self.video_path)[0] + '.zh.简体-英文.srt')
-        srt_filename_cht = os.path.join(os.path.splitext(self.video_path)[0] + '.zh.繁体-英文.srt')
-        os.replace(os.path.join(os.path.splitext(self.video_path)[0] + '.srt'), srt_filename)
+        video_path_prefix = os.path.splitext(self.video_path)[0]
+        srt_filename = video_path_prefix + '.zh.简体-英文.srt'
+        srt_filename_cht = video_path_prefix + '.zh.繁体-英文.srt'
+        os.replace(video_path_prefix + '.srt', srt_filename)
         # 如果识别的字幕语言包含英文，则将英文分词
         if config.REC_CHAR_TYPE in ('ch', 'EN', 'en', 'ch_tra'):
             reformat(srt_filename, self.bd_video_path)
@@ -191,13 +194,30 @@ class SubtitleExtractor:
 
         if self.bd_video_path is not None:
             print("开始同步时间轴")
-            subtitle_sync([self.video_path, self.bd_video_path, srt_filename])
-            srt_filename = os.path.join(os.path.splitext(self.bd_video_path)[0] + '.zh.简体-英文.srt')
-            srt_filename_cht = os.path.join(os.path.splitext(self.bd_video_path)[0] + '.zh.繁体-英文.srt')
-            os.replace(os.path.join(os.path.splitext(self.bd_video_path)[0] + '.srt'), srt_filename)
+            temp_dir = os.path.join(self.temp_output_dir, 'sushi')
+            bd_video_path_prefix = os.path.splitext(self.bd_video_path)[0]
+            subtitle_sync([self.video_path, self.bd_video_path, srt_filename], {'temp': temp_dir})
+            srt_filename_eng = bd_video_path_prefix + '.eng.srt'
+            srt_filename = bd_video_path_prefix + '.zh.简体-英文.srt'
+            srt_filename_cht = bd_video_path_prefix + '.zh.繁体-英文.srt'
+            ass_filename = bd_video_path_prefix + '.zh.简体-英文.ass'
+            ass_filename_cht = bd_video_path_prefix + '.zh.繁体-英文.ass'
+            os.replace(bd_video_path_prefix + '.srt', srt_filename)
             chs_to_cht(srt_filename, srt_filename_cht)
-            write_srt_to_ass(srt_filename_cht)
-            write_srt_to_ass(srt_filename)
+            write_srt_to_ass(srt_filename_cht, ass_filename_cht)
+            write_srt_to_ass(srt_filename, ass_filename)
+            # zip
+            subtitle_path_list = [
+                srt_filename_eng,
+                srt_filename,
+                srt_filename_cht,
+                ass_filename,
+                ass_filename_cht,
+            ]
+            with zipfile.ZipFile(bd_video_path_prefix + '.zh.zip', 'w', zipfile.ZIP_DEFLATED) as zf:
+                for file in subtitle_path_list:
+                    if os.path.exists(file):
+                        zf.write(file, Path(file).name)
 
 
     def extract_frame(self):

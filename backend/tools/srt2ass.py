@@ -91,7 +91,7 @@ def ass_content(filename, header_path):
 def srt_to_ass(filename='', content='', **kwargs):
     start_time = time.time()
     for_json = kwargs.get('for_json')
-    header_path = kwargs.get('header_path') if kwargs.get('header_path') else 'backend/tools/header.txt'
+    header_path = kwargs.get('header_path') if kwargs.get('header_path') else os.path.join(os.path.dirname(__file__), '../../backend/tools/header.txt')
     encoding = kwargs.get('encoding')
     content = ass_content(filename, header_path)
     end_time = time.time() - start_time
@@ -103,8 +103,9 @@ def srt_to_ass(filename='', content='', **kwargs):
         return data
     return content
 
-def write_srt_to_ass(filename):
-    filename_ass = re.sub(r'\.srt$', '.ass', filename)
+def write_srt_to_ass(filename, filename_ass = None):
+    if filename_ass is None:
+        filename_ass = re.sub(r'\.srt$', '.ass', filename)
     with open(filename_ass, 'w', encoding='utf-8') as to_ass:
         to_ass.write(srt_to_ass(filename))
     print(filename_ass, '[finish]')
