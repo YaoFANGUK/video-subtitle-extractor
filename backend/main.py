@@ -952,6 +952,8 @@ class SubtitleExtractor:
                 (x4, y4) = int(i[3][0]), int(i[3][1])
                 xmin = max(x1, x4)
                 xmax = min(x2, x3)
+                ymin = max(y1, y2)
+                ymax = min(y3, y4)
                 coordinate_list.append((xmin, xmax, ymin, ymax))
         return coordinate_list
 
@@ -996,8 +998,9 @@ if __name__ == '__main__':
     video_path = input(f"{interface_config['Main']['InputVideo']}").strip()
     # 提示用户输入字幕区域
     try:
-        ymin, ymax, xmin, xmax = map(int, input(f"{interface_config['Main']['ChooseSubArea']} (ymin ymax xmin xmax)：").split())
-        subtitle_area = (ymin, ymax, xmin, xmax)
+        y_min, y_max, x_min, x_max = map(int, input(f"{interface_config['Main']['ChooseSubArea']} (ymin ymax xmin "
+                                                 f"xmax)：").split())
+        subtitle_area = (y_min, y_max, x_min, x_max)
     except ValueError as e:
         subtitle_area = None
     # 新建字幕提取对象
