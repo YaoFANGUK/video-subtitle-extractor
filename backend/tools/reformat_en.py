@@ -179,19 +179,24 @@ def do_original_eng_sub_match_and_replace(subs, bd_video_path):
             text_parts.insert(0, text)
         else:
             text_parts = list([text])
+        text_parts_len = len(text_parts)
 
         for idx, text in enumerate(text_parts):
+            splitted = idx != 0
+            primary = splitted == False or idx == text_parts_len - 1
             nlps.append({
                 'nlp':  nlp(' '.join(wordsegment.segment(text)).lower()),
                 'text': text.strip(),
                 'type': NLP_MAP_KEY_WORD_SEGMENT,
-                'primary': idx == 0
+                'primary': primary,
+                'splitted': splitted
             })
             nlps.append({
                 'nlp':  nlp(nlp_sentence_clean(text).lower()),
                 'text': text.strip(),
                 'type': NLP_MAP_KEY_SENTENCE,
-                'primary': idx == 0
+                'primary': primary,
+                'splitted': splitted
             })
 
         eng_subs_nlp_map[i] = nlps
@@ -289,7 +294,8 @@ def find_similar_sub(eng_subs_nlp_map, eng_subs, sub):
             eng_subs_part_score_list.append(0)
             eng_subs_part_index_list.append(eng_sub_part.index)
             eng_subs_part_nlp_list.append({
-                'primary': True
+                'primary': True,
+                'splitted': False
             })
             continue
         nlps = eng_subs_nlp_map[eng_sub_part.index]
@@ -311,6 +317,8 @@ def find_similar_sub(eng_subs_nlp_map, eng_subs, sub):
         # 如果权重>=0.9, 将他作为下一行字幕的基准
         if eng_subs_part_nlp_list[eng_subs_part_score_list_max_index]['primary']: # 如果是primary才能作为基准, 拆分的不算
             last_correction_index = eng_subs_part_index_list[eng_subs_part_score_list_max_index]
+        else:
+            last_correction_index = -1
         selected = True
     else:
         # 如果权重<0.9, 用上一行作为基准+1行测算权重
@@ -333,7 +341,7 @@ def find_similar_sub(eng_subs_nlp_map, eng_subs, sub):
                     #       'diff_score', diff_score, 'diff_index', diff_index)
     try:
         similar_sub = eng_subs[eng_subs_part_index_list[eng_subs_part_score_list_max_index]]
-        if eng_subs_part_nlp_list[eng_subs_part_score_list_max_index]['primary'] == False: # 如果不是primary
+        if eng_subs_part_nlp_list[eng_subs_part_score_list_max_index]['splitted']: # 如果是分割的字幕
             similar_sub.text = eng_subs_part_nlp_list[eng_subs_part_score_list_max_index]['text']
         return similar_sub, eng_subs_part_score_list_max, selected
     except IndexError:
