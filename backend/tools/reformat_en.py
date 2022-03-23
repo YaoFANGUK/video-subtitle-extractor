@@ -55,7 +55,7 @@ def reformat(path, bd_video_path=None):
 
     def typo_fix(text):
         for k, v in typo_map.items():
-            text = text.replace(k, v)
+            text = re.sub(re.compile(k, re.I), v, text)
         return text
 
     def water_mark_fix(text):
