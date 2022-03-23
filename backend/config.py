@@ -44,7 +44,7 @@ interface_config.read(interface_file, encoding='utf-8')
 REC_CHAR_TYPE = config['DEFAULT']['Language']
 print(f"{interface_config['Main']['RecSubLang']}：{REC_CHAR_TYPE}")
 if REC_CHAR_TYPE == 'en':
-    REC_CHAR_TYPE = 'ch'
+    REC_CHAR_TYPE = 'EN'
 
 # 设置识别模式
 MODE_TYPE = config['DEFAULT']['Mode']
@@ -169,7 +169,7 @@ SUBTITLE_AREA_DEVIATION_PIXEL = 50
 WATERMARK_AREA_NUM = 5
 
 # 文本相似度阈值
-# 用于去重时判断两行字幕是不是统一行
+# 用于去重时判断两行字幕是不是同一行，这个值越高越严格。 e.g. 0.99表示100个字里面有99各个字一模一样才算相似
 # 采用动态算法实现相似度阈值判断: 对于短文本要求较低的阈值，对于长文本要求较高的阈值
 THRESHOLD_TEXT_SIMILARITY = 0.8
 

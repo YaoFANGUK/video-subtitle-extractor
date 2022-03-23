@@ -8,10 +8,11 @@
 import re
 import os
 import random
+import shutil
 from collections import Counter
 import unicodedata
 from threading import Thread
-
+from pathlib import Path
 import cv2
 from Levenshtein import ratio
 from PIL import Image
@@ -30,6 +31,7 @@ from sushi.sushi_main import subtitle_sync
 from tools.infer import utility
 from tools.infer.predict_det import TextDetector
 from tools.infer.predict_system import TextSystem
+import threading
 import platform
 
 
@@ -82,14 +84,17 @@ class SubtitleExtractor:
     """
 
     def __init__(self, vd_path, sub_area=None, bd_video_path=None):
+        # 线程锁
+        self.lock = threading.RLock()
         # 字幕区域位置
         self.sub_area = sub_area
         self.sub_detector = SubtitleDetect()
-        # 临时存储文件夹
-        self.temp_output_dir = os.path.join(os.path.dirname(config.BASE_DIR), 'output')
         # 视频路径
         self.video_path = vd_path
         self.video_cap = cv2.VideoCapture(vd_path)
+        # 临时存储文件夹
+        self.vd_name = Path(self.video_path).stem
+        self.temp_output_dir = os.path.join(os.path.dirname(config.BASE_DIR), 'output', str(self.vd_name))
         # 视频帧总数
         self.frame_count = self.video_cap.get(cv2.CAP_PROP_FRAME_COUNT)
         # 视频帧率
@@ -118,11 +123,14 @@ class SubtitleExtractor:
         self.bd_video_path = bd_video_path
         # 处理进度
         self.progress = 0
+        # 是否完成
+        self.isFinished = False
 
     def run(self):
         """
         运行整个提取视频的步骤
         """
+        self.lock.acquire()
         print(interface_config['Main']['StartProcessFrame'])
         if self.sub_area is not None:
             # 如果开启精准模式
@@ -177,6 +185,10 @@ class SubtitleExtractor:
         self.subtitle_final_process()
         print(interface_config['Main']['FinishGenerateSub'])
         self.progress = 100
+        self.isFinished = True
+        # 删除缓存文件
+        self.empty_cache()
+        self.lock.release()
 
 
     # 字幕后期处理
@@ -1011,6 +1023,13 @@ class SubtitleExtractor:
         if len(os.listdir(self.frame_output_dir)) > 0:
             for i in os.listdir(self.frame_output_dir):
                 os.remove(os.path.join(self.frame_output_dir, i))
+
+    def empty_cache(self):
+        """
+        删除字幕提取过程中所有生产的缓存文件
+        """
+        if os.path.exists(self.temp_output_dir):
+            shutil.rmtree(self.temp_output_dir, True)
 
 
 if __name__ == '__main__':
