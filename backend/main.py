@@ -401,7 +401,8 @@ class SubtitleExtractor:
         # re：图像右半部分所占百分比，取值【0-1】
         right_end = self.sub_area[3] / self.frame_width
         # 定义执行命令
-        cmd = path_vsf + " -c -r" + " -i \"" + self.video_path + "\" -o " + self.temp_output_dir + f' -ces {self.vsf_subtitle}' + f' -te {top_end}' + f' -be {bottom_end}' + f' -le {left_end}' + f' -re {right_end}'
+        cmd = f"{path_vsf} -c -r -i \"{self.video_path}\" -o \"{self.temp_output_dir}\" -ces \"{self.vsf_subtitle}\" "
+        cmd += f"-te {top_end} -be {bottom_end} -le {left_end} -re {right_end}"
         # 计算进度
         Thread(target=count_process, daemon=True).start()
         import subprocess
