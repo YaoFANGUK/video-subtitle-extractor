@@ -4,7 +4,7 @@ chardet==4.0.0
 cycler==0.11.0
 decorator==5.1.0
 filesplit==3.0.2
-gast==0.4.0
+gast==0.3.3
 idna==3.3
 imageio==2.13.3
 imgaug==0.4.0
