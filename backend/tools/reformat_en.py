@@ -26,12 +26,10 @@ def reformat(path, bd_video_path=None):
     subs = pysrt.open(path)
     subs.save(f"{path}.bak", encoding='utf-8')
     verb_forms = ["I'm", "you're", "he's", "she's", "we're", "it's", "isn't", "aren't", "they're", "there's", "wasn't",
-                  "weren't", "I've", "you've", "he's", "she's", "it's", "we've", "they've", "there's", "hasn't",
-                  "haven't", "I'd", "you'd", "he'd", "she'd", "it'd", "we'd", "they'd", "doesn't", "don't", "didn't",
-                  "I'll", "you'll", "he'll", "she'll", "we'll", "they'll", "there'll", "I'd", "you'd", "he'd", "she'd",
-                  "it'd", "we've", "they'd", "there'd", "there'd", "can't", "couldn't", "daren't", "hadn't", "mightn't",
-                  "mustn't", "needn't", "oughtn't", "shan't", "shouldn't", "usedn't", "won't", "wouldn't", "that's",
-                  "what's", "haven't"]
+                  "weren't", "I've", "you've", "we've", "they've", "hasn't", "haven't", "I'd", "you'd", "he'd", "she'd",
+                  "it'd", "we'd", "they'd", "doesn't", "don't", "didn't", "I'll", "you'll", "he'll", "she'll", "we'll",
+                  "they'll", "there'll", "there'd", "can't", "couldn't", "daren't", "hadn't", "mightn't", "mustn't",
+                  "needn't", "oughtn't", "shan't", "shouldn't", "usedn't", "won't", "wouldn't", "that's", "what's", "it'll"]
     verb_form_map = {}
 
     water_mark_map = {
@@ -128,8 +126,10 @@ def reformat(path, bd_video_path=None):
             ss = " ".join(lines)
         else:
             ss = remain
+        # again
+        ss = typo_fix(ss)
         # 非大写字母的大写字母前加空格
-        ss = re.sub("([^\\sA-Z])([A-Z])", "\\1 \\2", ss)
+        ss = re.sub("([^\\sA-Z\\-])([A-Z])", "\\1 \\2", ss)
         # 删除重复空格
         ss = ss.replace("  ", " ")
         ss = ss.replace("。", ".")
@@ -141,6 +141,10 @@ def reformat(path, bd_video_path=None):
         ss = re.sub('\n\\s*', '\n', ss)
         # 删除开始的多个空格
         ss = re.sub('^\\s*', '', ss)
+        # 删除-左侧空格
+        ss = re.sub("([A-Za-z0-9]) (\\-[A-Za-z0-9])", '\\1\\2', ss)
+        # 删除%左侧空格
+        ss = re.sub("([A-Za-z0-9]) %", '\\1%', ss)
         # 结尾·改成.
         ss = re.sub('·$', '.', ss)
         ss = ss.replace(" Dr. ", " Dr.")
