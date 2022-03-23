@@ -127,7 +127,8 @@ def reformat(path):
         ss = re.sub("([A-Za-z0-9]) %", '\\1%', ss)
         # 结尾·改成.
         ss = re.sub('·$', '.', ss)
-        ss = ss.replace(" Dr. ", " Dr.")
+        # 移除Dr.后的空格
+        ss = re.sub(r'\bDr\. *\b', "Dr.", ss)
         ss = ss.replace("\n\n", "\n")
         sub.text = ss.strip()
     subs.save(path, encoding='utf-8')
