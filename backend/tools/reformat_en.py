@@ -42,7 +42,7 @@ def reformat(path):
 
     def typoFix(text):
         for k, v in typo_map.items():
-            text = text.replace(k, v)
+            text = re.sub(re.compile(k, re.I), v, text)
         return text
 
     # 逆向过滤seg
