@@ -23,7 +23,7 @@ def reformat(path):
                   "needn't", "oughtn't", "shan't", "shouldn't", "usedn't", "won't", "wouldn't", "that's", "what's", "it'll"]
     verb_form_map = {}
 
-    with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'configs', 'typoMap.json'), 'r') as load_f:
+    with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'configs', 'typoMap.json'), 'r', encoding='utf-8') as load_f:
         typo_map = json.load(load_f)
 
     for verb in verb_forms:
