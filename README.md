@@ -129,7 +129,7 @@ QQ交流群：210150985
     conda activate videoEnv
     ```
   
-  - 安装CUDA 11.2和cuDNN 8.1.1
+  - 安装CUDA和cuDNN
 
     <details>
         <summary>Linux用户</summary>
