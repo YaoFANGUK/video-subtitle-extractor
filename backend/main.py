@@ -810,22 +810,29 @@ class SubtitleExtractor:
         # 设置当前帧号
         cap = cv2.VideoCapture(self.video_path)
         cap.set(cv2.CAP_PROP_POS_FRAMES, frame_no)
-        cap.read()
+        ret, _ = cap.read()
         # 获取当前帧号对应的时间戳
-        milliseconds = cap.get(cv2.CAP_PROP_POS_MSEC)
-        seconds = milliseconds // 1000
-        milliseconds = int(milliseconds % 1000)
-        minutes = 0
-        hours = 0
-        if seconds >= 60:
-            minutes = int(seconds // 60)
-            seconds = int(seconds % 60)
-        if minutes >= 60:
-            hours = int(minutes // 60)
-            minutes = int(minutes % 60)
-        smpte_token = ','
-        cap.release()
-        return "%02d:%02d:%02d%s%02d" % (hours, minutes, seconds, smpte_token, milliseconds)
+        if ret:
+            milliseconds = cap.get(cv2.CAP_PROP_POS_MSEC)
+            seconds = milliseconds // 1000
+            milliseconds = int(milliseconds % 1000)
+            minutes = 0
+            hours = 0
+            if seconds >= 60:
+                minutes = int(seconds // 60)
+                seconds = int(seconds % 60)
+            if minutes >= 60:
+                hours = int(minutes // 60)
+                minutes = int(minutes % 60)
+            smpte_token = ','
+            cap.release()
+            return "%02d:%02d:%02d%s%02d" % (hours, minutes, seconds, smpte_token, milliseconds)
+        else:
+            return '{0:02d}:{1:02d}:{2:02d},{3:02d}'.format(int(frame_no / (3600 * self.fps)),
+                                                            int(frame_no / (60 * self.fps) % 60),
+                                                            int(frame_no / self.fps % 60),
+                                                            int(frame_no % self.fps))
+
 
     def _remove_duplicate_subtitle(self):
         """
