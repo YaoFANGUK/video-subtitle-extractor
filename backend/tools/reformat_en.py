@@ -37,7 +37,7 @@ def reformat(path, bd_video_path=None):
         "扫码下载  ": "",
     }
 
-    with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'configs', 'typoMap.json'), 'r') as load_f:
+    with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'configs', 'typoMap.json'), 'r', encoding='utf-8') as load_f:
         typo_map = json.load(load_f)
 
     for verb in verb_forms:
