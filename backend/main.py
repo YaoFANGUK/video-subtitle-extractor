@@ -18,6 +18,7 @@ from Levenshtein import ratio
 from PIL import Image
 from numpy import average, dot, linalg
 import numpy as np
+from tqdm import tqdm
 import sys
 sys.path.insert(0, os.path.dirname(__file__))
 from pathlib import Path
@@ -30,110 +31,12 @@ from tools.translation import chs_to_cht
 from sushi.sushi_main import subtitle_sync
 from tools.infer import utility
 from tools.infer.predict_det import TextDetector
-from tools.infer.predict_system import TextSystem
+from tools.ocr import OcrRecogniser, get_coordinates
+from tools import subtitle_ocr
 import threading
 import platform
-
-
-# 加载文本检测+识别模型
-class OcrRecogniser:
-    def __init__(self):
-        # 获取参数对象
-        self.args = utility.parse_args()
-        self.recogniser = self.init_model()
-
-    @staticmethod
-    def y_round(y):
-        y_min = y + 10 - y % 10
-        y_max = y - y % 10
-        if abs(y - y_min) < abs(y - y_max):
-            return y_min
-        else:
-            return y_max
-
-    def predict(self, image):
-        detection_box, recognise_result = self.recogniser(image)
-        if len(detection_box) > 0:
-            coordinate_list = list()
-            if isinstance(detection_box, list):
-                for i in detection_box:
-                    i = list(i)
-                    (x1, y1) = int(i[0][0]), int(i[0][1])
-                    (x2, y2) = int(i[1][0]), int(i[1][1])
-                    (x3, y3) = int(i[2][0]), int(i[2][1])
-                    (x4, y4) = int(i[3][0]), int(i[3][1])
-                    xmin = max(x1, x4)
-                    xmax = min(x2, x3)
-                    ymin = max(y1, y2)
-                    ymax = min(y3, y4)
-                    coordinate_list.append([xmin, xmax, ymin, ymax])
-
-            # 计算有多少行字幕，将每行字幕最小的ymin值放入lines
-            lines = []
-            for i in coordinate_list:
-                if len(lines) < 1:
-                    lines.append(self.y_round(i[2]))
-                else:
-                    if self.y_round(i[2]) not in lines \
-                            and self.y_round(i[2]) + 10 not in lines \
-                            and self.y_round(i[2]) - 10 not in lines:
-                        lines.append(self.y_round(i[2]))
-            lines = sorted(lines)
-
-            for i in coordinate_list:
-                for j in lines:
-                    if abs(j - self.y_round(i[2])) <= 10:
-                        i[2] = j
-
-            to_rank_res = list(zip(coordinate_list, recognise_result))
-            ranked_res = []
-            for line in lines:
-                tmp_list = []
-                for i in to_rank_res:
-                    if i[0][2] == line:
-                        tmp_list.append(i)
-                # 先根据纵坐标排序
-                for k in range(1, len(tmp_list)):
-                    for j in range(0, len(tmp_list) - k):
-                        if tmp_list[j][0][2] > tmp_list[j + 1][0][2]:
-                            print(tmp_list[j][0][2])
-                            tmp_list[j], tmp_list[j + 1] = tmp_list[j + 1], tmp_list[j]
-                # 再根据横坐标排列
-                for l in range(1, len(tmp_list)):
-                    for j in range(0, len(tmp_list) - l):
-                        if tmp_list[j][0][0] > tmp_list[j + 1][0][0]:
-                            tmp_list[j], tmp_list[j + 1] = tmp_list[j + 1], tmp_list[j]
-                for m in tmp_list:
-                    ranked_res.append(m)
-            dt_box = []
-            for i in [j[0] for j in ranked_res]:
-                dt_box.append([(i[0], i[2]), (i[1], i[2]), (i[1], i[3]), (i[0], i[3])])
-            res = [i[1] for i in ranked_res]
-            return dt_box, res
-        else:
-            return detection_box, recognise_result
-
-    def init_model(self):
-        self.args.use_gpu = config.USE_GPU
-        if config.USE_GPU:
-            # 设置文本检测模型路径
-            self.args.det_model_dir = config.DET_MODEL_PATH
-            # 设置文本识别模型路径
-            self.args.rec_model_dir = config.REC_MODEL_PATH
-        else:
-            # 加载快速模型
-            self.args.det_model_dir = config.DET_MODEL_FAST_PATH
-            # 加载快速模型
-            self.args.rec_model_dir = config.REC_MODEL_FAST_PATH
-        # 设置字典路径
-        self.args.rec_char_dict_path = config.DICT_PATH
-        # 设置识别文本的类型
-        if config.REC_CHAR_TYPE == 'en':
-            self.args.rec_char_type = 'ch'
-        else:
-            self.args.rec_char_type = config.REC_CHAR_TYPE
-        return TextSystem(self.args)
-
+import multiprocessing
+import time
 
 class SubtitleDetect:
     def __init__(self):
@@ -188,7 +91,7 @@ class SubtitleExtractor:
         # 提取的原始字幕文本存储路径
         self.raw_subtitle_path = os.path.join(self.subtitle_output_dir, 'raw.txt')
         # 自定义ocr对象
-        self.ocr = OcrRecogniser()
+        self.ocr = None
         self.bd_video_path = bd_video_path
         # 处理进度
         self.progress = 0
@@ -199,9 +102,13 @@ class SubtitleExtractor:
         """
         运行整个提取视频的步骤
         """
+        start_time = time.time()
         self.lock.acquire()
         print(f"{interface_config['Main']['FrameCount']}：{self.frame_count}，{interface_config['Main']['FrameRate']}：{self.fps}")
         print(interface_config['Main']['StartProcessFrame'])
+
+        subtitle_ocr_thread = subtitle_ocr.async_start(self.video_path, self.raw_subtitle_path, self.sub_area,
+                                                       config.REC_CHAR_TYPE, config.DROP_SCORE)
         if self.sub_area is not None:
             # 如果开启精准模式
             if config.ACCURATE_MODE_ON:
@@ -219,12 +126,15 @@ class SubtitleExtractor:
                     self.extract_frame_by_fps()
         else:
             self.extract_frame_by_fps()
+
+        duration_ms = (self.frame_count / self.fps) * 1000
+        subtitle_ocr.queue.put((-1, duration_ms, None, -1, None, None))
+        subtitle_ocr_thread.join()
         print(interface_config['Main']['FinishProcessFrame'])
 
         print(interface_config['Main']['StartFindSub'])
         # 重置进度条
         self.progress = 0
-        self.extract_subtitles()
         print(interface_config['Main']['FinishFindSub'])
 
         if self.sub_area is None:
@@ -253,7 +163,7 @@ class SubtitleExtractor:
             else:
                 self.generate_subtitle_file()
         self.subtitle_final_process()
-        print(interface_config['Main']['FinishGenerateSub'])
+        print(interface_config['Main']['FinishGenerateSub'], f"{round(time.time() - start_time, 2)}s")
         self.progress = 100
         self.isFinished = True
         # 删除缓存文件
@@ -302,58 +212,6 @@ class SubtitleExtractor:
                         zf.write(file, Path(file).name)
 
 
-    def extract_frame(self):
-        """
-        根据视频的分辨率，将高分辨的视频帧缩放到1280*720p
-        根据字幕区域位置，将该图像区域截取出来
-        """
-        # 删除缓存
-        self.__delete_frame_cache()
-
-        # 当前视频帧的帧号
-        frame_no = 0
-
-        while self.video_cap.isOpened():
-            ret, frame = self.video_cap.read()
-            # 如果读取视频帧失败（视频读到最后一帧）
-            if not ret:
-                break
-            # 读取视频帧成功
-            else:
-                frame_no += 1
-                frame = self._frame_preprocess(frame)
-
-                # 帧名往前补零，后续用于排序与时间戳转换，补足8位
-                # 一部10h电影，fps120帧最多也才1*60*60*120=432000 6位，所以8位足够
-                filename = os.path.join(self.frame_output_dir, str(frame_no).zfill(8) + '.jpg')
-                # 保存视频帧
-                cv2.imwrite(filename, frame)
-
-                # 将当前帧与接下来的帧进行比较，计算余弦相似度
-                compare_times = 0
-                while self.video_cap.isOpened():
-                    ret, frame_next = self.video_cap.read()
-                    if ret:
-                        frame_no += 1
-                        # 更新进度条
-                        self.progress = (frame_no / self.frame_count) * 100
-                        frame_next = self._frame_preprocess(frame_next)
-                        cosine_distance = self._compute_image_similarity(Image.fromarray(frame),
-                                                                         Image.fromarray(frame_next))
-                        compare_times += 1
-                        if compare_times == config.FRAME_COMPARE_TIMES:
-                            break
-                        if cosine_distance > config.COSINE_SIMILARITY_THRESHOLD:
-                            # 如果下一帧与当前帧的相似度大于设定阈值，则略过该帧
-                            continue
-                        # 如果相似度小于设定阈值，停止该while循环
-                        else:
-                            break
-                    else:
-                        break
-
-        self.video_cap.release()
-
     def extract_frame_by_fps(self):
         """
         根据帧率，定时提取视频帧，容易丢字幕，但速度快
@@ -364,7 +222,9 @@ class SubtitleExtractor:
         # 当前视频帧的帧号
         frame_no = 0
 
+        duration_ms = (self.frame_count / self.fps) * 1000
         while self.video_cap.isOpened():
+            total_ms = self.video_cap.get(cv2.CAP_PROP_POS_MSEC)
             ret, frame = self.video_cap.read()
             # 如果读取视频帧失败（视频读到最后一帧）
             if not ret:
@@ -373,13 +233,7 @@ class SubtitleExtractor:
             else:
                 frame_no += 1
                 frame = self._frame_preprocess(frame)
-
-                # 帧名往前补零，后续用于排序与时间戳转换，补足8位
-                # 一部10h电影，fps120帧最多也才1*60*60*120=432000 6位，所以8位足够
-                filename = os.path.join(self.frame_output_dir, str(frame_no).zfill(8) + '.jpg')
-                # 保存视频帧
-                cv2.imwrite(filename, frame)
-
+                subtitle_ocr.queue.put((total_ms, duration_ms, frame, frame_no, None, None))
                 # 跳过剩下的帧
                 for i in range(int(self.fps // config.EXTRACT_FREQUENCY) - 1):
                     ret, _ = self.video_cap.read()
@@ -399,40 +253,72 @@ class SubtitleExtractor:
 
         # 当前视频帧的帧号
         frame_no = 0
-
+        frame_lru_list = []
+        frame_lru_list_max_size = 2
+        ocr_args_list = []
+        duration_ms = (self.frame_count / self.fps) * 1000
+        compare_ocr_result_cache = {}
+        tbar = tqdm(total=int(self.frame_count), unit='f', position=0, file=sys.__stdout__)
         while self.video_cap.isOpened():
+            total_ms = self.video_cap.get(cv2.CAP_PROP_POS_MSEC)
             ret, frame = self.video_cap.read()
             # 如果读取视频帧失败（视频读到最后一帧）
             if not ret:
                 break
             # 读取视频帧成功
+            frame_no += 1
+            dt_boxes, elapse = self.sub_detector.detect_subtitle(frame)
+            has_subtitle = False
+            if self.sub_area is not None:
+                s_ymin, s_ymax, s_xmin, s_xmax = self.sub_area
+                for box in dt_boxes:
+                    xmin, xmax, ymin, ymax = box[0], box[1], box[2], box[3]
+                    if (s_xmin <= xmin).any() and (xmax <= s_xmax).any() \
+                            and (s_ymin <= ymin).any() and (ymax <= s_ymax).any():
+                        has_subtitle = True
+                        break
             else:
-                frame_no += 1
-                if self.sub_area is not None:
-                    ymin, ymax, xmin, xmax = self.sub_area
-                    dt_boxes, elapse = self.sub_detector.detect_subtitle(frame[ymin:ymax, xmin:xmax])
-                    if len(dt_boxes) > 0:
-                        # 帧名往前补零，后续用于排序与时间戳转换，补足8位
-                        # 一部10h电影，fps120帧最多也才1*60*60*120=432000 6位，所以8位足够
-                        filename = os.path.join(self.frame_output_dir, str(frame_no).zfill(8) + '.jpg')
-                        # 查询frame目录下最后两张图片
-                        frame_list = sorted([i for i in os.listdir(self.frame_output_dir) if i.endswith('.jpg')])
-                        # 如果frame列表大于等于2则取出最后两张图片
-                        if len(frame_list) < 2:
-                            # 保存视频帧
-                            cv2.imwrite(filename, frame)
-                        else:
-                            frame_last = cv2.imread(os.path.join(self.frame_output_dir, frame_list[-1]))
-                            frame_last_2nd = cv2.imread(os.path.join(self.frame_output_dir, frame_list[-2]))
-                            if self._compare_ocr_result(frame_last, frame_last_2nd):
-                                if self._compare_ocr_result(frame_last, frame):
-                                    # 如果当最后两帧内容一样，且最后一帧与当前帧一样
-                                    # 删除最后一张，将当前帧设置为最后一帧
-                                    os.remove(os.path.join(self.frame_output_dir, frame_list[-1]))
-                            cv2.imwrite(filename, frame)
-                        self.progress = (frame_no / self.frame_count) * 100
-                        print(f"{interface_config['Main']['SubFrameNo']}：{frame_no}, {interface_config['Main']['Elapse']}: {elapse}")
+                has_subtitle = len(dt_boxes) > 0
+            if has_subtitle:
+                # 如果frame列表大于等于2则取出最后两张图片
+                if len(frame_lru_list) >= 2:
+                    frame_last, frame_last_no = frame_lru_list[-1]
+                    frame_last_2nd, frame_last_2nd_no = frame_lru_list[-2]
+                    if self._compare_ocr_result(compare_ocr_result_cache,
+                                                frame_last, frame_last_no,
+                                                frame_last_2nd, frame_last_2nd_no):
+                        if self._compare_ocr_result(compare_ocr_result_cache,
+                                                    frame_last, frame_last_no,
+                                                    frame, frame_no):
+                            # 如果当最后两帧内容一样，且最后一帧与当前帧一样
+                            # 删除最后一张，将当前帧设置为最后一帧
+                            ocr_args_list.pop(-1)
+                            frame_lru_list.pop(-1)
+                frame_lru_list.append((frame, frame_no))
+                ocr_args_list.append((total_ms, duration_ms, frame, frame_no))
 
+                while len(frame_lru_list) > frame_lru_list_max_size:
+                    frame_lru_list.pop(0)
+                while len(ocr_args_list) > 1:
+                    ocr_info_total_ms, ocr_info_duration_ms, ocr_info_frame, ocr_info_frame_no = ocr_args_list.pop(0)
+                    if frame_no in compare_ocr_result_cache:
+                        predict_result = compare_ocr_result_cache[frame_no]
+                        dt_box, rec_res = predict_result['dt_box'], predict_result['rec_res']
+                    else:
+                        dt_box, rec_res = None, None
+                    subtitle_ocr.queue.put((ocr_info_total_ms, ocr_info_duration_ms,
+                                            ocr_info_frame, ocr_info_frame_no, dt_box, rec_res))
+                self.progress = (frame_no / self.frame_count) * 100
+            tbar.update(1)
+        while len(ocr_args_list) > 0:
+            ocr_info_total_ms, ocr_info_duration_ms, ocr_info_frame, ocr_info_frame_no = ocr_args_list.pop(0)
+            if frame_no in compare_ocr_result_cache:
+                predict_result = compare_ocr_result_cache[frame_no]
+                dt_box, rec_res = predict_result['dt_box'], predict_result['rec_res']
+            else:
+                dt_box, rec_res = None, None
+            subtitle_ocr.queue.put((ocr_info_total_ms, ocr_info_duration_ms,
+                                    ocr_info_frame, ocr_info_frame_no, dt_box, rec_res))
         self.video_cap.release()
 
     def extract_frame_by_vsf(self):
@@ -441,22 +327,30 @@ class SubtitleExtractor:
        """
         def count_process():
             duration_ms = (self.frame_count / self.fps) * 1000
+            last_total_ms = 0
+            processed_image = set()
+            rgb_images_path = os.path.join(self.temp_output_dir, 'RGBImages')
             while True:
-                rgb_images_path = os.path.join(self.temp_output_dir, 'RGBImages')
-                if os.path.exists(rgb_images_path):
+                if not os.path.exists(rgb_images_path):
+                    continue
+                try:
                     rgb_images = sorted(os.listdir(rgb_images_path))
-                    if len(os.listdir(self.frame_output_dir)) > 0:
-                        break
-                    if len(rgb_images) > 0:
-                        rgb_images_last = rgb_images[-1]
-                        h, m, s, ms = rgb_images_last.split('__')[0].split('_')
+                    for rgb_image in rgb_images:
+                        if rgb_image in processed_image:
+                            continue
+                        processed_image.add(rgb_image)
+                        h, m, s, ms = rgb_image.split('__')[0].split('_')
                         total_ms = int(ms) + int(s) * 1000 + int(m) * 60 * 1000 + int(h) * 60 * 60 * 1000
+                        if total_ms > last_total_ms:
+                            subtitle_ocr.queue.put((total_ms, duration_ms, None, -1, None, None))
+                        last_total_ms = total_ms
                         if total_ms / duration_ms > 1:
                             self.progress = 100
+                            break
                         else:
                             self.progress = (total_ms / duration_ms) * 100
-                else:
-                    continue
+                except FileNotFoundError:
+                    pass
 
         # 删除缓存
         self.__delete_frame_cache()
@@ -470,106 +364,16 @@ class SubtitleExtractor:
         left_end = self.sub_area[2] / self.frame_width
         # re：图像右半部分所占百分比，取值【0-1】
         right_end = self.sub_area[3] / self.frame_width
+        cpu_count = max(int(multiprocessing.cpu_count() * 2 / 3), 1)
+        if cpu_count < 4:
+            cpu_count = max(multiprocessing.cpu_count() - 1, 1)
         # 定义执行命令
         cmd = f"{path_vsf} -c -r -i \"{self.video_path}\" -o \"{self.temp_output_dir}\" -ces \"{self.vsf_subtitle}\" "
-        cmd += f"-te {top_end} -be {bottom_end} -le {left_end} -re {right_end}"
+        cmd += f"-te {top_end} -be {bottom_end} -le {left_end} -re {right_end} -nthr {cpu_count} -nocrthr {cpu_count}"
         # 计算进度
         Thread(target=count_process, daemon=True).start()
         import subprocess
         subprocess.run(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        # 提取字幕帧
-        cap = cv2.VideoCapture(self.video_path)
-        for i, frame_name in enumerate(os.listdir(os.path.join(self.temp_output_dir, 'RGBImages'))):
-            timestamp = frame_name.split('__')[0]
-            h, m, s, ms = timestamp.split('_')
-            total_ms = int(ms) + int(s) * 1000 + int(m) * 60 * 1000 + int(h) * 60 * 60 * 1000
-            cap.set(cv2.CAP_PROP_POS_MSEC, total_ms)
-            ret, frame = cap.read()
-            if ret:
-                img_name = os.path.join(self.frame_output_dir, f'{str(i + 1).zfill(8)}.jpg')
-                cv2.imwrite(img_name, frame)
-        # 释放占用资源
-        cap.release()
-
-    def extract_subtitle_frame(self):
-        """
-        提取包含字幕的视频帧
-        """
-        # 删除缓存
-        self.__delete_frame_cache()
-        # 获取字幕帧列表
-        subtitle_frame_list = self._analyse_subtitle_frame()
-        if subtitle_frame_list is None:
-            print(interface_config['Main']['ChooseSubArea'])
-            return
-        cap = cv2.VideoCapture(self.video_path)
-        idx = 0
-        index = 0
-
-        while cap.isOpened():
-            ret, frame = cap.read()
-            if not ret:
-                break
-            if idx in subtitle_frame_list and idx != 0:
-                filename = os.path.join(self.frame_output_dir, str(idx).zfill(8) + '.jpg')
-                frame = self._frame_preprocess(frame)
-                cv2.imwrite(filename, frame)
-                subtitle_frame_list.remove(idx)
-                index += 1
-            idx = idx + 1
-        cap.release()
-
-    def extract_subtitles(self):
-        """
-        提取视频帧中的字幕信息，生成一个txt文件
-        """
-        # 初始化文本识别对象
-        text_recogniser = OcrRecogniser()
-        # 视频帧列表
-        frame_list = [i for i in sorted(os.listdir(self.frame_output_dir)) if i.endswith('.jpg')]
-        # 删除缓存
-        if os.path.exists(self.raw_subtitle_path):
-            os.remove(self.raw_subtitle_path)
-        # 新建文件
-        f = open(self.raw_subtitle_path, mode='w+', encoding='utf-8')
-
-        for i, frame in enumerate(frame_list):
-            # 读取视频帧
-            img = cv2.imread(os.path.join(self.frame_output_dir, frame))
-            # 获取检测结果
-            dt_box, rec_res = text_recogniser.predict(img)
-            # 获取文本坐标
-            coordinates = self.__get_coordinates(dt_box)
-            # 将结果写入txt文本中
-            if config.REC_CHAR_TYPE == 'en':
-                # 如果识别语言为英文，则去除中文
-                text_res = [(re.sub('[\u4e00-\u9fa5]', '', res[0]), res[1]) for res in rec_res]
-            else:
-                text_res = [(res[0], res[1]) for res in rec_res]
-            # 进度条
-            self.progress = i / len(frame_list) * 100
-            for content, coordinate in zip(text_res, coordinates):
-                if self.sub_area is not None:
-                    s_ymin = self.sub_area[0]
-                    s_ymax = self.sub_area[1]
-                    s_xmin = self.sub_area[2]
-                    s_xmax = self.sub_area[3]
-                    xmin = coordinate[0]
-                    xmax = coordinate[1]
-                    ymin = coordinate[2]
-                    ymax = coordinate[3]
-                    if s_xmin <= xmin and xmax <= s_xmax and s_ymin <= ymin and ymax <= s_ymax:
-                        print(content[0])
-                        if content[1] > config.DROP_SCORE:
-                            f.write(f'{os.path.splitext(frame)[0]}\t'
-                                    f'{coordinate}\t'
-                                    f'{content[0]}\n')
-                else:
-                    f.write(f'{os.path.splitext(frame)[0]}\t'
-                            f'{coordinate}\t'
-                            f'{content[0]}\n')
-        # 关闭文件
-        f.close()
 
     def filter_watermark(self):
         """
@@ -578,11 +382,20 @@ class SubtitleExtractor:
         # 获取潜在水印区域
         watermark_areas = self._detect_watermark_area()
 
-        # 从frame目录随机读取一张图片，将所水印区域标记出来，用户看图判断是否是水印区域
-        frame_path = os.path.join(self.frame_output_dir,
-                                  random.choice(
-                                      [i for i in sorted(os.listdir(self.frame_output_dir)) if i.endswith('.jpg')]))
-        sample_frame = cv2.imread(frame_path)
+        # 随机选择一帧, 将所水印区域标记出来，用户看图判断是否是水印区域
+        cap = cv2.VideoCapture(self.video_path)
+        ret, sample_frame = False, None
+        for i in range(10):
+            frame_no = random.randint(int(self.frame_count * 0.1), int(self.frame_count * 0.9))
+            cap.set(cv2.CAP_PROP_POS_FRAMES, frame_no)
+            ret, sample_frame = cap.read()
+            if ret:
+                break
+        cap.release()
+
+        if not ret:
+            print("Error in filter_watermark: reading frame from video")
+            return
 
         # 给潜在的水印区域编号
         area_num = ['E', 'D', 'C', 'B', 'A']
@@ -629,11 +442,20 @@ class SubtitleExtractor:
         # 获取潜在字幕区域
         subtitle_area = self._detect_subtitle_area()[0][0]
 
-        # 从frame目录随机读取一张图片，将所水印区域标记出来，用户看图判断是否是水印区域
-        frame_path = os.path.join(self.frame_output_dir,
-                                  random.choice(
-                                      [i for i in sorted(os.listdir(self.frame_output_dir)) if i.endswith('.jpg')]))
-        sample_frame = cv2.imread(frame_path)
+        # 随机选择一帧，将所水印区域标记出来，用户看图判断是否是水印区域
+        cap = cv2.VideoCapture(self.video_path)
+        ret, sample_frame = False, None
+        for i in range(10):
+            frame_no = random.randint(int(self.frame_count * 0.1), int(self.frame_count * 0.9))
+            cap.set(cv2.CAP_PROP_POS_FRAMES, frame_no)
+            ret, sample_frame = cap.read()
+            if ret:
+                break
+        cap.release()
+
+        if not ret:
+            print("Error in filter_scene_text: reading frame from video")
+            return
 
         # 为了防止有双行字幕，根据容忍度，将字幕区域y范围加高
         ymin = abs(subtitle_area[0] - config.SUBTITLE_AREA_DEVIATION_PIXEL)
@@ -1029,7 +851,7 @@ class SubtitleExtractor:
         获取字幕区域内的文本内容
         """
         box, text = ocr_result
-        coordinates = self.__get_coordinates(box)
+        coordinates = get_coordinates(box)
         area_text = []
         for content, coordinate in zip(text, coordinates):
             if self.sub_area is not None:
@@ -1045,38 +867,46 @@ class SubtitleExtractor:
                     area_text.append(content[0])
         return area_text
 
-    def _compare_ocr_result(self, img1, img2):
+    def _compare_ocr_result(self, result_cache, img1, img1_no, img2, img2_no):
         """
         比较两张图片预测出的字幕区域文本是否相同
         """
-        area_text1 = "".join(self.__get_area_text(self.ocr.predict(img1)))
-        area_text2 = "".join(self.__get_area_text(self.ocr.predict(img2)))
+        if self.ocr is None:
+            self.ocr = OcrRecogniser()
+
+        # TODO: 需要大量测试, 调参diff, 实验性, 提速几倍
+        # pip uninstall opencv-python
+        # pip install opencv-contrib-python-headless==4.5.4.60
+        # 不要装4.5.5版本! BUG!
+        # hashFun = cv2.img_hash.AverageHash_create()
+        # hash1 = hashFun.compute(img1)
+        # hash2 = hashFun.compute(img2)
+        # diff = hashFun.compare(hash1, hash2)
+        # if diff <= 5:
+        #     return True
+        if img1_no in result_cache:
+            area_text1 = result_cache[img1_no]['text']
+        else:
+            dt_box, rec_res = self.ocr.predict(img1)
+            area_text1 = "".join(self.__get_area_text((dt_box, rec_res)))
+            result_cache[img1_no] = {'text': area_text1, 'dt_box': dt_box, 'rec_res': rec_res}
+
+        if img2_no in result_cache:
+            area_text2 = result_cache[img2_no]['text']
+        else:
+            dt_box, rec_res = self.ocr.predict(img2)
+            area_text2 = "".join(self.__get_area_text((dt_box, rec_res)))
+            result_cache[img2_no] = {'text': area_text2, 'dt_box': dt_box, 'rec_res': rec_res}
+        delete_no_list = []
+        for no in result_cache:
+            if no < min(img1_no, img2_no) - 10:
+                delete_no_list.append(no)
+        for no in delete_no_list:
+            del result_cache[no]
         if ratio(area_text1, area_text2) > config.THRESHOLD_TEXT_SIMILARITY:
             return True
         else:
             return False
-
-    @staticmethod
-    def __get_coordinates(dt_box):
-        """
-        从返回的检测框中获取坐标
-        :param dt_box 检测框返回结果
-        :return list 坐标点列表
-        """
-        coordinate_list = list()
-        if isinstance(dt_box, list):
-            for i in dt_box:
-                i = list(i)
-                (x1, y1) = int(i[0][0]), int(i[0][1])
-                (x2, y2) = int(i[1][0]), int(i[1][1])
-                (x3, y3) = int(i[2][0]), int(i[2][1])
-                (x4, y4) = int(i[3][0]), int(i[3][1])
-                xmin = max(x1, x4)
-                xmax = min(x2, x3)
-                ymin = max(y1, y2)
-                ymax = min(y3, y4)
-                coordinate_list.append((xmin, xmax, ymin, ymax))
-        return coordinate_list
 
     @staticmethod
     def __is_coordinate_similar(coordinate1, coordinate2):
