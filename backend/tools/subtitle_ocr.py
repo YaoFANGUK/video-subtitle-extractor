@@ -6,7 +6,6 @@ from tqdm import tqdm
 
 from tools.ocr import OcrRecogniser, get_coordinates
 
-queue = Queue()
 
 def extract_subtitles(data, text_recogniser, img, raw_subtitle_file, sub_area,
                       rec_char_type, drop_score, dt_box, rec_res):
@@ -84,9 +83,10 @@ def handle(queue, video_path, raw_subtitle_path, sub_area, rec_char_type, drop_s
 
 
 def async_start(video_path, raw_subtitle_path, sub_area, rec_char_type, drop_score):
+    queue = Queue()
     t = Process(target=handle, args=(queue, video_path, raw_subtitle_path, sub_area, rec_char_type, drop_score,))
     t.start()
-    return t
+    return t, queue
 
 
 if __name__ == "__main__":

@@ -259,9 +259,11 @@ class SubtitleExtractorGUI:
                 print(f"{self.interface_config['SubtitleExtractorGUI']['SubtitleArea']}：({self.ymin},{self.ymax},{self.xmin},{self.xmax})")
                 subtitle_area = (self.ymin, self.ymax, self.xmin, self.xmax)
                 from backend.main import SubtitleExtractor
-                for video_path in self.video_paths:
-                    self.se = SubtitleExtractor(video_path, subtitle_area, self.bd_video_path)
-                    Thread(target=self.se.run, daemon=True).start()
+                def task():
+                    for video_path in self.video_paths:
+                        self.se = SubtitleExtractor(video_path, subtitle_area, self.bd_video_path)
+                        self.se.run()
+                Thread(target=task, daemon=True).start()
 
     def _slide_event_handler(self, event, values):
         """
