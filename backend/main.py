@@ -28,6 +28,7 @@ from tools.infer import utility
 from tools.infer.predict_det import TextDetector
 from tools.ocr import OcrRecogniser, get_coordinates
 from tools import subtitle_ocr
+from tools.constant import BackgroundColor
 import threading
 import platform
 import multiprocessing
@@ -126,7 +127,7 @@ class SubtitleExtractor:
             self.extract_frame_by_fps()
 
         duration_ms = (self.frame_count / self.fps) * 1000
-        self.subtitle_ocr_queue.put((-1, duration_ms, None, -1, None, None))
+        self.subtitle_ocr_queue.put((-1, duration_ms, -1, None, None, None))
         subtitle_ocr_thread.join()
         print(interface_config['Main']['FinishProcessFrame'])
 
@@ -190,8 +191,7 @@ class SubtitleExtractor:
             # 读取视频帧成功
             else:
                 frame_no += 1
-                frame = self._frame_preprocess(frame)
-                self.subtitle_ocr_queue.put((total_ms, duration_ms, frame, frame_no, None, None))
+                self.subtitle_ocr_queue.put((total_ms, duration_ms, frame_no, None, None, self.subtitle_area))
                 # 跳过剩下的帧
                 for i in range(int(self.fps // config.EXTRACT_FREQUENCY) - 1):
                     ret, _ = self.video_cap.read()
@@ -253,30 +253,30 @@ class SubtitleExtractor:
                             ocr_args_list.pop(-1)
                             frame_lru_list.pop(-1)
                 frame_lru_list.append((frame, frame_no))
-                ocr_args_list.append((total_ms, duration_ms, frame, frame_no))
+                ocr_args_list.append((total_ms, duration_ms, frame_no))
 
                 while len(frame_lru_list) > frame_lru_list_max_size:
                     frame_lru_list.pop(0)
                 while len(ocr_args_list) > 1:
-                    ocr_info_total_ms, ocr_info_duration_ms, ocr_info_frame, ocr_info_frame_no = ocr_args_list.pop(0)
+                    ocr_info_total_ms, ocr_info_duration_ms, ocr_info_frame_no = ocr_args_list.pop(0)
                     if frame_no in compare_ocr_result_cache:
                         predict_result = compare_ocr_result_cache[frame_no]
                         dt_box, rec_res = predict_result['dt_box'], predict_result['rec_res']
                     else:
                         dt_box, rec_res = None, None
-                    self.subtitle_ocr_queue.put((ocr_info_total_ms, ocr_info_duration_ms,
-                                            ocr_info_frame, ocr_info_frame_no, dt_box, rec_res))
+                    self.subtitle_ocr_queue.put((ocr_info_total_ms, ocr_info_duration_ms, ocr_info_frame_no,
+                                                 dt_box, rec_res, self.subtitle_area))
                 self.progress = (frame_no / self.frame_count) * 100
             tbar.update(1)
         while len(ocr_args_list) > 0:
-            ocr_info_total_ms, ocr_info_duration_ms, ocr_info_frame, ocr_info_frame_no = ocr_args_list.pop(0)
+            ocr_info_total_ms, ocr_info_duration_ms, ocr_info_frame_no = ocr_args_list.pop(0)
             if frame_no in compare_ocr_result_cache:
                 predict_result = compare_ocr_result_cache[frame_no]
                 dt_box, rec_res = predict_result['dt_box'], predict_result['rec_res']
             else:
                 dt_box, rec_res = None, None
-            self.subtitle_ocr_queue.put((ocr_info_total_ms, ocr_info_duration_ms,
-                                    ocr_info_frame, ocr_info_frame_no, dt_box, rec_res))
+            self.subtitle_ocr_queue.put((ocr_info_total_ms, ocr_info_duration_ms, ocr_info_frame_no,
+                                         dt_box, rec_res, self.subtitle_area))
         self.video_cap.release()
 
     def extract_frame_by_vsf(self):
@@ -300,7 +300,7 @@ class SubtitleExtractor:
                         h, m, s, ms = rgb_image.split('__')[0].split('_')
                         total_ms = int(ms) + int(s) * 1000 + int(m) * 60 * 1000 + int(h) * 60 * 60 * 1000
                         if total_ms > last_total_ms:
-                            self.subtitle_ocr_queue.put((total_ms, duration_ms, None, -1, None, None))
+                            self.subtitle_ocr_queue.put((total_ms, duration_ms, -1, None, None, self.subtitle_area))
                         last_total_ms = total_ms
                         if total_ms / duration_ms >= 1:
                             self.progress = 100
@@ -521,7 +521,7 @@ class SubtitleExtractor:
                 # 截取字幕部分
                 frame = frame[s_ymin:s_ymax, s_xmin:s_xmax]
             h, w = frame.shape[0:2]
-            if config.BG_MOD == config.BackgroundColor.DARK:  # 深色背景
+            if config.BG_MOD == BackgroundColor.DARK:  # 深色背景
                 minuend = np.full(h * w, config.BG_VALUE_DARK)  # 被减矩阵
             else:
                 minuend = np.full(h * w, config.BG_VALUE_OTHER)  # 被减矩阵
@@ -609,26 +609,6 @@ class SubtitleExtractor:
             line = f.readline()
         f.close()
         return Counter(y_coordinates_list).most_common(1)
-
-    def _frame_preprocess(self, frame):
-        """
-        将视频帧进行裁剪
-        """
-        # 对于分辨率大于1920*1080的视频，将其视频帧进行等比缩放至1280*720进行识别
-        # paddlepaddle会将图像压缩为640*640
-        # if self.frame_width > 1280:
-        #     scale_rate = round(float(1280 / self.frame_width), 2)
-        #     frames = cv2.resize(frames, None, fx=scale_rate, fy=scale_rate, interpolation=cv2.INTER_AREA)
-        cropped = int(frame.shape[0] // 2)
-        # 如果字幕出现的区域在下部分
-        if self.subtitle_area == config.SubtitleArea.LOWER_PART:
-            # 将视频帧切割为下半部分
-            frame = frame[cropped:]
-        # 如果字幕出现的区域在上半部分
-        elif self.subtitle_area == config.SubtitleArea.UPPER_PART:
-            # 将视频帧切割为下半部分
-            frame = frame[:cropped]
-        return frame
 
     def _frame_to_timecode(self, frame_no):
         """
