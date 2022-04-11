@@ -15,6 +15,7 @@ import configparser
 import PySimpleGUI as sg
 import cv2
 from threading import Thread
+import multiprocessing
 
 
 class SubtitleExtractorGUI:
@@ -469,6 +470,7 @@ class LanguageModeGUI:
 
 
 if __name__ == '__main__':
+    multiprocessing.set_start_method("spawn")
     # 运行图形化界面
     subtitleExtractorGUI = SubtitleExtractorGUI()
     import sys
