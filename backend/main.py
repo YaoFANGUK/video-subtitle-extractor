@@ -97,6 +97,7 @@ class SubtitleExtractor:
         self.progress = 0
         # 是否完成
         self.isFinished = False
+        self.subtitle_ocr_queue = None
 
     def run(self):
         """
@@ -107,7 +108,7 @@ class SubtitleExtractor:
         print(f"{interface_config['Main']['FrameCount']}：{self.frame_count}，{interface_config['Main']['FrameRate']}：{self.fps}")
         print(interface_config['Main']['StartProcessFrame'])
 
-        subtitle_ocr_thread = subtitle_ocr.async_start(self.video_path, self.raw_subtitle_path, self.sub_area,
+        subtitle_ocr_thread, self.subtitle_ocr_queue = subtitle_ocr.async_start(self.video_path, self.raw_subtitle_path, self.sub_area,
                                                        config.REC_CHAR_TYPE, config.DROP_SCORE)
         if self.sub_area is not None:
             # 如果开启精准模式
@@ -128,7 +129,7 @@ class SubtitleExtractor:
             self.extract_frame_by_fps()
 
         duration_ms = (self.frame_count / self.fps) * 1000
-        subtitle_ocr.queue.put((-1, duration_ms, None, -1, None, None))
+        self.subtitle_ocr_queue.put((-1, duration_ms, None, -1, None, None))
         subtitle_ocr_thread.join()
         print(interface_config['Main']['FinishProcessFrame'])
 
@@ -233,7 +234,7 @@ class SubtitleExtractor:
             else:
                 frame_no += 1
                 frame = self._frame_preprocess(frame)
-                subtitle_ocr.queue.put((total_ms, duration_ms, frame, frame_no, None, None))
+                self.subtitle_ocr_queue.put((total_ms, duration_ms, frame, frame_no, None, None))
                 # 跳过剩下的帧
                 for i in range(int(self.fps // config.EXTRACT_FREQUENCY) - 1):
                     ret, _ = self.video_cap.read()
@@ -306,7 +307,7 @@ class SubtitleExtractor:
                         dt_box, rec_res = predict_result['dt_box'], predict_result['rec_res']
                     else:
                         dt_box, rec_res = None, None
-                    subtitle_ocr.queue.put((ocr_info_total_ms, ocr_info_duration_ms,
+                    self.subtitle_ocr_queue.put((ocr_info_total_ms, ocr_info_duration_ms,
                                             ocr_info_frame, ocr_info_frame_no, dt_box, rec_res))
                 self.progress = (frame_no / self.frame_count) * 100
             tbar.update(1)
@@ -317,7 +318,7 @@ class SubtitleExtractor:
                 dt_box, rec_res = predict_result['dt_box'], predict_result['rec_res']
             else:
                 dt_box, rec_res = None, None
-            subtitle_ocr.queue.put((ocr_info_total_ms, ocr_info_duration_ms,
+            self.subtitle_ocr_queue.put((ocr_info_total_ms, ocr_info_duration_ms,
                                     ocr_info_frame, ocr_info_frame_no, dt_box, rec_res))
         self.video_cap.release()
 
@@ -342,7 +343,7 @@ class SubtitleExtractor:
                         h, m, s, ms = rgb_image.split('__')[0].split('_')
                         total_ms = int(ms) + int(s) * 1000 + int(m) * 60 * 1000 + int(h) * 60 * 60 * 1000
                         if total_ms > last_total_ms:
-                            subtitle_ocr.queue.put((total_ms, duration_ms, None, -1, None, None))
+                            self.subtitle_ocr_queue.put((total_ms, duration_ms, None, -1, None, None))
                         last_total_ms = total_ms
                         if total_ms / duration_ms > 1:
                             self.progress = 100
