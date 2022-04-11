@@ -138,8 +138,7 @@ class SubtitleExtractorGUI:
                           key='-FILE-BD_BTN-'),
              ],
             # 输出区域
-            [sg.Output(size=(70, 10), font='Courier 10'),
-             sg.Frame(title=self.interface_config['SubtitleExtractorGUI']['Vertical'], layout=[[
+            [sg.Frame(title=self.interface_config['SubtitleExtractorGUI']['Vertical'], layout=[[
                  sg.Slider(range=(0, 0), orientation='v', size=(10, 20),
                            # disable_number_display=True,
                            enable_events=True,
