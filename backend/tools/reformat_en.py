@@ -23,6 +23,9 @@ NLP_MAP_KEY_SENTENCE = "sentence"
 
 
 def reformat(path, bd_video_path=None):
+    # fix "RecursionError: maximum recursion depth exceeded in comparison" in wordsegment.segment call
+    if sys.getrecursionlimit() < 100000:
+        sys.setrecursionlimit(100000)
     wordsegment.load()
     subs = pysrt.open(path)
     subs.save(f"{path}.bak", encoding='utf-8')
