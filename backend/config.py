@@ -12,9 +12,9 @@ import os
 import re
 import time
 from pathlib import Path
-from enum import Enum
 from fsplit.filesplit import Filesplit
 from paddle import fluid
+from tools.constant import *
 
 fluid.install_check.run_check()
 # 判断代码路径是否合法
@@ -97,25 +97,6 @@ if REC_CHAR_TYPE in ('ch', 'japan', 'korean', 'en', 'EN_symbol', 'french', 'germ
 if 'inference.pdiparams' not in (os.listdir(REC_MODEL_PATH)):
     fs = Filesplit()
     fs.merge(input_dir=REC_MODEL_PATH)
-
-
-# 默认字幕出现的大致区域
-class SubtitleArea(Enum):
-    # 字幕区域出现在下半部分
-    LOWER_PART = 0
-    # 字幕区域出现在上半部分
-    UPPER_PART = 1
-    # 不知道字幕区域可能出现的位置
-    UNKNOWN = 2
-    # 明确知道字幕区域出现的位置
-    CUSTOM = 3
-
-
-class BackgroundColor(Enum):
-    # 字幕背景
-    WHITE = 0
-    DARK = 1
-    UNKNOWN = 2
 # --------------------- 请你不要改 end-----------------------------
 
 
