@@ -14,6 +14,9 @@ import re
 
 
 def reformat(path):
+    # fix "RecursionError: maximum recursion depth exceeded in comparison" in wordsegment.segment call
+    if sys.getrecursionlimit() < 100000:
+        sys.setrecursionlimit(100000)
     wordsegment.load()
     subs = pysrt.open(path)
     verb_forms = ["I'm", "you're", "he's", "she's", "we're", "it's", "isn't", "aren't", "they're", "there's", "wasn't",
