@@ -5,7 +5,7 @@ import cv2
 from tqdm import tqdm
 
 from tools.ocr import OcrRecogniser, get_coordinates
-
+from tools.constant import SubtitleArea
 
 def extract_subtitles(data, text_recogniser, img, raw_subtitle_file, sub_area,
                       rec_char_type, drop_score, dt_box, rec_res):
@@ -56,7 +56,7 @@ def handle(queue, video_path, raw_subtitle_path, sub_area, rec_char_type, drop_s
     with open(raw_subtitle_path, mode='w+', encoding='utf-8') as raw_subtitle_file:
         while True:
             try:
-                total_ms, duration_ms, frame, frame_no, dt_box, rec_res = queue.get(block=True)
+                total_ms, duration_ms, frame_no, dt_box, rec_res, subtitle_area = queue.get(block=True)
                 if total_ms == -1:
                     tbar.update(max(0, int(duration_ms) - tqdm_offset))
                     break
@@ -67,11 +67,10 @@ def handle(queue, video_path, raw_subtitle_path, sub_area, rec_char_type, drop_s
                 tbar.update(total_ms_incr)
                 last_total_ms = total_ms
                 cap.set(cv2.CAP_PROP_POS_MSEC, total_ms)
-                if frame is None:
-                    ret, frame = cap.read()
-                else:
-                    ret = True
+                ret, frame = cap.read()
                 if ret:
+                    if subtitle_area is not None:
+                        frame = frame_preprocess(subtitle_area, frame)
                     if frame_no > 0:
                         data['i'] = frame_no
                     extract_subtitles(data, text_recogniser, frame, raw_subtitle_file, sub_area,
@@ -88,6 +87,27 @@ def async_start(video_path, raw_subtitle_path, sub_area, rec_char_type, drop_sco
     t.start()
     return t, queue
 
+
+def frame_preprocess(subtitle_area, frame):
+    """
+    将视频帧进行裁剪
+    """
+    # 对于分辨率大于1920*1080的视频，将其视频帧进行等比缩放至1280*720进行识别
+    # paddlepaddle会将图像压缩为640*640
+    # if self.frame_width > 1280:
+    #     scale_rate = round(float(1280 / self.frame_width), 2)
+    #     frames = cv2.resize(frames, None, fx=scale_rate, fy=scale_rate, interpolation=cv2.INTER_AREA)
+    # 如果字幕出现的区域在下部分
+    if subtitle_area == SubtitleArea.LOWER_PART:
+        cropped = int(frame.shape[0] // 2)
+        # 将视频帧切割为下半部分
+        frame = frame[cropped:]
+    # 如果字幕出现的区域在上半部分
+    elif subtitle_area == SubtitleArea.UPPER_PART:
+        cropped = int(frame.shape[0] // 2)
+        # 将视频帧切割为下半部分
+        frame = frame[:cropped]
+    return frame
 
 if __name__ == "__main__":
     pass
