@@ -91,7 +91,10 @@ class SubtitleExtractor:
         self.progress = 0
         # 是否完成
         self.isFinished = False
+        # ocr队列
         self.subtitle_ocr_queue = None
+        # vsf运行状态
+        self.vsf_running = False
 
     def run(self):
         """
@@ -285,7 +288,7 @@ class SubtitleExtractor:
             last_total_ms = 0
             processed_image = set()
             rgb_images_path = os.path.join(self.temp_output_dir, 'RGBImages')
-            while True:
+            while self.vsf_running and not self.isFinished:
                 if not os.path.exists(rgb_images_path):
                     continue
                 try:
@@ -299,13 +302,14 @@ class SubtitleExtractor:
                         if total_ms > last_total_ms:
                             self.subtitle_ocr_queue.put((total_ms, duration_ms, None, -1, None, None))
                         last_total_ms = total_ms
-                        if total_ms / duration_ms > 1:
+                        if total_ms / duration_ms >= 1:
                             self.progress = 100
-                            break
+                            return
                         else:
                             self.progress = (total_ms / duration_ms) * 100
+                # 文件被清理了
                 except FileNotFoundError:
-                    pass
+                    return
 
         # 删除缓存
         self.__delete_frame_cache()
@@ -325,10 +329,12 @@ class SubtitleExtractor:
         # 定义执行命令
         cmd = f"{path_vsf} -c -r -i \"{self.video_path}\" -o \"{self.temp_output_dir}\" -ces \"{self.vsf_subtitle}\" "
         cmd += f"-te {top_end} -be {bottom_end} -le {left_end} -re {right_end} -nthr {cpu_count} -nocrthr {cpu_count}"
+        self.vsf_running = True
         # 计算进度
         Thread(target=count_process, daemon=True).start()
         import subprocess
         subprocess.run(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        self.vsf_running = False
 
     def filter_watermark(self):
         """
