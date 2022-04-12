@@ -3,9 +3,9 @@ import re
 from multiprocessing import Queue, Process
 import cv2
 from tqdm import tqdm
-
 from tools.ocr import OcrRecogniser, get_coordinates
 from tools.constant import SubtitleArea
+
 
 def extract_subtitles(data, text_recogniser, img, raw_subtitle_file, sub_area,
                       rec_char_type, drop_score, dt_box, rec_res):
@@ -41,6 +41,7 @@ def extract_subtitles(data, text_recogniser, img, raw_subtitle_file, sub_area,
         else:
             raw_subtitle_file.write(f'{str(data["i"]).zfill(8)}\t{coordinate}\t{content[0]}\n')
     data["i"] += 1
+
 
 def handle(queue, video_path, raw_subtitle_path, sub_area, rec_char_type, drop_score):
     # 删除缓存
@@ -108,6 +109,7 @@ def frame_preprocess(subtitle_area, frame):
         # 将视频帧切割为下半部分
         frame = frame[:cropped]
     return frame
+
 
 if __name__ == "__main__":
     pass
