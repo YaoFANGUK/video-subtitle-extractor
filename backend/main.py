@@ -20,7 +20,8 @@ from numpy import average, dot, linalg
 import numpy as np
 from tqdm import tqdm
 import sys
-
+from paddle import fluid
+fluid.install_check.run_check()
 sys.path.insert(0, os.path.dirname(__file__))
 import config
 from config import interface_config
@@ -90,6 +91,10 @@ class SubtitleExtractor:
         self.raw_subtitle_path = os.path.join(self.subtitle_output_dir, 'raw.txt')
         # 自定义ocr对象
         self.ocr = OcrRecogniser()
+        print(f"{interface_config['Main']['RecSubLang']}：{config.REC_CHAR_TYPE}")
+        print(f"{interface_config['Main']['RecMode']}：{config.MODE_TYPE}")
+        if config.USE_GPU:
+            print(interface_config['Main']['GPUSpeedUp'])
         # 处理进度
         self.progress = 0
         # 是否完成
