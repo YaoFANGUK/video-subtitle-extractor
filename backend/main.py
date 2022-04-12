@@ -190,13 +190,15 @@ class SubtitleExtractor:
 
         duration_ms = (self.frame_count / self.fps) * 1000
         while self.video_cap.isOpened():
-            total_ms = self.video_cap.get(cv2.CAP_PROP_POS_MSEC)
             ret, frame = self.video_cap.read()
             # 如果读取视频帧失败（视频读到最后一帧）
             if not ret:
                 break
             # 读取视频帧成功
             else:
+                total_ms = self.video_cap.get(cv2.CAP_PROP_POS_MSEC)
+                if total_ms <= 0:
+                    total_ms = self._frameno_to_milliseconds(self.video_cap.get(cv2.CAP_PROP_POS_FRAMES))
                 frame_no += 1
                 self.subtitle_ocr_queue.put((total_ms, duration_ms, frame_no, None, None, self.subtitle_area))
                 # 跳过剩下的帧
@@ -225,11 +227,13 @@ class SubtitleExtractor:
         compare_ocr_result_cache = {}
         tbar = tqdm(total=int(self.frame_count), unit='f', position=0, file=sys.__stdout__)
         while self.video_cap.isOpened():
-            total_ms = self.video_cap.get(cv2.CAP_PROP_POS_MSEC)
             ret, frame = self.video_cap.read()
             # 如果读取视频帧失败（视频读到最后一帧）
             if not ret:
                 break
+            total_ms = self.video_cap.get(cv2.CAP_PROP_POS_MSEC)
+            if total_ms <= 0:
+                total_ms = self._frameno_to_milliseconds(self.video_cap.get(cv2.CAP_PROP_POS_FRAMES))
             # 读取视频帧成功
             frame_no += 1
             dt_boxes, elapse = self.sub_detector.detect_subtitle(frame)
@@ -653,6 +657,9 @@ class SubtitleExtractor:
                                                             int(frame_no / (60 * self.fps) % 60),
                                                             int(frame_no / self.fps % 60),
                                                             int(frame_no % self.fps))
+
+    def _frameno_to_milliseconds(self, frame_no):
+        return float(int(frame_no / self.fps * 1000))
 
     def _remove_duplicate_subtitle(self):
         """
