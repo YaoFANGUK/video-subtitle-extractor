@@ -20,6 +20,7 @@ from numpy import average, dot, linalg
 import numpy as np
 from tqdm import tqdm
 import sys
+
 sys.path.insert(0, os.path.dirname(__file__))
 import config
 from config import interface_config
@@ -33,6 +34,7 @@ import threading
 import platform
 import multiprocessing
 import time
+
 
 class SubtitleDetect:
     def __init__(self):
@@ -107,7 +109,7 @@ class SubtitleExtractor:
         print(interface_config['Main']['StartProcessFrame'])
 
         subtitle_ocr_thread, self.subtitle_ocr_queue = subtitle_ocr.async_start(self.video_path, self.raw_subtitle_path, self.sub_area,
-                                                       config.REC_CHAR_TYPE, config.DROP_SCORE)
+                                                                                config.REC_CHAR_TYPE, config.DROP_SCORE)
         if self.sub_area is not None:
             # 如果开启精准模式
             if config.ACCURATE_MODE_ON:
@@ -623,6 +625,11 @@ class SubtitleExtractor:
         # 获取当前帧号对应的时间戳
         if ret:
             milliseconds = cap.get(cv2.CAP_PROP_POS_MSEC)
+            if milliseconds <= 0:
+                return '{0:02d}:{1:02d}:{2:02d},{3:02d}'.format(int(frame_no / (3600 * self.fps)),
+                                                                int(frame_no / (60 * self.fps) % 60),
+                                                                int(frame_no / self.fps % 60),
+                                                                int(frame_no % self.fps))
             seconds = milliseconds // 1000
             milliseconds = int(milliseconds % 1000)
             minutes = 0
@@ -641,7 +648,6 @@ class SubtitleExtractor:
                                                             int(frame_no / (60 * self.fps) % 60),
                                                             int(frame_no / self.fps % 60),
                                                             int(frame_no % self.fps))
-
 
     def _remove_duplicate_subtitle(self):
         """
@@ -891,8 +897,8 @@ if __name__ == '__main__':
     video_path = input(f"{interface_config['Main']['InputVideo']}").strip()
     # 提示用户输入字幕区域
     try:
-        y_min, y_max, x_min, x_max = map(int, input(f"{interface_config['Main']['ChooseSubArea']} (ymin ymax xmin "
-                                                 f"xmax)：").split())
+        y_min, y_max, x_min, x_max = map(int, input(
+            f"{interface_config['Main']['ChooseSubArea']} (ymin ymax xmin xmax)：").split())
         subtitle_area = (y_min, y_max, x_min, x_max)
     except ValueError as e:
         subtitle_area = None
