@@ -79,7 +79,7 @@ QQ交流群：210150985
 
 - 点击查看视频教程 👇
 
-[![GPU版本安装教程](https://z3.ax1x.com/2021/09/08/h7hhNV.png)](https://www.bilibili.com/video/bv11L4y1Y7Tj "GUP版本安装教程")
+[![GPU版本安装教程](https://s1.ax1x.com/2022/04/15/L3KzLR.png)](https://www.bilibili.com/video/bv11L4y1Y7Tj "GUP版本安装教程")
 
 
 
