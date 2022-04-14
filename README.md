@@ -42,8 +42,8 @@ QQ交流群：210150985
   - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/vse.exe">vse.exe</a> 
 
 - Windows GPU版本：
-  - 国内：<a href="https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.3.0/vse_windows_GPU.7z">vse_windows_GPU.7z</a>
-  - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.3.0/vse_windows_GPU.7z">vse_windows_GPU.7z</a>
+  - 国内：<a href="https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/vse_windows_GPU.7z">vse_windows_GPU.7z</a>
+  - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/vse_windows_GPU.7z">vse_windows_GPU.7z</a>
 
 - Windows CPU版本：
   - 国内：<a href=https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/vse_windows_CPU.zip>vse_windows_CPU.zip</a>
@@ -166,8 +166,8 @@ QQ交流群：210150985
           <a href="https://developer.download.nvidia.com/compute/cuda/11.6.2/local_installers/cuda_11.6.2_511.65_windows.exe">cuda_11.6.2_511.65_windows.exe</a>
           <h5>(2) 安装CUDA 11.6</h5>
           <h5>(3) 下载cuDNN 8.2.1</h5>
-          <p>国内：<a href="https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.3.0/cudnn-11.3-windows-x64-v8.2.1.32.zip">cudnn-11.3-windows-x64-v8.2.1.32.zip</a></p>
-          <p>国外：<a href="https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.3.0/cudnn-11.3-windows-x64-v8.2.1.32.zip">cudnn-11.3-windows-x64-v8.2.1.32.zip</a></p>
+          <p>国内：<a href="https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/cudnn-11.3-windows-x64-v8.2.1.32.zip">cudnn-11.3-windows-x64-v8.2.1.32.zip</a></p>
+          <p>国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/cudnn-11.3-windows-x64-v8.2.1.32.zip">cudnn-11.3-windows-x64-v8.2.1.32.zip</a></p>
           <h5>(4) 安装cuDNN 8.2.1</h5>
           <p>
              将cuDNN解压后的cuda文件夹中的bin, include, lib目录下的文件复制到C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.6\对应目录下
