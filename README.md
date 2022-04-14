@@ -174,8 +174,6 @@ QQ交流群：210150985
       </details>
 
   > 如果你使用的是3050/3060/3070/3080等安培架构的显卡，请使用最新的paddlepaddle版本以及最新的cuda 11.6
-  
-  > 如果使用conda安装GPU环境失败，请尝试手动安装：
 
   - 安装paddlepaddle:
 
@@ -258,10 +256,10 @@ conda install Shapely
 
 #### 4. Nuitka打包代码闪退
 
-将conda虚拟环境Lib文件夹下site-packages的所有文件复制到dependencies文件夹中，把paddle库dataset下image.py的有关subprocess代码全部注释了，使用以下打包命令：
+使用Nuitka版本0.6.19，将conda虚拟环境Lib文件夹下site-packages的所有文件复制到dependencies文件夹中，把paddle库dataset下image.py的有关subprocess代码全部注释了，使用以下打包命令：
 
 ```shell
- python -m nuitka --standalone --windows-disable-console --mingw64 --include-data-dir=D:\vse\backend=backend --include-data-dir=D:\vse\dependencies=dependencies  --nofollow-imports --windows-icon-from-ico=D:\vse\design\vse.ico --plugin-enable=tk-inter --output-dir=out .\gui.py
+ python -m nuitka --standalone --mingw64 --include-data-dir=D:\vse\backend=backend --include-data-dir=D:\vse\dependencies=dependencies  --nofollow-imports --windows-icon-from-ico=D:\vse\design\vse.ico --plugin-enable=tk-inter,multiprocessing --output-dir=out .\gui.py
 ```
 
 编译成单个文件
