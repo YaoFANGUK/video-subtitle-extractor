@@ -15,6 +15,7 @@ video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕�
 - 过滤非字幕区域的文本
 - 去除重复字幕行，去除水印(台标)文本
 - 生成srt字幕文件
+- 支持视频字幕批量提取
 - 多语言：支持**中文/英文**、**繁体中文**、**日语**、**韩语**、**法语**、**德语**、**俄语**、**西班牙语**、**葡萄牙语**、**意大利语**字幕的提取
 - 多模式：
   - **快速** - 快速提取字幕但可能丢字幕（默认请使用这个，实在丢字幕严重再换精准，快速的效果已经很好了，关键比精准快了太多了）
@@ -37,16 +38,16 @@ QQ交流群：210150985
 **下载地址**：
 
 - Windows 单文件版本(双击直接运行，每次打开时会有一点慢，**推荐小白使用**)
-  - 国内：<a href=https://github.91chi.fun//https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.3.0/vse.exe>vse.exe</a>
-  - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.3.0/vse.exe">vse.exe</a> 
+  - 国内：<a href=https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/vse.exe>vse.exe</a>
+  - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/vse.exe">vse.exe</a> 
 
 - Windows GPU版本：
   - 国内：<a href="https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.3.0/vse_windows_GPU.7z">vse_windows_GPU.7z</a>
   - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.3.0/vse_windows_GPU.7z">vse_windows_GPU.7z</a>
 
 - Windows CPU版本：
-  - 国内：<a href=https://github.91chi.fun//https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.3.0/vse_windows_CPU.zip>vse_windows_CPU.zip</a>
-  - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.3.0/vse_windows_CPU.zip">vse_windows_CPU.zip</a> 
+  - 国内：<a href=https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/vse_windows_CPU.zip>vse_windows_CPU.zip</a>
+  - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/vse_windows_CPU.zip">vse_windows_CPU.zip</a> 
 
 - MacOS CPU版本：
   - 国内：<a href="https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/vse_macOS_CPU.dmg">vse_macOS_CPU.dmg</a>
@@ -221,7 +222,7 @@ python ./backend/main.py
 
 #### 1. 运行不正常/没有结果/cuda及cudnn问题
 
-解决方案：安装cuda与cudnn
+解决方案：根据自己的显卡型号、显卡驱动版本，安装对应的cuda与cudnn
 
 
 #### 2. CondaHTTPError
@@ -256,15 +257,15 @@ conda install Shapely
 
 #### 4. Nuitka打包代码闪退
 
-使用Nuitka版本0.6.19，将conda虚拟环境Lib文件夹下site-packages的所有文件复制到dependencies文件夹中，把paddle库dataset下image.py的有关subprocess代码全部注释了，使用以下打包命令：
+使用Nuitka版本```0.6.19```，将conda虚拟环境Lib文件夹下site-packages的所有文件复制到dependencies文件夹中，把paddle库dataset下image.py的有关subprocess代码全部注释了，使用以下打包命令：
 
 ```shell
  python -m nuitka --standalone --mingw64 --include-data-dir=D:\vse\backend=backend --include-data-dir=D:\vse\dependencies=dependencies  --nofollow-imports --windows-icon-from-ico=D:\vse\design\vse.ico --plugin-enable=tk-inter,multiprocessing --output-dir=out .\gui.py
 ```
 
-编译成单个文件
+编译成单个文件（pip安装zstandard可以减小体积）
 ```shell
- python -m nuitka --standalone --windows-disable-console --mingw64 --lto no --include-data-dir=D:\vse\backend=backend --include-data-dir=D:\vse\dependencies=dependencies  --nofollow-imports --windows-icon-from-ico=D:\vse\design\vse.ico --plugin-enable=tk-inter --output-dir=out --onefile .\gui.py
+ python -m nuitka --standalone --windows-disable-console --mingw64 --lto no --include-data-dir=D:\vse\backend=backend --include-data-dir=D:\vse\dependencies=dependencies  --nofollow-imports --windows-icon-from-ico=D:\vse\design\vse.ico --plugin-enable=tk-inter,multiprocessing --output-dir=out --onefile .\gui.py
 ```
 
 
