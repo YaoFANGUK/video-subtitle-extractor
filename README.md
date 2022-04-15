@@ -66,7 +66,7 @@ Video-subtitle-extractor (vse) 是一款将视频中的硬字幕提取为外挂�
 
 - GUI版：
 
-<p style="text-align:center;"><img src="https://s1.328888.xyz/2022/04/15/iIc0S.gif" alt="demo.gif"/></p>
+<p style="text-align:center;"><img src="https://github.com/YaoFANGUK/video-subtitle-extractor/raw/main/design/demo.gif" alt="demo.gif"/></p>
 
 - 点击查看视频教程 👇
 
