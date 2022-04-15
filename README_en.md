@@ -6,14 +6,14 @@
 ![python version](https://img.shields.io/badge/Python-3.8+-blue.svg)
 ![support os](https://img.shields.io/badge/OS-Windows/macOS/Linux-green.svg)
 
-**Video-subtitle-extractor** (vse) is a free and open-source tool which can help you rip the hard-coded subtitles from a video file and automatically generate **srt** file for each video.  It includes the following implementations:
+**Video-subtitle-extractor** (vse) is a free, open-source tool which can help you rip the hard-coded subtitles from a video file and automatically generate **srt** files for each video.  It includes the following implementations:
 
 - Detect and extract subtitle frames (using traditional graphic method)
 - Detect subtitle areas (i.e., coordinates) (as well as scene text if you want) (using deep learning algorithms)
 - Converting graphic text into plain-text (using deep learning algorithms)
 - Filter non-subtitle text (e.g., Logo and watermark etc.)
-- Remove duplicated subtitle line and **generate srt file**(by calculating text similarity)
-- Batch extraction of video subtitles. You can select multiple video files at one time and this tool can generate subtitles for each video.
+- Remove duplicated subtitle line and **generate srt file** (by calculating text similarity)
+- Batch extraction. You can select multiple video files at one time and this tool can generate subtitles for each video.
 - Multiple language support, you can extract the following subtitle languages: **Simplified Chinese**, **English**, **Japanese**, **Korean**, **Traditional Chinese**, **French**, **German**, **Russian**, **Spanish**, **Portuguese**, **Italian**
 - Multiple mode:
   - **fast**: high extraction speed while few subtitle missing (**Recommended**)
@@ -146,7 +146,6 @@ Before you install dependencies, make sure your python 3.8+ has installed as wel
 
       ```shell
       python -m pip install paddlepaddle-gpu==2.2.2.post112 -f https://www.paddlepaddle.org.cn/whl/windows/mkl/avx/stable.html 
-      Linux:
       ```
 
     - Linux:
@@ -185,7 +184,7 @@ python ./backend/main.py
 
 #### 1. Running Failure or Environment Problem 
 
-Solution: If you are using a nvidia ampere architecture graphics such as 3060/3070/3080, please use the latest PaddlePaddle version and CUDA 11.6 with cuDNN 8.2.1. Otherwise, check your which cuda and cudnn works with your GPU and then install them.
+Solution: If you are using a nvidia ampere architecture graphic card such as RTX 3050/3060/3070/3080, please use the latest PaddlePaddle version and CUDA 11.6 with cuDNN 8.2.1. Otherwise, check your which cuda and cudnn works with your GPU and then install them.
 
   
 #### 2. For Windows users, if you encounter errors related to "geos_c.dll"
