@@ -212,7 +212,7 @@ conda install Shapely
 
 
 #### 3. How to generate executables
-Using Nuitka version 0.6.19, copy all the files of ```site-packages``` under the Lib folder of the conda virtual environment to the ```dependencies``` folder, and comment all codes relevant to ```subprocess`` of ```image.py``` under the ```paddle``` library dataset, and use the following packaging command:
+Using Nuitka version 0.6.19, copy all the files of ```site-packages``` under the Lib folder of the conda virtual environment to the ```dependencies``` folder, and comment all codes relevant to ```subprocess``` of ```image.py``` under the ```paddle``` library dataset, and use the following packaging command:
 
 ```shell
  python -m nuitka --standalone --mingw64 --include-data-dir=D:\vse\backend=backend --include-data-dir=D:\vse\dependencies=dependencies  --nofollow-imports --windows-icon-from-ico=D:\vse\design\vse.ico --plugin-enable=tk-inter,multiprocessing --output-dir=out .\gui.py
