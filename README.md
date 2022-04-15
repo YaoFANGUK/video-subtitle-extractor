@@ -75,7 +75,7 @@ QQ交流群：210150985
 
 - GUI版：
 
-<p style="text-align:center;"><img src="design/demo.gif" alt="demo.gif"/></p>
+<p style="text-align:center;"><img src="https://github.com/YaoFANGUK/video-subtitle-extractor/raw/main/design/demo.gif" alt="demo.gif"/></p>
 
 - 点击查看视频教程 👇
 
