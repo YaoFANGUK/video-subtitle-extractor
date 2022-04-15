@@ -4,25 +4,23 @@
 
 ![License](https://img.shields.io/badge/License-Apache%202-red.svg)
 ![python version](https://img.shields.io/badge/Python-3.8+-blue.svg)
-![support os](https://img.shields.io/badge/OS-Windows/macOS/Linux-green.svg)
+![support os](https://img.shields.io/badge/OS-Windows/macOS/Linux-green.svg)  
+![QQ交流群](https://img.shields.io/badge/QQ%E7%BE%A4-210150985-blue)
 
-video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕文件(srt格式)的软件。
+Video-subtitle-extractor (vse) 是一款将视频中的硬字幕提取为外挂字幕文件(srt格式)的软件。
 主要实现了以下功能：
 
 - 提取视频中的关键帧
 - 检测视频帧中文本的所在位置
 - 识别视频帧中文本的内容
-- 过滤非字幕区域的文本
-- 去除重复字幕行，去除水印(台标)文本
-- 生成srt字幕文件
-- 支持视频字幕批量提取
+- 过滤非字幕区域的文本，去除水印（台标）文本
+- 去除重复字幕行，生成srt字幕文件
+- 支持视频字幕**批量提取**
 - 多语言：支持**中文/英文**、**日语**、**韩语**、**繁体中文**、**法语**、**德语**、**俄语**、**西班牙语**、**葡萄牙语**、**意大利语**字幕的提取
-- 准确度：简体中文 > 英文 > 日语 > 韩语 > ...
 - 多模式：
-  - **快速** - 快速提取字幕但可能丢字幕
+  - **快速** - 快速提取字幕但可能丢字幕（推荐）
   - **精准** - 不丢字幕但速度较慢
 
-QQ交流群：210150985
 
 **使用说明**：
 
@@ -38,22 +36,15 @@ QQ交流群：210150985
 
 **下载地址**：
 
-- Windows 单文件版本(双击直接运行，每次打开时会有一点慢，**推荐小白使用**)
-  - 国内：<a href=https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/vse.exe>vse.exe</a>
-  - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/vse.exe">vse.exe</a> 
+- Windows 单文件版本(双击直接运行，每次打开时会有一点慢，**推荐小白使用**)： <a href=https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/vse.exe>vse.exe</a>
 
-- Windows GPU版本：
-  - 国内：<a href="https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/vse_windows_GPU.7z">vse_windows_GPU.7z</a>
-  - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/vse_windows_GPU.7z">vse_windows_GPU.7z</a>
+- Windows GPU版本： <a href="https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/vse_windows_GPU.7z">vse_windows_GPU.7z</a>
 
-- Windows CPU版本：
-  - 国内：<a href=https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/vse_windows_CPU.zip>vse_windows_CPU.zip</a>
-  - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/vse_windows_CPU.zip">vse_windows_CPU.zip</a> 
+- Windows CPU版本： <a href=https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/vse_windows_CPU.zip>vse_windows_CPU.zip</a>
 
-- MacOS CPU版本：
-  - 国内：<a href="https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/vse_macOS_CPU.dmg">vse_macOS_CPU.dmg</a>
-  - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/vse_macOS_CPU.dmg">vse_macOS_CPU.dmg</a> 
+- MacOS CPU版本： <a href="https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/vse_macOS_CPU.dmg">vse_macOS_CPU.dmg</a>
 
+> PS: 若无法下载，请前往<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases"> Release </a>下载
 
 
 ## 项目特色
@@ -103,33 +94,28 @@ QQ交流群：210150985
 
 - Linux: <a href="https://repo.anaconda.com/miniconda/Miniconda3-py38_4.11.0-Linux-x86_64.sh">Miniconda3-py38_4.11.0-Linux-x86_64.sh</a>
 
+#### 2. 创建并激活虚机环境
+
+```shell
+conda create -n videoEnv python=3.8
+```
+
+```shell
+conda activate videoEnv
+```
+
 #### 2. 安装依赖文件
 
 请确保你已经安装 python 3.8+，使用conda创建项目虚拟环境并激活环境 (建议创建虚拟环境运行，以免后续出现问题)
 
-- CPU用户 (mac用户) : 
+- CPU用户 (Mac用户) : 
 
   - 安装依赖：
-
     ```shell
-    conda create -n videoEnv python=3.8
-    ```
-
-    ```shell
-    conda activate videoEnv
+    pip install -r requirements.txt
     ```
 
 - GPU用户(有N卡)： **要达到高精度的识别率请使用GPU版**
-
-  - 创建虚拟环境：
-
-    ```shell
-    conda create -n videoEnv python=3.8
-    ```
-
-    ```shell
-    conda activate videoEnv
-    ```
   
   - 安装CUDA和cuDNN
 
