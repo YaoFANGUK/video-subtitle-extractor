@@ -7,6 +7,7 @@
 """
 import json
 import os
+import sys
 
 import pysrt
 import sys
@@ -20,7 +21,6 @@ nlp = spacy.load("en_core_web_sm")
 
 NLP_MAP_KEY_WORD_SEGMENT = "wordsegment"
 NLP_MAP_KEY_SENTENCE = "sentence"
-
 
 def reformat(path, bd_video_path=None):
     # fix "RecursionError: maximum recursion depth exceeded in comparison" in wordsegment.segment call
