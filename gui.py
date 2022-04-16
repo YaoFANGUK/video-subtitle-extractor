@@ -95,7 +95,7 @@ class SubtitleExtractorGUI:
                 break
             # 更新进度条
             if self.se is not None:
-                self.window['-PROG-'].update(self.se.progress)
+                self.window['-PROG-'].update(self.se.progress_total)
                 if self.se.isFinished:
                     # 1) 打开修改字幕滑块区域按钮
                     self.window['-Y-SLIDER-'].update(disabled=False)
