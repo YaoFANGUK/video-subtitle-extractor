@@ -4,23 +4,23 @@
 
 ![License](https://img.shields.io/badge/License-Apache%202-red.svg)
 ![python version](https://img.shields.io/badge/Python-3.8+-blue.svg)
-![support os](https://img.shields.io/badge/OS-Windows/macOS/Linux-green.svg)
+![support os](https://img.shields.io/badge/OS-Windows/macOS/Linux-green.svg)  
+![QQ交流群](https://img.shields.io/badge/QQ%E7%BE%A4-210150985-blue)
 
-video-subtitle-extractor是一款将视频中的硬字幕提取为外挂字幕文件(srt格式)的软件。
+Video-subtitle-extractor (vse) 是一款将视频中的硬字幕提取为外挂字幕文件(srt格式)的软件。
 主要实现了以下功能：
 
 - 提取视频中的关键帧
 - 检测视频帧中文本的所在位置
 - 识别视频帧中文本的内容
-- 过滤非字幕区域的文本
-- 去除重复字幕行，去除水印(台标)文本
-- 生成srt字幕文件
-- 多语言：支持**中文/英文**、**繁体中文**、**日语**、**韩语**、**法语**、**德语**、**俄语**、**西班牙语**、**葡萄牙语**、**意大利语**字幕的提取
+- 过滤非字幕区域的文本，去除水印（台标）文本
+- 去除重复字幕行，生成srt字幕文件
+- 支持视频字幕**批量提取**
+- 多语言：支持**中文/英文**、**日语**、**韩语**、**繁体中文**、**法语**、**德语**、**俄语**、**西班牙语**、**葡萄牙语**、**意大利语**字幕的提取
 - 多模式：
-  - **快速** - 快速提取字幕但可能丢字幕（默认请使用这个，实在丢字幕严重再换精准，快速的效果已经很好了，关键比精准快了太多了）
+  - **快速** - 快速提取字幕但可能丢字幕（推荐）
   - **精准** - 不丢字幕但速度较慢
 
-QQ交流群：210150985
 
 **使用说明**：
 
@@ -36,22 +36,15 @@ QQ交流群：210150985
 
 **下载地址**：
 
-- Windows 单文件版本(双击直接运行，每次打开时会有一点慢，**推荐小白使用**)
-  - 国内：<a href=https://github.91chi.fun//https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.3.0/vse.exe>vse.exe</a>
-  - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.3.0/vse.exe">vse.exe</a> 
+- Windows 单文件版本(双击直接运行，每次打开时会有一点慢，**推荐小白使用**)： <a href=https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/vse.exe>vse.exe</a>
 
-- Windows GPU版本：
-  - 国内：<a href="https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.3.0/vse_windows_GPU.7z">vse_windows_GPU.7z</a>
-  - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.3.0/vse_windows_GPU.7z">vse_windows_GPU.7z</a>
+- Windows GPU版本： <a href="https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/vse_windows_GPU.7z">vse_windows_GPU.7z</a>
 
-- Windows CPU版本：
-  - 国内：<a href=https://github.91chi.fun//https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.3.0/vse_windows_CPU.zip>vse_windows_CPU.zip</a>
-  - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.3.0/vse_windows_CPU.zip">vse_windows_CPU.zip</a> 
+- Windows CPU版本： <a href=https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/vse_windows_CPU.zip>vse_windows_CPU.zip</a>
 
-- MacOS CPU版本：
-  - 国内：<a href="https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/vse_macOS_CPU.dmg">vse_macOS_CPU.dmg</a>
-  - 国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/vse_macOS_CPU.dmg">vse_macOS_CPU.dmg</a> 
+- MacOS CPU版本： <a href="https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/vse_macOS_CPU.dmg">vse_macOS_CPU.dmg</a>
 
+> PS: 若无法下载，请前往<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases"> Release </a>下载
 
 
 ## 项目特色
@@ -73,11 +66,11 @@ QQ交流群：210150985
 
 - GUI版：
 
-<p style="text-align:center;"><img src="design/demo.gif" alt="demo.gif"/></p>
+<p style="text-align:center;"><img src="https://github.com/YaoFANGUK/video-subtitle-extractor/raw/main/design/demo.gif" alt="demo.gif"/></p>
 
 - 点击查看视频教程 👇
 
-[![GPU版本安装教程](https://z3.ax1x.com/2021/09/08/h7hhNV.png)](https://www.bilibili.com/video/bv11L4y1Y7Tj "GUP版本安装教程")
+[![GPU版本安装教程](https://s1.ax1x.com/2022/04/15/L3KzLR.png)](https://www.bilibili.com/video/bv11L4y1Y7Tj "GUP版本安装教程")
 
 
 
@@ -101,33 +94,28 @@ QQ交流群：210150985
 
 - Linux: <a href="https://repo.anaconda.com/miniconda/Miniconda3-py38_4.11.0-Linux-x86_64.sh">Miniconda3-py38_4.11.0-Linux-x86_64.sh</a>
 
+#### 2. 创建并激活虚机环境
+
+```shell
+conda create -n videoEnv python=3.8
+```
+
+```shell
+conda activate videoEnv
+```
+
 #### 2. 安装依赖文件
 
 请确保你已经安装 python 3.8+，使用conda创建项目虚拟环境并激活环境 (建议创建虚拟环境运行，以免后续出现问题)
 
-- CPU用户 (mac用户) : 
+- CPU用户 (Mac用户) : 
 
   - 安装依赖：
-
     ```shell
-    conda create -n videoEnv python=3.8
-    ```
-
-    ```shell
-    conda activate videoEnv
+    pip install -r requirements.txt
     ```
 
 - GPU用户(有N卡)： **要达到高精度的识别率请使用GPU版**
-
-  - 创建虚拟环境：
-
-    ```shell
-    conda create -n videoEnv python=3.8
-    ```
-
-    ```shell
-    conda activate videoEnv
-    ```
   
   - 安装CUDA和cuDNN
 
@@ -165,8 +153,8 @@ QQ交流群：210150985
           <a href="https://developer.download.nvidia.com/compute/cuda/11.6.2/local_installers/cuda_11.6.2_511.65_windows.exe">cuda_11.6.2_511.65_windows.exe</a>
           <h5>(2) 安装CUDA 11.6</h5>
           <h5>(3) 下载cuDNN 8.2.1</h5>
-          <p>国内：<a href="https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.3.0/cudnn-11.3-windows-x64-v8.2.1.32.zip">cudnn-11.3-windows-x64-v8.2.1.32.zip</a></p>
-          <p>国外：<a href="https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.3.0/cudnn-11.3-windows-x64-v8.2.1.32.zip">cudnn-11.3-windows-x64-v8.2.1.32.zip</a></p>
+          <p>国内：<a href="https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/cudnn-11.3-windows-x64-v8.2.1.32.zip">cudnn-11.3-windows-x64-v8.2.1.32.zip</a></p>
+          <p>国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/cudnn-11.3-windows-x64-v8.2.1.32.zip">cudnn-11.3-windows-x64-v8.2.1.32.zip</a></p>
           <h5>(4) 安装cuDNN 8.2.1</h5>
           <p>
              将cuDNN解压后的cuda文件夹中的bin, include, lib目录下的文件复制到C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.6\对应目录下
@@ -174,8 +162,6 @@ QQ交流群：210150985
       </details>
 
   > 如果你使用的是3050/3060/3070/3080等安培架构的显卡，请使用最新的paddlepaddle版本以及最新的cuda 11.6
-  
-  > 如果使用conda安装GPU环境失败，请尝试手动安装：
 
   - 安装paddlepaddle:
 
@@ -223,7 +209,7 @@ python ./backend/main.py
 
 #### 1. 运行不正常/没有结果/cuda及cudnn问题
 
-解决方案：安装cuda与cudnn
+解决方案：根据自己的显卡型号、显卡驱动版本，安装对应的cuda与cudnn
 
 
 #### 2. CondaHTTPError
@@ -258,15 +244,15 @@ conda install Shapely
 
 #### 4. Nuitka打包代码闪退
 
-将conda虚拟环境Lib文件夹下site-packages的所有文件复制到dependencies文件夹中，把paddle库dataset下image.py的有关subprocess代码全部注释了，使用以下打包命令：
+使用Nuitka版本```0.6.19```，将conda虚拟环境Lib文件夹下site-packages的所有文件复制到dependencies文件夹中，把paddle库dataset下image.py的有关subprocess代码全部注释了，使用以下打包命令：
 
 ```shell
- python -m nuitka --standalone --windows-disable-console --mingw64 --include-data-dir=D:\vse\backend=backend --include-data-dir=D:\vse\dependencies=dependencies  --nofollow-imports --windows-icon-from-ico=D:\vse\design\vse.ico --plugin-enable=tk-inter --output-dir=out .\gui.py
+ python -m nuitka --standalone --mingw64 --include-data-dir=D:\vse\backend=backend --include-data-dir=D:\vse\dependencies=dependencies  --nofollow-imports --windows-icon-from-ico=D:\vse\design\vse.ico --plugin-enable=tk-inter,multiprocessing --output-dir=out .\gui.py
 ```
 
-编译成单个文件
+编译成单个文件（pip安装zstandard可以减小体积）
 ```shell
- python -m nuitka --standalone --windows-disable-console --mingw64 --lto no --include-data-dir=D:\vse\backend=backend --include-data-dir=D:\vse\dependencies=dependencies  --nofollow-imports --windows-icon-from-ico=D:\vse\design\vse.ico --plugin-enable=tk-inter --output-dir=out --onefile .\gui.py
+ python -m nuitka --standalone --windows-disable-console --mingw64 --lto no --include-data-dir=D:\vse\backend=backend --include-data-dir=D:\vse\dependencies=dependencies  --nofollow-imports --windows-icon-from-ico=D:\vse\design\vse.ico --plugin-enable=tk-inter,multiprocessing --output-dir=out --onefile .\gui.py
 ```
 
 

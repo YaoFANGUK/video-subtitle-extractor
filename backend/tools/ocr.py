@@ -2,6 +2,7 @@ from tools.infer import utility
 from tools.infer.predict_system import TextSystem
 import config
 
+
 # 加载文本检测+识别模型
 class OcrRecogniser:
     def __init__(self):
@@ -100,6 +101,7 @@ class OcrRecogniser:
         else:
             self.args.rec_char_type = config.REC_CHAR_TYPE
         return TextSystem(self.args)
+
 
 def get_coordinates(dt_box):
     """

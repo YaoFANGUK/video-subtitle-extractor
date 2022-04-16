@@ -16,7 +16,6 @@ from fsplit.filesplit import Filesplit
 from paddle import fluid
 from tools.constant import *
 
-fluid.install_check.run_check()
 # 判断代码路径是否合法
 IS_LEGAL_PATH = True
 config = configparser.ConfigParser()
@@ -42,11 +41,9 @@ interface_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'inter
 interface_config.read(interface_file, encoding='utf-8')
 # 设置识别语言
 REC_CHAR_TYPE = config['DEFAULT']['Language']
-print(f"{interface_config['Main']['RecSubLang']}：{REC_CHAR_TYPE}")
 
 # 设置识别模式
 MODE_TYPE = config['DEFAULT']['Mode']
-print(f"{interface_config['Main']['RecMode']}：{MODE_TYPE}")
 ACCURATE_MODE_ON = False
 if MODE_TYPE == 'accurate':
     ACCURATE_MODE_ON = True
@@ -110,7 +107,6 @@ if fluid.is_compiled_with_cuda():
     if len(fluid.cuda_places()) > 0:
         # 如果有GPU则使用GPU
         USE_GPU = True
-        print(interface_config['Main']['GPUSpeedUp'])
 
 # 使用快速字幕检测算法时，背景颜色
 BG_MOD = BackgroundColor.DARK

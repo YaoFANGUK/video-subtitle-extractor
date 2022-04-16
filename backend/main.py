@@ -20,6 +20,8 @@ from numpy import average, dot, linalg
 import numpy as np
 from tqdm import tqdm
 import sys
+from paddle import fluid
+fluid.install_check.run_check()
 sys.path.insert(0, os.path.dirname(__file__))
 from pathlib import Path
 import zipfile
@@ -38,6 +40,7 @@ import threading
 import platform
 import multiprocessing
 import time
+
 
 class SubtitleDetect:
     def __init__(self):
@@ -94,6 +97,10 @@ class SubtitleExtractor:
         # 自定义ocr对象
         self.ocr = None
         self.bd_video_path = bd_video_path
+        print(f"{interface_config['Main']['RecSubLang']}：{config.REC_CHAR_TYPE}")
+        print(f"{interface_config['Main']['RecMode']}：{config.MODE_TYPE}")
+        if config.USE_GPU:
+            print(interface_config['Main']['GPUSpeedUp'])
         # 处理进度
         self.progress = 0
         # 是否完成
@@ -113,7 +120,7 @@ class SubtitleExtractor:
         print(interface_config['Main']['StartProcessFrame'])
 
         subtitle_ocr_thread, self.subtitle_ocr_queue = subtitle_ocr.async_start(self.video_path, self.raw_subtitle_path, self.sub_area,
-                                                       config.REC_CHAR_TYPE, config.DROP_SCORE)
+                                                                                config.REC_CHAR_TYPE, config.DROP_SCORE)
         if self.sub_area is not None:
             # 如果开启精准模式
             if config.ACCURATE_MODE_ON:
@@ -236,6 +243,9 @@ class SubtitleExtractor:
                 break
             # 读取视频帧成功
             else:
+                total_ms = self.video_cap.get(cv2.CAP_PROP_POS_MSEC)
+                if total_ms <= 0:
+                    total_ms = self._frameno_to_milliseconds(self.video_cap.get(cv2.CAP_PROP_POS_FRAMES))
                 frame_no += 1
                 self.subtitle_ocr_queue.put((total_ms, duration_ms, frame_no, None, None, self.subtitle_area))
                 # 跳过剩下的帧
@@ -269,6 +279,9 @@ class SubtitleExtractor:
             # 如果读取视频帧失败（视频读到最后一帧）
             if not ret:
                 break
+            total_ms = self.video_cap.get(cv2.CAP_PROP_POS_MSEC)
+            if total_ms <= 0:
+                total_ms = self._frameno_to_milliseconds(self.video_cap.get(cv2.CAP_PROP_POS_FRAMES))
             # 读取视频帧成功
             frame_no += 1
             dt_boxes, elapse = self.sub_detector.detect_subtitle(frame)
@@ -669,6 +682,11 @@ class SubtitleExtractor:
         # 获取当前帧号对应的时间戳
         if ret:
             milliseconds = cap.get(cv2.CAP_PROP_POS_MSEC)
+            if milliseconds <= 0:
+                return '{0:02d}:{1:02d}:{2:02d},{3:02d}'.format(int(frame_no / (3600 * self.fps)),
+                                                                int(frame_no / (60 * self.fps) % 60),
+                                                                int(frame_no / self.fps % 60),
+                                                                int(frame_no % self.fps))
             seconds = milliseconds // 1000
             milliseconds = int(milliseconds % 1000)
             minutes = 0
@@ -688,6 +706,8 @@ class SubtitleExtractor:
                                                             int(frame_no / self.fps % 60),
                                                             int(frame_no % self.fps))
 
+    def _frameno_to_milliseconds(self, frame_no):
+        return float(int(frame_no / self.fps * 1000))
 
     def _remove_duplicate_subtitle(self):
         """
@@ -937,8 +957,8 @@ if __name__ == '__main__':
     video_path = input(f"{interface_config['Main']['InputVideo']}").strip()
     # 提示用户输入字幕区域
     try:
-        y_min, y_max, x_min, x_max = map(int, input(f"{interface_config['Main']['ChooseSubArea']} (ymin ymax xmin "
-                                                 f"xmax)：").split())
+        y_min, y_max, x_min, x_max = map(int, input(
+            f"{interface_config['Main']['ChooseSubArea']} (ymin ymax xmin xmax)：").split())
         subtitle_area = (y_min, y_max, x_min, x_max)
     except ValueError as e:
         subtitle_area = None
