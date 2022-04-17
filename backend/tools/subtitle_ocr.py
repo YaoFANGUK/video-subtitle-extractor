@@ -5,6 +5,8 @@ import cv2
 from tqdm import tqdm
 from tools.ocr import OcrRecogniser, get_coordinates
 from tools.constant import SubtitleArea
+from threading import Thread
+import queue
 
 
 def extract_subtitles(data, text_recogniser, img, raw_subtitle_file, sub_area,
@@ -43,48 +45,77 @@ def extract_subtitles(data, text_recogniser, img, raw_subtitle_file, sub_area,
     data["i"] += 1
 
 
-def handle(queue, progress_queue, video_path, raw_subtitle_path, sub_area, rec_char_type, drop_score):
+def recv_video_frame_handle(ocr_queue, raw_subtitle_path, sub_area, rec_char_type, drop_score):
+    data = {'i': 1}
+    # 初始化文本识别对象
+    text_recogniser = OcrRecogniser()
+    with open(raw_subtitle_path, mode='w+', encoding='utf-8') as raw_subtitle_file:
+        while True:
+            try:
+                total_ms, frame_no, frame, dt_box, rec_res = ocr_queue.get(block=True)
+                if total_ms == -1:
+                    return
+                if frame_no > 0:
+                    data['i'] = frame_no
+                extract_subtitles(data, text_recogniser, frame, raw_subtitle_file, sub_area,
+                                  rec_char_type, drop_score, dt_box, rec_res)
+
+            except Exception as e:
+                print(e)
+                break
+
+
+def recv_ocr_event_handle(ocr_queue, event_queue, progress_queue, video_path, raw_subtitle_path):
     # 删除缓存
     if os.path.exists(raw_subtitle_path):
         os.remove(raw_subtitle_path)
     cap = cv2.VideoCapture(video_path)
     tbar = None
-    last_total_ms = 0
-    # 初始化文本识别对象
-    text_recogniser = OcrRecogniser()
-    data = {'i': 1}
-    with open(raw_subtitle_path, mode='w+', encoding='utf-8') as raw_subtitle_file:
-        while True:
-            try:
-                total_ms, duration_ms, frame_no, dt_box, rec_res, subtitle_area = queue.get(block=True)
-                progress_queue.put(total_ms)
-                if tbar is None:
-                    tbar = tqdm(total=round(duration_ms), position=1)
-                if total_ms == -1:
-                    tbar.update(tbar.total - tbar.n)
-                    break
-                tbar.update(round(total_ms - tbar.n))
-                cap.set(cv2.CAP_PROP_POS_MSEC, total_ms)
-                ret, frame = cap.read()
-                if ret:
-                    if subtitle_area is not None:
-                        frame = frame_preprocess(subtitle_area, frame)
-                    if frame_no > 0:
-                        data['i'] = frame_no
-                    extract_subtitles(data, text_recogniser, frame, raw_subtitle_file, sub_area,
-                                      rec_char_type, drop_score, dt_box, rec_res)
-            except Exception as e:
-                print(e)
+    while True:
+        try:
+            total_ms, duration_ms, frame_no, dt_box, rec_res, subtitle_area = event_queue.get(block=True)
+            progress_queue.put(total_ms)
+            if tbar is None:
+                tbar = tqdm(total=round(duration_ms), position=1)
+            if total_ms == -1:
+                ocr_queue.put((-1, None, None, None, None))
+                tbar.update(tbar.total - tbar.n)
                 break
+            tbar.update(round(total_ms - tbar.n))
+            cap.set(cv2.CAP_PROP_POS_MSEC, total_ms)
+            ret, frame = cap.read()
+            if ret:
+                if subtitle_area is not None:
+                    frame = frame_preprocess(subtitle_area, frame)
+                ocr_queue.put((total_ms, frame_no, frame, dt_box, rec_res))
+        except Exception as e:
+            print(e)
+            break
     cap.release()
 
 
+def handle(event_queue, progress_queue, video_path, raw_subtitle_path, sub_area, rec_char_type, drop_score):
+    # 建议值8-20
+    ocr_queue = queue.Queue(20)
+    recv_video_frame_thread = Thread(target=recv_video_frame_handle,
+                                     args=(ocr_queue, raw_subtitle_path, sub_area, rec_char_type, drop_score,),
+                                     daemon=True)
+    recv_ocr_event_thread = Thread(target=recv_ocr_event_handle,
+                                   args=(ocr_queue, event_queue, progress_queue, video_path, raw_subtitle_path,),
+                                   daemon=True)
+    recv_ocr_event_thread.start()
+    recv_video_frame_thread.start()
+    recv_video_frame_thread.join()
+    recv_ocr_event_thread.join()
+
+
 def async_start(video_path, raw_subtitle_path, sub_area, rec_char_type, drop_score):
-    queue = Queue()
+    event_queue = Queue()
     progress_queue = Queue()
-    t = Process(target=handle, args=(queue, progress_queue, video_path, raw_subtitle_path, sub_area, rec_char_type, drop_score,))
+    t = Process(target=handle,
+                args=(event_queue, progress_queue, video_path, raw_subtitle_path, sub_area, rec_char_type, drop_score,))
     t.start()
-    return t, queue, progress_queue
+    return t, event_queue, progress_queue
 
 
 def frame_preprocess(subtitle_area, frame):
