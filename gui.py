@@ -454,4 +454,9 @@ if __name__ == '__main__':
         subtitleExtractorGUI.run()
     except Exception as e:
         print(f'[{type(e)}] {e}')
+        import traceback
+        traceback.print_exc()
+        msg = traceback.format_exc()
+        with open('errorInfo.log', 'w', encoding='utf-8') as f:
+            f.writelines(msg)
         os.system('pause')
