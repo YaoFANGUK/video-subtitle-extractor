@@ -43,13 +43,12 @@ def extract_subtitles(data, text_recogniser, img, raw_subtitle_file, sub_area,
     data["i"] += 1
 
 
-def handle(queue, video_path, raw_subtitle_path, sub_area, rec_char_type, drop_score):
+def handle(queue, progress_queue, video_path, raw_subtitle_path, sub_area, rec_char_type, drop_score):
     # 删除缓存
     if os.path.exists(raw_subtitle_path):
         os.remove(raw_subtitle_path)
     cap = cv2.VideoCapture(video_path)
     tbar = None
-    tqdm_offset = 0
     last_total_ms = 0
     # 初始化文本识别对象
     text_recogniser = OcrRecogniser()
@@ -58,15 +57,13 @@ def handle(queue, video_path, raw_subtitle_path, sub_area, rec_char_type, drop_s
         while True:
             try:
                 total_ms, duration_ms, frame_no, dt_box, rec_res, subtitle_area = queue.get(block=True)
-                if total_ms == -1:
-                    tbar.update(max(0, int(duration_ms) - tqdm_offset))
-                    break
+                progress_queue.put(total_ms)
                 if tbar is None:
-                    tbar = tqdm(total=int(duration_ms), unit='f', position=1)
-                total_ms_incr = int(total_ms - last_total_ms)
-                tqdm_offset += total_ms_incr
-                tbar.update(total_ms_incr)
-                last_total_ms = total_ms
+                    tbar = tqdm(total=round(duration_ms), position=1)
+                if total_ms == -1:
+                    tbar.update(tbar.total - tbar.n)
+                    break
+                tbar.update(round(total_ms - tbar.n))
                 cap.set(cv2.CAP_PROP_POS_MSEC, total_ms)
                 ret, frame = cap.read()
                 if ret:
@@ -84,9 +81,10 @@ def handle(queue, video_path, raw_subtitle_path, sub_area, rec_char_type, drop_s
 
 def async_start(video_path, raw_subtitle_path, sub_area, rec_char_type, drop_score):
     queue = Queue()
-    t = Process(target=handle, args=(queue, video_path, raw_subtitle_path, sub_area, rec_char_type, drop_score,))
+    progress_queue = Queue()
+    t = Process(target=handle, args=(queue, progress_queue, video_path, raw_subtitle_path, sub_area, rec_char_type, drop_score,))
     t.start()
-    return t, queue
+    return t, queue, progress_queue
 
 
 def frame_preprocess(subtitle_area, frame):
