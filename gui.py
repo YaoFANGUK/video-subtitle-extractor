@@ -459,4 +459,8 @@ if __name__ == '__main__':
         msg = traceback.format_exc()
         with open('errorInfo.log', 'w', encoding='utf-8') as f:
             f.writelines(msg)
-        os.system('pause')
+        import platform
+        if platform.system() == 'Windows':
+            os.system('pause')
+        else:
+            os.system('read')
