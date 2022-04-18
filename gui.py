@@ -447,7 +447,11 @@ class LanguageModeGUI:
 
 
 if __name__ == '__main__':
-    multiprocessing.set_start_method("spawn")
-    # 运行图形化界面
-    subtitleExtractorGUI = SubtitleExtractorGUI()
-    subtitleExtractorGUI.run()
+    try:
+        multiprocessing.set_start_method("spawn")
+        # 运行图形化界面
+        subtitleExtractorGUI = SubtitleExtractorGUI()
+        subtitleExtractorGUI.run()
+    except Exception as e:
+        print(f'[{type(e)}] {e}')
+        os.system('pause')
