@@ -90,17 +90,20 @@ class SubtitleExtractor:
         # 提取的原始字幕文本存储路径
         self.raw_subtitle_path = os.path.join(self.subtitle_output_dir, 'raw.txt')
         # 自定义ocr对象
-        self.ocr = OcrRecogniser()
+        self.ocr = None
         print(f"{interface_config['Main']['RecSubLang']}：{config.REC_CHAR_TYPE}")
         print(f"{interface_config['Main']['RecMode']}：{config.MODE_TYPE}")
         if config.USE_GPU:
             print(interface_config['Main']['GPUSpeedUp'])
         # 处理进度
-        self.progress = 0
+        self.progress_total = 0
+        self.progress_frame_extract = 0
+        self.progress_ocr = 0
         # 是否完成
         self.isFinished = False
         # ocr队列
         self.subtitle_ocr_queue = None
+        self.subtitle_ocr_progress_queue = None
         # vsf运行状态
         self.vsf_running = False
 
@@ -110,11 +113,14 @@ class SubtitleExtractor:
         """
         start_time = time.time()
         self.lock.acquire()
-        print(f"{interface_config['Main']['FrameCount']}：{self.frame_count}，{interface_config['Main']['FrameRate']}：{self.fps}")
+        # 重置进度条
+        self.update_progress(ocr=0, frame_extract=0)
+
+        print(
+            f"{interface_config['Main']['FrameCount']}：{self.frame_count}，{interface_config['Main']['FrameRate']}：{self.fps}")
         print(interface_config['Main']['StartProcessFrame'])
 
-        subtitle_ocr_thread, self.subtitle_ocr_queue = subtitle_ocr.async_start(self.video_path, self.raw_subtitle_path, self.sub_area,
-                                                                                config.REC_CHAR_TYPE, config.DROP_SCORE)
+        subtitle_ocr_thread = self.start_subtitle_ocr_async()
         if self.sub_area is not None:
             # 如果开启精准模式
             if config.ACCURATE_MODE_ON:
@@ -138,9 +144,6 @@ class SubtitleExtractor:
         subtitle_ocr_thread.join()
         print(interface_config['Main']['FinishProcessFrame'])
 
-        print(interface_config['Main']['StartFindSub'])
-        # 重置进度条
-        self.progress = 0
         print(interface_config['Main']['FinishFindSub'])
 
         if self.sub_area is None:
@@ -172,7 +175,7 @@ class SubtitleExtractor:
         if config.REC_CHAR_TYPE in ('ch', 'EN', 'en', 'ch_tra'):
             reformat(os.path.join(os.path.splitext(self.video_path)[0] + '.srt'))
         print(interface_config['Main']['FinishGenerateSub'], f"{round(time.time() - start_time, 2)}s")
-        self.progress = 100
+        self.update_progress(ocr=100, frame_extract=100)
         self.isFinished = True
         # 删除缓存文件
         self.empty_cache()
@@ -207,7 +210,7 @@ class SubtitleExtractor:
                     if ret:
                         frame_no += 1
                         # 更新进度条
-                        self.progress = (frame_no / self.frame_count) * 100
+                        self.update_progress(frame_extract=(frame_no / self.frame_count) * 100)
 
         self.video_cap.release()
 
@@ -277,8 +280,8 @@ class SubtitleExtractor:
                         dt_box, rec_res = None, None
                     self.subtitle_ocr_queue.put((ocr_info_total_ms, ocr_info_duration_ms, ocr_info_frame_no,
                                                  dt_box, rec_res, self.subtitle_area))
-                self.progress = (frame_no / self.frame_count) * 100
-            tbar.update(1)
+                self.update_progress(frame_extract=(frame_no / self.frame_count) * 100)
+        tbar.update(1)
         while len(ocr_args_list) > 0:
             ocr_info_total_ms, ocr_info_duration_ms, ocr_info_frame_no = ocr_args_list.pop(0)
             if frame_no in compare_ocr_result_cache:
@@ -314,10 +317,10 @@ class SubtitleExtractor:
                             self.subtitle_ocr_queue.put((total_ms, duration_ms, -1, None, None, self.subtitle_area))
                         last_total_ms = total_ms
                         if total_ms / duration_ms >= 1:
-                            self.progress = 100
+                            self.update_progress(frame_extract=100)
                             return
                         else:
-                            self.progress = (total_ms / duration_ms) * 100
+                            self.update_progress(frame_extract=(total_ms / duration_ms) * 100)
                 # 文件被清理了
                 except FileNotFoundError:
                     return
@@ -901,6 +904,37 @@ class SubtitleExtractor:
         """
         if os.path.exists(self.temp_output_dir):
             shutil.rmtree(self.temp_output_dir, True)
+
+    def update_progress(self, ocr=None, frame_extract=None):
+        if ocr is not None:
+            self.progress_ocr = ocr
+        if frame_extract is not None:
+            self.progress_frame_extract = frame_extract
+        self.progress_total = (self.progress_frame_extract + self.progress_ocr) / 2
+
+    def start_subtitle_ocr_async(self):
+        def recv_ocr_progress():
+            duration_ms = (self.frame_count / self.fps) * 1000
+            notify = True
+            while True:
+                total_ms = self.subtitle_ocr_progress_queue.get(block=True)
+                if notify:
+                    print(interface_config['Main']['StartFindSub'])
+                    notify = False
+                self.update_progress(ocr=100 if total_ms == -1 else (total_ms / duration_ms * 100))
+                # print(f'recv total_ms:{total_ms}')
+                if total_ms == -1:
+                    return
+
+        thread, task_queue, progress_queue = subtitle_ocr.async_start(self.video_path,
+                                                                      self.raw_subtitle_path,
+                                                                      self.sub_area,
+                                                                      config.REC_CHAR_TYPE,
+                                                                      config.DROP_SCORE)
+        self.subtitle_ocr_queue = task_queue
+        self.subtitle_ocr_progress_queue = progress_queue
+        Thread(target=recv_ocr_progress, daemon=True).start()
+        return thread
 
 
 if __name__ == '__main__':
