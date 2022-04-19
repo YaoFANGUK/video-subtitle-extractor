@@ -463,4 +463,4 @@ if __name__ == '__main__':
         if platform.system() == 'Windows':
             os.system('pause')
         else:
-            os.system('read')
+            input()
