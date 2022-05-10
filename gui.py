@@ -41,8 +41,8 @@ class SubtitleExtractorGUI:
         # 获取窗口分辨率
         self.screen_width, self.screen_height = sg.Window.get_screen_size()
         # 设置视频预览区域大小
-        self.video_preview_height = self.screen_height // 2
         self.video_preview_width = self.screen_width // 2
+        self.video_preview_height = self.video_preview_width * 9 // 16
         # 字幕提取器布局
         self.layout = None
         # 字幕提取其窗口
@@ -100,8 +100,6 @@ class SubtitleExtractorGUI:
                     self.window['-FILE-'].update(disabled=False)
                     self.window['-FILE_BTN-'].update(disabled=False)
                     self.window['-LANGUAGE-MODE-'].update(disabled=False)
-
-
 
     def _create_layout(self):
         """
@@ -185,8 +183,8 @@ class SubtitleExtractorGUI:
                     self.frame_width = self.video_cap.get(cv2.CAP_PROP_FRAME_WIDTH)
                     # 获取视频的帧率
                     self.fps = self.video_cap.get(cv2.CAP_PROP_FPS)
-                    # 调整视频帧大小，是播放器能够显示
-                    resized_frame = cv2.resize(src=frame, dsize=(self.video_preview_width, self.video_preview_height))
+                    # 调整视频帧大小，使播放器能够显示
+                    resized_frame = self._img_resize(frame)
                     # 显示视频帧
                     self.window['-DISPLAY-'].update(data=cv2.imencode('.png', resized_frame)[1].tobytes())
                     # 更新视频进度条滑块range
@@ -268,9 +266,30 @@ class SubtitleExtractorGUI:
                     draw = cv2.rectangle(img=frame, pt1=(x, y), pt2=(x + w, y + h),
                                          color=(0, 255, 0), thickness=3)
                     # 调整视频帧大小，使播放器能够显示
-                    resized_frame = cv2.resize(src=draw, dsize=(self.video_preview_width, self.video_preview_height))
+                    resized_frame = self._img_resize(draw)
                     # 显示视频帧
                     self.window['-DISPLAY-'].update(data=cv2.imencode('.png', resized_frame)[1].tobytes())
+
+
+    def _img_resize(self, image):
+        top, bottom, left, right = (0, 0, 0, 0)
+        height, width = image.shape[0], image.shape[1]
+        # 对长短不想等的图片，找到最长的一边
+        longest_edge = max(height, width)
+        # 计算短边需要增加多少像素宽度使其与长边等长
+        if height < longest_edge:
+            dh = longest_edge - height
+            top = dh // 2
+            bottom = dh - top
+        elif width < longest_edge:
+            dw = longest_edge - width
+            left = dw //2
+            right = dw - left
+        else:
+            pass
+        # 给图像增加边界
+        constant = cv2.copyMakeBorder(image, top, bottom, left, right, cv2.BORDER_CONSTANT, value=[0, 0, 0])
+        return cv2.resize(constant, (self.video_preview_width, self.video_preview_height))
 
 
 class LanguageModeGUI:
