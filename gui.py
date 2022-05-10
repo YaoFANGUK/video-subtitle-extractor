@@ -102,6 +102,7 @@ class SubtitleExtractorGUI:
                     self.window['-LANGUAGE-MODE-'].update(disabled=False)
 
 
+
     def _create_layout(self):
         """
         创建字幕提取器布局
@@ -237,11 +238,14 @@ class SubtitleExtractorGUI:
                 self.ymax = int(values['-Y-SLIDER-'] + values['-Y-SLIDER-H-'])
                 print(f"{self.interface_config['SubtitleExtractorGUI']['SubtitleArea']}：({self.ymin},{self.ymax},{self.xmin},{self.xmax})")
                 subtitle_area = (self.ymin, self.ymax, self.xmin, self.xmax)
+
                 def task():
                     for video_path in self.video_paths:
                         self.se = backend.main.SubtitleExtractor(video_path, subtitle_area)
                         self.se.run()
                 Thread(target=task, daemon=True).start()
+                self.video_cap.release()
+                self.video_cap = None
 
     def _slide_event_handler(self, event, values):
         """
@@ -458,7 +462,8 @@ if __name__ == '__main__':
         import traceback
         traceback.print_exc()
         msg = traceback.format_exc()
-        with open('errorInfo.log', 'w', encoding='utf-8') as f:
+        err_log_path = os.path.join(os.path.expanduser('~'), 'errorInfo.log')
+        with open(err_log_path, 'w', encoding='utf-8') as f:
             f.writelines(msg)
         import platform
         if platform.system() == 'Windows':
