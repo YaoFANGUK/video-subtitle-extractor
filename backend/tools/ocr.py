@@ -8,6 +8,7 @@ import importlib
 class OcrRecogniser:
     def __init__(self):
         # 获取参数对象
+        importlib.reload(config)
         self.args = utility.parse_args()
         self.recogniser = self.init_model()
 
@@ -78,12 +79,12 @@ class OcrRecogniser:
             for i in [j[0] for j in ranked_res]:
                 dt_box.append([(i[0], i[2]), (i[1], i[2]), (i[1], i[3]), (i[0], i[3])])
             res = [i[1] for i in ranked_res]
+            print(res)
             return dt_box, res
         else:
             return detection_box, recognise_result
 
     def init_model(self):
-        importlib.reload(config)
         self.args.use_gpu = config.USE_GPU
         # 设置文本检测模型路径
         self.args.det_model_dir = config.DET_MODEL_PATH
