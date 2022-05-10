@@ -20,8 +20,6 @@ from numpy import average, dot, linalg
 import numpy as np
 from tqdm import tqdm
 import sys
-from paddle import fluid
-fluid.install_check.run_check()
 sys.path.insert(0, os.path.dirname(__file__))
 import importlib
 import config

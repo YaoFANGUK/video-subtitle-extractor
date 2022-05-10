@@ -79,7 +79,6 @@ class OcrRecogniser:
             for i in [j[0] for j in ranked_res]:
                 dt_box.append([(i[0], i[2]), (i[1], i[2]), (i[1], i[3]), (i[0], i[3])])
             res = [i[1] for i in ranked_res]
-            print(res)
             return dt_box, res
         else:
             return detection_box, recognise_result
