@@ -1,4 +1,20 @@
-# -*- coding:utf-8 -*- 
+# copyright (c) 2020 PaddlePaddle Authors. All Rights Reserve.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""
+This code is refer from:
+https://github.com/WenmuZhou/DBNet.pytorch/blob/master/data_loader/modules/make_shrink_map.py
+"""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -49,7 +65,7 @@ class MakeShrinkMap(object):
                                 pyclipper.ET_CLOSEDPOLYGON)
                 shrinked = []
 
-                # Increase the shrink ratio every time we get multiple polygon returned back 
+                # Increase the shrink ratio every time we get multiple polygon returned back
                 possible_ratios = np.arange(self.shrink_ratio, 1,
                                             self.shrink_ratio)
                 np.append(possible_ratios, 1)
@@ -71,7 +87,6 @@ class MakeShrinkMap(object):
                 for each_shirnk in shrinked:
                     shirnk = np.array(each_shirnk).reshape(-1, 2)
                     cv2.fillPoly(gt, [shirnk.astype(np.int32)], 1)
-                # cv2.fillPoly(gt[0], [shrinked.astype(np.int32)], 1)
 
         data['shrink_map'] = gt
         data['shrink_mask'] = mask
@@ -97,11 +112,12 @@ class MakeShrinkMap(object):
         return polygons, ignore_tags
 
     def polygon_area(self, polygon):
-        # return cv2.contourArea(polygon.astype(np.float32))
-        edge = 0
-        for i in range(polygon.shape[0]):
-            next_index = (i + 1) % polygon.shape[0]
-            edge += (polygon[next_index, 0] - polygon[i, 0]) * (
-                polygon[next_index, 1] - polygon[i, 1])
-
-        return edge / 2.
+        """
+        compute polygon area
+        """
+        area = 0
+        q = polygon[-1]
+        for p in polygon:
+            area += p[0] * q[1] - p[1] * q[0]
+            q = p
+        return area / 2.0

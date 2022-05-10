@@ -23,8 +23,8 @@ import sys
 from paddle import fluid
 fluid.install_check.run_check()
 sys.path.insert(0, os.path.dirname(__file__))
+import importlib
 import config
-from config import interface_config
 from tools.reformat_en import reformat
 from tools.infer import utility
 from tools.infer.predict_det import TextDetector
@@ -40,9 +40,10 @@ import time
 class SubtitleDetect:
     def __init__(self):
         # 获取参数对象
+        importlib.reload(config)
         args = utility.parse_args()
         args.det_algorithm = 'DB'
-        args.det_model_dir = config.DET_MODEL_FAST_PATH
+        args.det_model_dir = config.DET_MODEL_PATH
         self.text_detector = TextDetector(args)
 
     def detect_subtitle(self, img):
@@ -54,8 +55,8 @@ class SubtitleExtractor:
     """
     视频字幕提取类
     """
-
     def __init__(self, vd_path, sub_area=None):
+        importlib.reload(config)
         # 线程锁
         self.lock = threading.RLock()
         # 字幕区域位置
@@ -91,10 +92,10 @@ class SubtitleExtractor:
         self.raw_subtitle_path = os.path.join(self.subtitle_output_dir, 'raw.txt')
         # 自定义ocr对象
         self.ocr = None
-        print(f"{interface_config['Main']['RecSubLang']}：{config.REC_CHAR_TYPE}")
-        print(f"{interface_config['Main']['RecMode']}：{config.MODE_TYPE}")
+        print(f"{config.interface_config['Main']['RecSubLang']}：{config.REC_CHAR_TYPE}")
+        print(f"{config.interface_config['Main']['RecMode']}：{config.MODE_TYPE}")
         if config.USE_GPU:
-            print(interface_config['Main']['GPUSpeedUp'])
+            print(config.interface_config['Main']['GPUSpeedUp'])
         # 处理进度
         self.progress_total = 0
         self.progress_frame_extract = 0
@@ -117,8 +118,9 @@ class SubtitleExtractor:
         self.update_progress(ocr=0, frame_extract=0)
 
         print(
-            f"{interface_config['Main']['FrameCount']}：{self.frame_count}，{interface_config['Main']['FrameRate']}：{self.fps}")
-        print(interface_config['Main']['StartProcessFrame'])
+            f"{config.interface_config['Main']['FrameCount']}：{self.frame_count}"
+            f"，{config.interface_config['Main']['FrameRate']}：{self.fps}")
+        print(config.interface_config['Main']['StartProcessFrame'])
 
         subtitle_ocr_thread = self.start_subtitle_ocr_async()
         if self.sub_area is not None:
@@ -142,25 +144,25 @@ class SubtitleExtractor:
         duration_ms = (self.frame_count / self.fps) * 1000
         self.subtitle_ocr_queue.put((-1, duration_ms, -1, None, None, None))
         subtitle_ocr_thread.join()
-        print(interface_config['Main']['FinishProcessFrame'])
+        print(config.interface_config['Main']['FinishProcessFrame'])
 
-        print(interface_config['Main']['FinishFindSub'])
+        print(config.interface_config['Main']['FinishFindSub'])
 
         if self.sub_area is None:
-            print(interface_config['Main']['StartDetectWaterMark'])
+            print(config.interface_config['Main']['StartDetectWaterMark'])
             # 询问用户视频是否有水印区域
-            user_input = input(interface_config['Main']['checkWaterMark']).strip()
+            user_input = input(config.interface_config['Main']['checkWaterMark']).strip()
             if user_input == 'y':
                 self.filter_watermark()
-                print(interface_config['Main']['FinishDetectWaterMark'])
+                print(config.interface_config['Main']['FinishDetectWaterMark'])
             else:
                 print('-----------------------------')
 
         if self.sub_area is None:
-            print(interface_config['Main']['StartDeleteNonSub'])
+            print(config.interface_config['Main']['StartDeleteNonSub'])
             self.filter_scene_text()
-            print(interface_config['Main']['FinishDeleteNonSub'])
-        print(interface_config['Main']['StartGenerateSub'])
+            print(config.interface_config['Main']['FinishDeleteNonSub'])
+        print(config.interface_config['Main']['StartGenerateSub'])
         # 判断是否开启精准模式
         if config.ACCURATE_MODE_ON:
             # 如果开启精准模式则使用原生字幕生成
@@ -174,7 +176,7 @@ class SubtitleExtractor:
         # 如果识别的字幕语言包含英文，则将英文分词
         if config.REC_CHAR_TYPE in ('ch', 'EN', 'en', 'ch_tra'):
             reformat(os.path.join(os.path.splitext(self.video_path)[0] + '.srt'))
-        print(interface_config['Main']['FinishGenerateSub'], f"{round(time.time() - start_time, 2)}s")
+        print(config.interface_config['Main']['FinishGenerateSub'], f"{round(time.time() - start_time, 2)}s")
         self.update_progress(ocr=100, frame_extract=100)
         self.isFinished = True
         # 删除缓存文件
@@ -391,11 +393,12 @@ class SubtitleExtractor:
 
         sample_frame_file_path = os.path.join(os.path.dirname(self.frame_output_dir), 'watermark_area.jpg')
         cv2.imwrite(sample_frame_file_path, sample_frame)
-        print(f"{interface_config['Main']['WatchPicture']}: {sample_frame_file_path}")
+        print(f"{config.interface_config['Main']['WatchPicture']}: {sample_frame_file_path}")
 
         area_num = ['E', 'D', 'C', 'B', 'A']
         for watermark_area in watermark_areas:
-            user_input = input(f"{area_num.pop()}{str(watermark_area)} {interface_config['Main']['QuestionDelete']}").strip()
+            user_input = input(f"{area_num.pop()}{str(watermark_area)} "
+                               f"{config.interface_config['Main']['QuestionDelete']}").strip()
             if user_input == 'y' or user_input == '\n':
                 with open(self.raw_subtitle_path, mode='r+', encoding='utf-8') as f:
                     content = f.readlines()
@@ -404,8 +407,8 @@ class SubtitleExtractor:
                         if i.find(str(watermark_area[0])) == -1:
                             f.write(i)
                     f.truncate()
-                print(interface_config['Main']['FinishDelete'])
-        print(interface_config['Main']['FinishWaterMarkFilter'])
+                print(config.interface_config['Main']['FinishDelete'])
+        print(config.interface_config['Main']['FinishWaterMarkFilter'])
         # 删除缓存
         if os.path.exists(sample_frame_file_path):
             os.remove(sample_frame_file_path)
@@ -439,9 +442,9 @@ class SubtitleExtractor:
         cv2.rectangle(sample_frame, pt1=(0, ymin), pt2=(sample_frame.shape[1], ymax), color=(0, 0, 255), thickness=3)
         sample_frame_file_path = os.path.join(os.path.dirname(self.frame_output_dir), 'subtitle_area.jpg')
         cv2.imwrite(sample_frame_file_path, sample_frame)
-        print(f"{interface_config['Main']['CheckSubArea']} {sample_frame_file_path}")
+        print(f"{config.interface_config['Main']['CheckSubArea']} {sample_frame_file_path}")
 
-        user_input = input(f"{(ymin, ymax)} {interface_config['Main']['DeleteNoSubArea']}").strip()
+        user_input = input(f"{(ymin, ymax)} {config.interface_config['Main']['DeleteNoSubArea']}").strip()
         if user_input == 'y' or user_input == '\n':
             with open(self.raw_subtitle_path, mode='r+', encoding='utf-8') as f:
                 content = f.readlines()
@@ -452,7 +455,7 @@ class SubtitleExtractor:
                     if ymin <= i_ymin and i_ymax <= ymax:
                         f.write(i)
                 f.truncate()
-            print(interface_config['Main']['FinishDeleteNoSubArea'])
+            print(config.interface_config['Main']['FinishDeleteNoSubArea'])
         # 删除缓存
         if os.path.exists(sample_frame_file_path):
             os.remove(sample_frame_file_path)
@@ -478,7 +481,7 @@ class SubtitleExtractor:
                 frame_content = content[2]
                 subtitle_line = f'{line_code}\n{frame_start} --> {frame_end}\n{frame_content}\n'
                 f.write(subtitle_line)
-        print(f"{interface_config['Main']['SubLocation']} {srt_filename}")
+        print(f"{config.interface_config['Main']['SubLocation']} {srt_filename}")
         # 返回持续时间低于1s的字幕行
         return post_process_subtitle
 
@@ -511,7 +514,7 @@ class SubtitleExtractor:
                     f.write(f'{i + 1}\n')
                     f.write(f'{subtitle_line[0]}\n')
                     f.write(f'{subtitle_line[1]}\n')
-            print(f"{interface_config['Main']['SubLocation']} {srt_filename}")
+            print(f"{config.interface_config['Main']['SubLocation']} {srt_filename}")
         except FileNotFoundError:
             self.generate_subtitle_file()
 
@@ -919,7 +922,7 @@ class SubtitleExtractor:
             while True:
                 total_ms = self.subtitle_ocr_progress_queue.get(block=True)
                 if notify:
-                    print(interface_config['Main']['StartFindSub'])
+                    print(config.interface_config['Main']['StartFindSub'])
                     notify = False
                 self.update_progress(ocr=100 if total_ms == -1 else (total_ms / duration_ms * 100))
                 # print(f'recv total_ms:{total_ms}')
@@ -940,11 +943,11 @@ class SubtitleExtractor:
 if __name__ == '__main__':
     multiprocessing.set_start_method("spawn")
     # 提示用户输入视频路径
-    video_path = input(f"{interface_config['Main']['InputVideo']}").strip()
+    video_path = input(f"{config.interface_config['Main']['InputVideo']}").strip()
     # 提示用户输入字幕区域
     try:
         y_min, y_max, x_min, x_max = map(int, input(
-            f"{interface_config['Main']['ChooseSubArea']} (ymin ymax xmin xmax)：").split())
+            f"{config.interface_config['Main']['ChooseSubArea']} (ymin ymax xmin xmax)：").split())
         subtitle_area = (y_min, y_max, x_min, x_max)
     except ValueError as e:
         subtitle_area = None

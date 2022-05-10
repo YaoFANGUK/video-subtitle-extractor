@@ -64,36 +64,40 @@ while not IS_LEGAL_PATH:
     time.sleep(3)
 # 模型文件目录
 # 文本检测模型
-DET_MODEL_BASE = os.path.join(BASE_DIR, '', 'models')
-DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, 'ch_det')
-DET_MODEL_FAST_PATH = os.path.join(DET_MODEL_BASE, 'ch_det_fast')
+DET_MODEL_BASE = os.path.join(BASE_DIR, 'models')
 # 设置文本识别模型 + 字典
-REC_MODEL_BASE = os.path.join(BASE_DIR, '', 'models')
-# 默认文本识别模型为中文
-REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, '', 'models', 'ch_rec')
-REC_MODEL_FAST_PATH = os.path.join(REC_MODEL_BASE, 'ch_rec_fast')
+REC_MODEL_BASE = os.path.join(BASE_DIR, 'models')
 # 默认字典路径为中文
-DICT_BASE = os.path.join(BASE_DIR, '', 'ppocr', 'utils', 'dict')
-DICT_PATH = os.path.join(BASE_DIR, '', 'ppocr', 'utils', 'ppocr_keys_v1.txt')
+DICT_BASE = os.path.join(BASE_DIR, 'ppocr', 'utils', 'dict')
 
 
 # 如果设置了识别文本语言类型，则设置为对应的语言
 if REC_CHAR_TYPE in ('ch', 'japan', 'korean', 'en', 'EN_symbol', 'french', 'german', 'it', 'es', 'pt', 'ru', 'ar',
                      'ta', 'ug', 'fa', 'ur', 'rs_latin', 'oc', 'rs_cyrillic', 'bg', 'uk', 'be', 'te', 'kn', 'ch_tra', 'hi', 'mr', 'ne', 'EN'):
-    REC_MODEL_FAST_PATH = os.path.join(REC_MODEL_BASE, f'{REC_CHAR_TYPE}_rec_fast')
+    # 定义文本检测模型
     if REC_CHAR_TYPE == 'en':
-        REC_MODEL_PATH = os.path.join(BASE_DIR, '', 'models', 'ch_rec')
-        DICT_PATH = os.path.join(BASE_DIR, '', 'ppocr', 'utils', 'dict', 'ch_dict.txt')
+        DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, 'en_det')
     else:
-        REC_MODEL_PATH = os.path.join(BASE_DIR, '', 'models', f'{REC_CHAR_TYPE}_rec')
-        DICT_PATH = os.path.join(BASE_DIR, '', 'ppocr', 'utils', 'dict', f'{REC_CHAR_TYPE}_dict.txt')
-    if not os.path.exists(REC_MODEL_FAST_PATH):
-        REC_MODEL_FAST_PATH = REC_MODEL_PATH
+        if ACCURATE_MODE_ON:
+            DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, 'ch_det')
+        else:
+            DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, 'ch_det_fast')
+    # 定义文本识别模型
+    if ACCURATE_MODE_ON:
+        REC_MODEL_PATH = os.path.join(BASE_DIR, 'models', f'{REC_CHAR_TYPE}_rec')
+    else:
+        REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, f'{REC_CHAR_TYPE}_rec_fast')
+        # 没有快速版的就使用一般版
+        if not os.path.exists(REC_MODEL_PATH):
+            REC_MODEL_PATH = os.path.join(BASE_DIR, 'models', f'{REC_CHAR_TYPE}_rec')
+    # 定义字典路径
+    DICT_PATH = os.path.join(DICT_BASE, f'{REC_CHAR_TYPE}_dict.txt')
 
-# 查看该路径下是否有文本模型识别完整文件，没有的话合并小文件生成完整文件
-if 'inference.pdiparams' not in (os.listdir(REC_MODEL_PATH)):
-    fs = Filesplit()
-    fs.merge(input_dir=REC_MODEL_PATH)
+    # 查看该路径下是否有文本模型识别完整文件，没有的话合并小文件生成完整文件
+    if 'inference.pdiparams' not in (os.listdir(REC_MODEL_PATH)):
+        fs = Filesplit()
+        fs.merge(input_dir=REC_MODEL_PATH)
+
 # --------------------- 请你不要改 end-----------------------------
 
 
