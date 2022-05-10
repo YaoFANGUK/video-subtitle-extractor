@@ -22,7 +22,9 @@ import multiprocessing
 
 class SubtitleExtractorGUI:
     def __init__(self):
-        sg.theme('LightBrown12')
+        self.font = 'Arial 10'
+        self.theme = 'LightBrown12'
+        sg.theme(self.theme)
         self.config_file = os.path.join(os.path.dirname(__file__), 'settings.ini')
         self.config = configparser.ConfigParser()
         self.interface_config = configparser.ConfigParser()
@@ -38,11 +40,21 @@ class SubtitleExtractorGUI:
         self.interface_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backend', 'interface',
                                            f"{self.INTERFACE_KEY_NAME_MAP[self.config['DEFAULT']['Interface']]}.ini")
         self.interface_config.read(self.interface_file, encoding='utf-8')
-        # 获取窗口分辨率
         self.screen_width, self.screen_height = sg.Window.get_screen_size()
         # 设置视频预览区域大小
-        self.video_preview_width = self.screen_width // 2
+        self.video_preview_width = 960
         self.video_preview_height = self.video_preview_width * 9 // 16
+        # 默认组件大小
+        self.horizontal_slider_size = (120, 20)
+        self.output_size = (100, 10)
+        self.progressbar_size = (60, 20)
+        # 分辨率低于1080
+        if self.screen_width // 2 < 960:
+            self.video_preview_width = 720
+            self.video_preview_height = self.video_preview_width * 9 // 16
+            self.horizontal_slider_size = (70, 20)
+            self.output_size = (70, 10)
+            self.progressbar_size = (37, 20)
         # 字幕提取器布局
         self.layout = None
         # 字幕提取其窗口
@@ -120,40 +132,45 @@ class SubtitleExtractorGUI:
                                                                                               ('flv', '*.flv'),
                                                                                               ('wmv', '*.wmv'),
                                                                                               ('avi', '*.avi')),
-                           key='-FILE_BTN-'),
-             sg.Slider(size=(80, 20), range=(1, 1), key='-SLIDER-', orientation='h',
-                       enable_events=True,
+                           key='-FILE_BTN-', size=(10, 1), font=self.font),
+             sg.Slider(size=self.horizontal_slider_size, range=(1, 1), key='-SLIDER-', orientation='h',
+                       enable_events=True, font=self.font,
                        disable_number_display=True),
              ],
             # 输出区域
-            [sg.Output(size=(70, 10), font='Courier 10'),
-             sg.Frame(title=self.interface_config['SubtitleExtractorGUI']['Vertical'], layout=[[
+            [sg.Output(size=self.output_size, font=self.font),
+             sg.Frame(title=self.interface_config['SubtitleExtractorGUI']['Vertical'], font=self.font, layout=[[
                  sg.Slider(range=(0, 0), orientation='v', size=(10, 20),
-                           # disable_number_display=True,
-                           enable_events=True,
+                           disable_number_display=True,
+                           enable_events=True, font=self.font,
+                           pad=((10, 10), (20, 20)),
                            default_value=0, key='-Y-SLIDER-'),
                  sg.Slider(range=(0, 0), orientation='v', size=(10, 20),
-                           # disable_number_display=True,
-                           enable_events=True,
+                           disable_number_display=True,
+                           enable_events=True, font=self.font,
+                           pad=((10, 10), (20, 20)),
                            default_value=0, key='-Y-SLIDER-H-'),
              ]], pad=((15, 5), (0, 0))),
-             sg.Frame(title=self.interface_config['SubtitleExtractorGUI']['Horizontal'], layout=[[
+             sg.Frame(title=self.interface_config['SubtitleExtractorGUI']['Horizontal'], font=self.font, layout=[[
                  sg.Slider(range=(0, 0), orientation='v', size=(10, 20),
-                           # disable_number_display=True,
-                           enable_events=True,
+                           disable_number_display=True,
+                           pad=((10, 10), (20, 20)),
+                           enable_events=True, font=self.font,
                            default_value=0, key='-X-SLIDER-'),
                  sg.Slider(range=(0, 0), orientation='v', size=(10, 20),
-                           # disable_number_display=True,
-                           enable_events=True,
+                           disable_number_display=True,
+                           pad=((10, 10), (20, 20)),
+                           enable_events=True, font=self.font,
                            default_value=0, key='-X-SLIDER-W-'),
              ]], pad=((15, 5), (0, 0)))
              ],
 
             # 运行按钮 + 进度条
-            [sg.Button(button_text=self.interface_config['SubtitleExtractorGUI']['Run'], key='-RUN-', size=(20, 1)),
+            [sg.Button(button_text=self.interface_config['SubtitleExtractorGUI']['Run'], key='-RUN-',
+                       font=self.font, size=(20, 1)),
              sg.Button(button_text=self.interface_config['SubtitleExtractorGUI']['Setting'], key='-LANGUAGE-MODE-',
-                       size=(20, 1)),
-             sg.ProgressBar(100, orientation='h', size=(44, 20), key='-PROG-')
+                       font=self.font, size=(20, 1)),
+             sg.ProgressBar(100, orientation='h', size=self.progressbar_size, key='-PROG-', auto_size_text=True)
              ],
         ]
 
@@ -185,6 +202,7 @@ class SubtitleExtractorGUI:
                     self.fps = self.video_cap.get(cv2.CAP_PROP_FPS)
                     # 调整视频帧大小，使播放器能够显示
                     resized_frame = self._img_resize(frame)
+                    # resized_frame = cv2.resize(src=frame, dsize=(self.video_preview_width, self.video_preview_height))
                     # 显示视频帧
                     self.window['-DISPLAY-'].update(data=cv2.imencode('.png', resized_frame)[1].tobytes())
                     # 更新视频进度条滑块range
@@ -275,15 +293,11 @@ class SubtitleExtractorGUI:
         top, bottom, left, right = (0, 0, 0, 0)
         height, width = image.shape[0], image.shape[1]
         # 对长短不想等的图片，找到最长的一边
-        longest_edge = max(height, width)
+        longest_edge = height
         # 计算短边需要增加多少像素宽度使其与长边等长
-        if height < longest_edge:
-            dh = longest_edge - height
-            top = dh // 2
-            bottom = dh - top
-        elif width < longest_edge:
+        if width < longest_edge:
             dw = longest_edge - width
-            left = dw //2
+            left = dw // 2
             right = dw - left
         else:
             pass
@@ -481,7 +495,7 @@ if __name__ == '__main__':
         import traceback
         traceback.print_exc()
         msg = traceback.format_exc()
-        err_log_path = os.path.join(os.path.expanduser('~'), 'errorInfo.log')
+        err_log_path = os.path.join(os.path.expanduser('~'), 'VSE-Error-Message.log')
         with open(err_log_path, 'w', encoding='utf-8') as f:
             f.writelines(msg)
         import platform
