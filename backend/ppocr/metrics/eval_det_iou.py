@@ -150,7 +150,7 @@ class DetectionIoUEvaluator(object):
                             pairs.append({'gt': gtNum, 'det': detNum})
                             detMatchedNums.append(detNum)
                             evaluationLog += "Match GT #" + \
-                                str(gtNum) + " with Det #" + str(detNum) + "\n"
+                                             str(gtNum) + " with Det #" + str(detNum) + "\n"
 
         numGtCare = (len(gtPols) - len(gtDontCarePolsNum))
         numDetCare = (len(detPols) - len(detDontCarePolsNum))
@@ -162,28 +162,17 @@ class DetectionIoUEvaluator(object):
             precision = 0 if numDetCare == 0 else float(detMatched) / numDetCare
 
         hmean = 0 if (precision + recall) == 0 else 2.0 * \
-            precision * recall / (precision + recall)
+                                                    precision * recall / (precision + recall)
 
         matchedSum += detMatched
         numGlobalCareGt += numGtCare
         numGlobalCareDet += numDetCare
 
         perSampleMetrics = {
-            'precision': precision,
-            'recall': recall,
-            'hmean': hmean,
-            'pairs': pairs,
-            'iouMat': [] if len(detPols) > 100 else iouMat.tolist(),
-            'gtPolPoints': gtPolPoints,
-            'detPolPoints': detPolPoints,
             'gtCare': numGtCare,
             'detCare': numDetCare,
-            'gtDontCare': gtDontCarePolsNum,
-            'detDontCare': detDontCarePolsNum,
             'detMatched': detMatched,
-            'evaluationLog': evaluationLog
         }
-
         return perSampleMetrics
 
     def combine_results(self, results):
@@ -200,7 +189,8 @@ class DetectionIoUEvaluator(object):
         methodPrecision = 0 if numGlobalCareDet == 0 else float(
             matchedSum) / numGlobalCareDet
         methodHmean = 0 if methodRecall + methodPrecision == 0 else 2 * \
-            methodRecall * methodPrecision / (methodRecall + methodPrecision)
+                                                                    methodRecall * methodPrecision / (
+                                                                            methodRecall + methodPrecision)
         # print(methodRecall, methodPrecision, methodHmean)
         # sys.exit(-1)
         methodMetrics = {

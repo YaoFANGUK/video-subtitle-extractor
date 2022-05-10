@@ -6,10 +6,12 @@
 @desc: 字幕提取器图形化界面
 """
 import warnings
+import backend.main
 warnings.filterwarnings("ignore", category=Warning)
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 import sys
 import os
+import importlib
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dependencies'))
 import configparser
 import PySimpleGUI as sg
@@ -191,7 +193,7 @@ class SubtitleExtractorGUI:
                     self.window['-SLIDER-'].update(1)
                     # 更新视频字幕位置滑块range
                     self.window['-Y-SLIDER-'].update(range=(0, self.frame_height), disabled=False)
-                    self.window['-Y-SLIDER-H-'].update(range=(0, self.frame_height // 2), disabled=False)
+                    self.window['-Y-SLIDER-H-'].update(range=(0, self.frame_height), disabled=False)
                     self.window['-Y-SLIDER-'].update(self.frame_height * .85)
                     self.window['-Y-SLIDER-H-'].update(self.frame_height * .146)
                     self.window['-X-SLIDER-'].update(range=(0, self.frame_width), disabled=False)
@@ -205,7 +207,7 @@ class SubtitleExtractorGUI:
             return
         if 'OK' == LanguageModeGUI().run():
             # 重新加载config
-            from backend.main import SubtitleExtractor
+            importlib.reload(backend.main)
 
     def _run_event_handler(self, event, values):
         """
@@ -235,10 +237,9 @@ class SubtitleExtractorGUI:
                 self.ymax = int(values['-Y-SLIDER-'] + values['-Y-SLIDER-H-'])
                 print(f"{self.interface_config['SubtitleExtractorGUI']['SubtitleArea']}：({self.ymin},{self.ymax},{self.xmin},{self.xmax})")
                 subtitle_area = (self.ymin, self.ymax, self.xmin, self.xmax)
-                from backend.main import SubtitleExtractor
                 def task():
                     for video_path in self.video_paths:
-                        self.se = SubtitleExtractor(video_path, subtitle_area)
+                        self.se = backend.main.SubtitleExtractor(video_path, subtitle_area)
                         self.se.run()
                 Thread(target=task, daemon=True).start()
 
