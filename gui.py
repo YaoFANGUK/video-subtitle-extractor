@@ -21,16 +21,13 @@ import multiprocessing
 
 
 class SubtitleExtractorGUI:
-    def __init__(self):
-        self.font = 'Arial 10'
-        self.theme = 'LightBrown12'
-        sg.theme(self.theme)
+    def _load_config(self):
         self.config_file = os.path.join(os.path.dirname(__file__), 'settings.ini')
         self.config = configparser.ConfigParser()
         self.interface_config = configparser.ConfigParser()
         if not os.path.exists(self.config_file):
             # 如果没有配置文件，默认弹出语言选择界面
-            LanguageModeGUI().run()
+            LanguageModeGUI(self).run()
         self.INTERFACE_KEY_NAME_MAP = {
             '简体中文': 'ch',
             '繁體中文': 'ch_tra',
@@ -40,6 +37,12 @@ class SubtitleExtractorGUI:
         self.interface_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backend', 'interface',
                                            f"{self.INTERFACE_KEY_NAME_MAP[self.config['DEFAULT']['Interface']]}.ini")
         self.interface_config.read(self.interface_file, encoding='utf-8')
+
+    def __init__(self):
+        self.font = 'Arial 10'
+        self.theme = 'LightBrown12'
+        sg.theme(self.theme)
+        self._load_config()
         self.screen_width, self.screen_height = sg.Window.get_screen_size()
         # 设置视频预览区域大小
         self.video_preview_width = 960
@@ -113,6 +116,15 @@ class SubtitleExtractorGUI:
                     self.window['-FILE_BTN-'].update(disabled=False)
                     self.window['-LANGUAGE-MODE-'].update(disabled=False)
 
+    def update_interface_text(self):
+        self._load_config()
+        self.window.set_title(self.interface_config['SubtitleExtractorGUI']['Title'])
+        self.window['-FILE_BTN-'].Update(self.interface_config['SubtitleExtractorGUI']['Open'])
+        self.window['-FRAME1-'].Update(self.interface_config['SubtitleExtractorGUI']['Vertical'])
+        self.window['-FRAME2-'].Update(self.interface_config['SubtitleExtractorGUI']['Horizontal'])
+        self.window['-RUN-'].Update(self.interface_config['SubtitleExtractorGUI']['Run'])
+        self.window['-LANGUAGE-MODE-'].Update(self.interface_config['SubtitleExtractorGUI']['Setting'])
+
     def _create_layout(self):
         """
         创建字幕提取器布局
@@ -127,19 +139,20 @@ class SubtitleExtractorGUI:
                       key='-DISPLAY-')],
             # 打开按钮 + 快进快退条
             [sg.Input(key='-FILE-', visible=False, enable_events=True),
-             sg.FilesBrowse(self.interface_config['SubtitleExtractorGUI']['Open'], file_types=((
+             sg.FilesBrowse(button_text=self.interface_config['SubtitleExtractorGUI']['Open'], file_types=((
                             self.interface_config['SubtitleExtractorGUI']['AllFile'], '*.*'), ('mp4', '*.mp4'),
                                                                                               ('flv', '*.flv'),
                                                                                               ('wmv', '*.wmv'),
                                                                                               ('avi', '*.avi')),
-                           key='-FILE_BTN-', size=(10, 1), font=self.font),
+                            key='-FILE_BTN-', size=(10, 1), font=self.font),
              sg.Slider(size=self.horizontal_slider_size, range=(1, 1), key='-SLIDER-', orientation='h',
                        enable_events=True, font=self.font,
                        disable_number_display=True),
              ],
             # 输出区域
             [sg.Output(size=self.output_size, font=self.font),
-             sg.Frame(title=self.interface_config['SubtitleExtractorGUI']['Vertical'], font=self.font, layout=[[
+             sg.Frame(title=self.interface_config['SubtitleExtractorGUI']['Vertical'], font=self.font, key='-FRAME1-',
+             layout=[[
                  sg.Slider(range=(0, 0), orientation='v', size=(10, 20),
                            disable_number_display=True,
                            enable_events=True, font=self.font,
@@ -151,7 +164,8 @@ class SubtitleExtractorGUI:
                            pad=((10, 10), (20, 20)),
                            default_value=0, key='-Y-SLIDER-H-'),
              ]], pad=((15, 5), (0, 0))),
-             sg.Frame(title=self.interface_config['SubtitleExtractorGUI']['Horizontal'], font=self.font, layout=[[
+             sg.Frame(title=self.interface_config['SubtitleExtractorGUI']['Horizontal'], font=self.font, key='-FRAME2-',
+             layout=[[
                  sg.Slider(range=(0, 0), orientation='v', size=(10, 20),
                            disable_number_display=True,
                            pad=((10, 10), (20, 20)),
@@ -218,13 +232,12 @@ class SubtitleExtractorGUI:
                     self.window['-X-SLIDER-'].update(self.frame_width * .15)
                     self.window['-X-SLIDER-W-'].update(self.frame_width * .7)
 
-    @staticmethod
-    def _language_mode_event_handler(event):
+    def _language_mode_event_handler(self, event):
         if event != '-LANGUAGE-MODE-':
             return
-        if 'OK' == LanguageModeGUI().run():
+        if 'OK' == LanguageModeGUI(self).run():
             # 重新加载config
-            importlib.reload(backend.main)
+            pass
 
     def _run_event_handler(self, event, values):
         """
@@ -288,7 +301,6 @@ class SubtitleExtractorGUI:
                     # 显示视频帧
                     self.window['-DISPLAY-'].update(data=cv2.imencode('.png', resized_frame)[1].tobytes())
 
-
     def _img_resize(self, image):
         top, bottom, left, right = (0, 0, 0, 0)
         height, width = image.shape[0], image.shape[1]
@@ -307,7 +319,8 @@ class SubtitleExtractorGUI:
 
 
 class LanguageModeGUI:
-    def __init__(self):
+    def __init__(self, subtitle_extractor_gui):
+        self.subtitle_extractor_gui = subtitle_extractor_gui
         self.config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'settings.ini')
         # 设置界面
         self.INTERFACE_DEF = '简体中文'
@@ -436,6 +449,8 @@ class LanguageModeGUI:
             if mode_str in self.MODE_NAME_KEY_MAP:
                 mode = self.MODE_NAME_KEY_MAP[mode_str]
             self.set_config(self.config_file, interface, language, mode)
+            if self.subtitle_extractor_gui is not None:
+                self.subtitle_extractor_gui.update_interface_text()
             self.window.close()
 
     def _interface_event_handler(self, event, values):
