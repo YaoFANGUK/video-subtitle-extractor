@@ -26,8 +26,10 @@ class MobileNetV3(nn.Layer):
                  scale=0.5,
                  large_stride=None,
                  small_stride=None,
+                 disable_se=False,
                  **kwargs):
         super(MobileNetV3, self).__init__()
+        self.disable_se = disable_se
         if small_stride is None:
             small_stride = [2, 2, 2, 2]
         if large_stride is None:
@@ -96,12 +98,12 @@ class MobileNetV3(nn.Layer):
             padding=1,
             groups=1,
             if_act=True,
-            act='hardswish',
-            name='conv1')
+            act='hardswish')
         i = 0
         block_list = []
         inplanes = make_divisible(inplanes * scale)
         for (k, exp, c, se, nl, s) in cfg:
+            se = se and not self.disable_se
             block_list.append(
                 ResidualUnit(
                     in_channels=inplanes,
@@ -110,8 +112,7 @@ class MobileNetV3(nn.Layer):
                     kernel_size=k,
                     stride=s,
                     use_se=se,
-                    act=nl,
-                    name='conv' + str(i + 2)))
+                    act=nl))
             inplanes = make_divisible(scale * c)
             i += 1
         self.blocks = nn.Sequential(*block_list)
@@ -124,8 +125,7 @@ class MobileNetV3(nn.Layer):
             padding=0,
             groups=1,
             if_act=True,
-            act='hardswish',
-            name='conv_last')
+            act='hardswish')
 
         self.pool = nn.MaxPool2D(kernel_size=2, stride=2, padding=0)
         self.out_channels = make_divisible(scale * cls_ch_squeeze)

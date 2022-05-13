@@ -23,7 +23,7 @@ import sys
 
 __dir__ = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(__dir__)
-sys.path.append(os.path.abspath(os.path.join(__dir__, '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(__dir__, '..')))
 
 os.environ["FLAGS_allocator_strategy"] = 'auto_growth'
 
@@ -32,7 +32,7 @@ import paddle
 from ppocr.data import create_operators, transform
 from ppocr.modeling.architectures import build_model
 from ppocr.postprocess import build_post_process
-from ppocr.utils.save_load import init_model
+from ppocr.utils.save_load import load_model
 from ppocr.utils.utility import get_image_file_list
 import tools.program as program
 
@@ -47,7 +47,7 @@ def main():
     # build model
     model = build_model(config['Architecture'])
 
-    init_model(config, model, logger)
+    load_model(config, model)
 
     # create data ops
     transforms = []
@@ -57,6 +57,8 @@ def main():
             continue
         elif op_name == 'KeepKeys':
             op[op_name]['keep_keys'] = ['image']
+        elif op_name == "SSLRotateResize":
+            op[op_name]["mode"] = "test"
         transforms.append(op)
     global_config['infer_mode'] = True
     ops = create_operators(transforms, global_config)
@@ -73,8 +75,8 @@ def main():
         images = paddle.to_tensor(images)
         preds = model(images)
         post_result = post_process_class(preds)
-        for rec_reuslt in post_result:
-            logger.info('\t result: {}'.format(rec_reuslt))
+        for rec_result in post_result:
+            logger.info('\t result: {}'.format(rec_result))
     logger.info("success!")
 
 
