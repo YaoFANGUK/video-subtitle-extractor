@@ -1,12 +1,14 @@
 from tools.infer import utility
 from tools.infer.predict_system import TextSystem
 import config
+import importlib
 
 
 # 加载文本检测+识别模型
 class OcrRecogniser:
     def __init__(self):
         # 获取参数对象
+        importlib.reload(config)
         self.args = utility.parse_args()
         self.recogniser = self.init_model()
 
@@ -83,23 +85,13 @@ class OcrRecogniser:
 
     def init_model(self):
         self.args.use_gpu = config.USE_GPU
-        if config.USE_GPU:
-            # 设置文本检测模型路径
-            self.args.det_model_dir = config.DET_MODEL_PATH
-            # 设置文本识别模型路径
-            self.args.rec_model_dir = config.REC_MODEL_PATH
-        else:
-            # 加载快速模型
-            self.args.det_model_dir = config.DET_MODEL_FAST_PATH
-            # 加载快速模型
-            self.args.rec_model_dir = config.REC_MODEL_FAST_PATH
-        # 设置字典路径
+        # 设置文本检测模型路径
+        self.args.det_model_dir = config.DET_MODEL_PATH
+        # 设置文本识别模型路径
+        self.args.rec_model_dir = config.REC_MODEL_PATH
         self.args.rec_char_dict_path = config.DICT_PATH
         # 设置识别文本的类型
-        if config.REC_CHAR_TYPE == 'en':
-            self.args.rec_char_type = 'ch'
-        else:
-            self.args.rec_char_type = config.REC_CHAR_TYPE
+        self.args.rec_char_type = config.REC_CHAR_TYPE
         return TextSystem(self.args)
 
 

@@ -23,64 +23,54 @@ import paddle.nn.functional as F
 from paddle import ParamAttr
 
 
-def get_bias_attr(k, name):
+def get_bias_attr(k):
     stdv = 1.0 / math.sqrt(k * 1.0)
     initializer = paddle.nn.initializer.Uniform(-stdv, stdv)
-    bias_attr = ParamAttr(initializer=initializer, name=name + "_b_attr")
+    bias_attr = ParamAttr(initializer=initializer)
     return bias_attr
 
 
 class Head(nn.Layer):
-    def __init__(self, in_channels, name_list):
+    def __init__(self, in_channels, name_list, kernel_list=[3, 2, 2], **kwargs):
         super(Head, self).__init__()
+
         self.conv1 = nn.Conv2D(
             in_channels=in_channels,
             out_channels=in_channels // 4,
-            kernel_size=3,
-            padding=1,
-            weight_attr=ParamAttr(name=name_list[0] + '.w_0'),
+            kernel_size=kernel_list[0],
+            padding=int(kernel_list[0] // 2),
+            weight_attr=ParamAttr(),
             bias_attr=False)
         self.conv_bn1 = nn.BatchNorm(
             num_channels=in_channels // 4,
             param_attr=ParamAttr(
-                name=name_list[1] + '.w_0',
                 initializer=paddle.nn.initializer.Constant(value=1.0)),
             bias_attr=ParamAttr(
-                name=name_list[1] + '.b_0',
                 initializer=paddle.nn.initializer.Constant(value=1e-4)),
-            moving_mean_name=name_list[1] + '.w_1',
-            moving_variance_name=name_list[1] + '.w_2',
             act='relu')
         self.conv2 = nn.Conv2DTranspose(
             in_channels=in_channels // 4,
             out_channels=in_channels // 4,
-            kernel_size=2,
+            kernel_size=kernel_list[1],
             stride=2,
             weight_attr=ParamAttr(
-                name=name_list[2] + '.w_0',
                 initializer=paddle.nn.initializer.KaimingUniform()),
-            bias_attr=get_bias_attr(in_channels // 4, name_list[-1] + "conv2"))
+            bias_attr=get_bias_attr(in_channels // 4))
         self.conv_bn2 = nn.BatchNorm(
             num_channels=in_channels // 4,
             param_attr=ParamAttr(
-                name=name_list[3] + '.w_0',
                 initializer=paddle.nn.initializer.Constant(value=1.0)),
             bias_attr=ParamAttr(
-                name=name_list[3] + '.b_0',
                 initializer=paddle.nn.initializer.Constant(value=1e-4)),
-            moving_mean_name=name_list[3] + '.w_1',
-            moving_variance_name=name_list[3] + '.w_2',
             act="relu")
         self.conv3 = nn.Conv2DTranspose(
             in_channels=in_channels // 4,
             out_channels=1,
-            kernel_size=2,
+            kernel_size=kernel_list[2],
             stride=2,
             weight_attr=ParamAttr(
-                name=name_list[4] + '.w_0',
                 initializer=paddle.nn.initializer.KaimingUniform()),
-            bias_attr=get_bias_attr(in_channels // 4, name_list[-1] + "conv3"),
-        )
+            bias_attr=get_bias_attr(in_channels // 4), )
 
     def forward(self, x):
         x = self.conv1(x)
@@ -111,13 +101,13 @@ class DBHead(nn.Layer):
             'conv2d_57', 'batch_norm_49', 'conv2d_transpose_2', 'batch_norm_50',
             'conv2d_transpose_3', 'thresh'
         ]
-        self.binarize = Head(in_channels, binarize_name_list)
-        self.thresh = Head(in_channels, thresh_name_list)
+        self.binarize = Head(in_channels, binarize_name_list, **kwargs)
+        self.thresh = Head(in_channels, thresh_name_list, **kwargs)
 
     def step_function(self, x, y):
         return paddle.reciprocal(1 + paddle.exp(-self.k * (x - y)))
 
-    def forward(self, x):
+    def forward(self, x, targets=None):
         shrink_maps = self.binarize(x)
         if not self.training:
             return {'maps': shrink_maps}

@@ -20,6 +20,7 @@ from __future__ import unicode_literals
 import os
 import sys
 import numpy as np
+import skimage
 import paddle
 import signal
 import random
@@ -34,6 +35,8 @@ import paddle.distributed as dist
 from ppocr.data.imaug import transform, create_operators
 from ppocr.data.simple_dataset import SimpleDataSet
 from ppocr.data.lmdb_dataset import LMDBDataSet
+from ppocr.data.pgnet_dataset import PGDataSet
+from ppocr.data.pubtab_dataset import PubTabDataSet
 
 __all__ = ['build_dataloader', 'transform', 'create_operators']
 
@@ -47,14 +50,12 @@ def term_mp(sig_num, frame):
     os.killpg(pgid, signal.SIGKILL)
 
 
-signal.signal(signal.SIGINT, term_mp)
-signal.signal(signal.SIGTERM, term_mp)
-
-
 def build_dataloader(config, mode, device, logger, seed=None):
     config = copy.deepcopy(config)
 
-    support_dict = ['SimpleDataSet', 'LMDBDataSet']
+    support_dict = [
+        'SimpleDataSet', 'LMDBDataSet', 'PGDataSet', 'PubTabDataSet'
+    ]
     module_name = config[mode]['dataset']['name']
     assert module_name in support_dict, Exception(
         'DataSet only support {}'.format(support_dict))
@@ -71,27 +72,38 @@ def build_dataloader(config, mode, device, logger, seed=None):
         use_shared_memory = loader_config['use_shared_memory']
     else:
         use_shared_memory = True
+
     if mode == "Train":
-        #Distribute data to multiple cards
+        # Distribute data to multiple cards
         batch_sampler = DistributedBatchSampler(
             dataset=dataset,
             batch_size=batch_size,
             shuffle=shuffle,
             drop_last=drop_last)
     else:
-        #Distribute data to single card
+        # Distribute data to single card
         batch_sampler = BatchSampler(
             dataset=dataset,
             batch_size=batch_size,
             shuffle=shuffle,
             drop_last=drop_last)
 
+    if 'collate_fn' in loader_config:
+        from . import collate_fn
+        collate_fn = getattr(collate_fn, loader_config['collate_fn'])()
+    else:
+        collate_fn = None
     data_loader = DataLoader(
         dataset=dataset,
         batch_sampler=batch_sampler,
         places=device,
         num_workers=num_workers,
         return_list=True,
-        use_shared_memory=use_shared_memory)
+        use_shared_memory=use_shared_memory,
+        collate_fn=collate_fn)
+
+    # support exit using ctrl+c
+    signal.signal(signal.SIGINT, term_mp)
+    signal.signal(signal.SIGTERM, term_mp)
 
     return data_loader

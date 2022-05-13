@@ -5,7 +5,6 @@
 ![License](https://img.shields.io/badge/License-Apache%202-red.svg)
 ![python version](https://img.shields.io/badge/Python-3.8+-blue.svg)
 ![support os](https://img.shields.io/badge/OS-Windows/macOS/Linux-green.svg)  
-![QQ交流群](https://img.shields.io/badge/QQ%E7%BE%A4-210150985-blue)
 
 Video-subtitle-extractor (vse) 是一款将视频中的硬字幕提取为外挂字幕文件(srt格式)的软件。
 主要实现了以下功能：
@@ -23,6 +22,8 @@ Video-subtitle-extractor (vse) 是一款将视频中的硬字幕提取为外挂�
 
 
 **使用说明**：
+
+- 有使用问题请加群讨论，QQ群：210150985
 
 - 视频以及程序路径请**不要带中文和空格**，否则可能出现未知错误！！！
 
