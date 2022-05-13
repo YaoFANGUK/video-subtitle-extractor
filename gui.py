@@ -11,7 +11,6 @@ warnings.filterwarnings("ignore", category=Warning)
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 import sys
 import os
-import importlib
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dependencies'))
 import configparser
 import PySimpleGUI as sg
@@ -265,6 +264,8 @@ class SubtitleExtractorGUI:
                 self.xmax = int(values['-X-SLIDER-'] + values['-X-SLIDER-W-'])
                 self.ymin = int(values['-Y-SLIDER-'])
                 self.ymax = int(values['-Y-SLIDER-'] + values['-Y-SLIDER-H-'])
+                if self.ymax > self.frame_height:
+                    self.ymax = self.frame_height
                 print(f"{self.interface_config['SubtitleExtractorGUI']['SubtitleArea']}：({self.ymin},{self.ymax},{self.xmin},{self.xmax})")
                 subtitle_area = (self.ymin, self.ymax, self.xmin, self.xmax)
 
@@ -289,6 +290,7 @@ class SubtitleExtractorGUI:
                 self.video_cap.set(cv2.CAP_PROP_POS_FRAMES, frame_no)
                 ret, frame = self.video_cap.read()
                 if ret:
+                    self.window['-Y-SLIDER-H-'].update(range=(0, self.frame_height-values['-Y-SLIDER-']))
                     # 画字幕框
                     y = int(values['-Y-SLIDER-'])
                     h = int(values['-Y-SLIDER-H-'])
