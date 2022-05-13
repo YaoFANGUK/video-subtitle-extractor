@@ -50,6 +50,16 @@ if MODE_TYPE == 'accurate':
 if MODE_TYPE == 'fast':
     ACCURATE_MODE_ON = False
 
+# 是否使用GPU
+# 使用GPU可以提速20倍+，你要是有N卡你就改成 True
+USE_GPU = False
+# 如果paddlepaddle编译了gpu的版本
+if fluid.is_compiled_with_cuda():
+    # 查看是否有可用的gpu
+    if len(fluid.cuda_places()) > 0:
+        # 如果有GPU则使用GPU
+        USE_GPU = True
+
 # --------------------- 请你不要改 start-----------------------------
 # 项目的base目录
 BASE_DIR = str(Path(os.path.abspath(__file__)).parent)
@@ -83,7 +93,7 @@ if REC_CHAR_TYPE in ('ch', 'japan', 'korean', 'en', 'EN_symbol', 'french', 'germ
         else:
             DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, 'ch_det_fast')
     # 定义文本识别模型
-    if ACCURATE_MODE_ON:
+    if USE_GPU:
         REC_MODEL_PATH = os.path.join(BASE_DIR, 'models', f'{REC_CHAR_TYPE}_rec')
     else:
         REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, f'{REC_CHAR_TYPE}_rec_fast')
@@ -101,17 +111,7 @@ if REC_CHAR_TYPE in ('ch', 'japan', 'korean', 'en', 'EN_symbol', 'french', 'germ
 # --------------------- 请你不要改 end-----------------------------
 
 
-# --------------------- 请根据自己的实际情况改 start-----------------------------
-# 是否使用GPU
-# 使用GPU可以提速20倍+，你要是有N卡你就改成 True
-USE_GPU = False
-# 如果paddlepaddle编译了gpu的版本
-if fluid.is_compiled_with_cuda():
-    # 查看是否有可用的gpu
-    if len(fluid.cuda_places()) > 0:
-        # 如果有GPU则使用GPU
-        USE_GPU = True
-
+# --------------------- 请根据自己的实际情况改 start-----------------
 # 使用快速字幕检测算法时，背景颜色
 BG_MOD = BackgroundColor.DARK
 # 黑色背景被减矩阵阈值
