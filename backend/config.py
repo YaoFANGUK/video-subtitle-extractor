@@ -79,7 +79,7 @@ DET_MODEL_BASE = os.path.join(BASE_DIR, 'models')
 REC_MODEL_BASE = os.path.join(BASE_DIR, 'models')
 # 默认字典路径为中文
 DICT_BASE = os.path.join(BASE_DIR, 'ppocr', 'utils', 'dict')
-
+REC_IMAGE_SHAPE = '3,48,320'
 
 # 如果设置了识别文本语言类型，则设置为对应的语言
 if REC_CHAR_TYPE in ('ch', 'japan', 'korean', 'en', 'EN_symbol', 'french', 'german', 'it', 'es', 'pt', 'ru', 'ar',
@@ -95,6 +95,8 @@ if REC_CHAR_TYPE in ('ch', 'japan', 'korean', 'en', 'EN_symbol', 'french', 'germ
     # 定义文本识别模型
     if USE_GPU:
         REC_MODEL_PATH = os.path.join(BASE_DIR, 'models', f'{REC_CHAR_TYPE}_rec')
+        if REC_CHAR_TYPE == 'ch':
+            REC_IMAGE_SHAPE = '3,32,320'
     else:
         REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, f'{REC_CHAR_TYPE}_rec_fast')
         # 没有快速版的就使用一般版
