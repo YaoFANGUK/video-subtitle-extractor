@@ -88,7 +88,7 @@ if REC_CHAR_TYPE in ('ch', 'japan', 'korean', 'en', 'EN_symbol', 'french', 'germ
     if REC_CHAR_TYPE == 'en':
         DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, 'en_det')
     else:
-        if ACCURATE_MODE_ON:
+        if USE_GPU:
             DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, 'ch_det')
         else:
             DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, 'ch_det_fast')
