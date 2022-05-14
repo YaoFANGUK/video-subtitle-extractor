@@ -116,12 +116,12 @@ class SubtitleExtractorGUI:
                     self.window['-LANGUAGE-MODE-'].update(disabled=False)
                     self.se = None
                 if len(self.video_paths) >= 1:
-                    # 1) 打开修改字幕滑块区域按钮
+                    # 1) 关闭修改字幕滑块区域按钮
                     self.window['-Y-SLIDER-'].update(disabled=True)
                     self.window['-X-SLIDER-'].update(disabled=True)
                     self.window['-Y-SLIDER-H-'].update(disabled=True)
                     self.window['-X-SLIDER-W-'].update(disabled=True)
-                    # 2) 打开【运行】、【打开】和【识别语言】按钮
+                    # 2) 关闭【运行】、【打开】和【识别语言】按钮
                     self.window['-RUN-'].update(disabled=True)
                     self.window['-FILE-'].update(disabled=True)
                     self.window['-FILE_BTN-'].update(disabled=True)
