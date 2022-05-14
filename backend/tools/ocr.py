@@ -90,8 +90,7 @@ class OcrRecogniser:
         # 设置文本识别模型路径
         self.args.rec_model_dir = config.REC_MODEL_PATH
         self.args.rec_char_dict_path = config.DICT_PATH
-        if config.REC_CHAR_TYPE == 'ch' and config.USE_GPU:
-            self.args.rec_image_shape = '3,32,320'
+        self.args.rec_image_shape = config.REC_IMAGE_SHAPE
         # 设置识别文本的类型
         self.args.rec_char_type = config.REC_CHAR_TYPE
         return TextSystem(self.args)
