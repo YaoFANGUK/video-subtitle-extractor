@@ -52,11 +52,11 @@ class SubtitleExtractorGUI:
         self.progressbar_size = (60, 20)
         # 分辨率低于1080
         if self.screen_width // 2 < 960:
-            self.video_preview_width = 720
+            self.video_preview_width = 640
             self.video_preview_height = self.video_preview_width * 9 // 16
-            self.horizontal_slider_size = (70, 20)
-            self.output_size = (70, 10)
-            self.progressbar_size = (37, 20)
+            self.horizontal_slider_size = (60, 20)
+            self.output_size = (58, 10)
+            self.progressbar_size = (28, 20)
         # 字幕提取器布局
         self.layout = None
         # 字幕提取其窗口
