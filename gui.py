@@ -278,6 +278,8 @@ class SubtitleExtractorGUI:
                 self.ymax = int(values['-Y-SLIDER-'] + values['-Y-SLIDER-H-'])
                 if self.ymax > self.frame_height:
                     self.ymax = self.frame_height
+                if self.xmax > self.frame_width:
+                    self.xmax = self.frame_width
                 print(f"{self.interface_config['SubtitleExtractorGUI']['SubtitleArea']}：({self.ymin},{self.ymax},{self.xmin},{self.xmax})")
                 subtitle_area = (self.ymin, self.ymax, self.xmin, self.xmax)
 
@@ -304,6 +306,7 @@ class SubtitleExtractorGUI:
                 ret, frame = self.video_cap.read()
                 if ret:
                     self.window['-Y-SLIDER-H-'].update(range=(0, self.frame_height-values['-Y-SLIDER-']))
+                    self.window['-X-SLIDER-W-'].update(range=(0, self.frame_width-values['-X-SLIDER-']))
                     # 画字幕框
                     y = int(values['-Y-SLIDER-'])
                     h = int(values['-Y-SLIDER-H-'])
