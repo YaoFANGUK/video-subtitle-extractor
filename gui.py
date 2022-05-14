@@ -43,6 +43,7 @@ class SubtitleExtractorGUI:
         sg.theme(self.theme)
         self._load_config()
         self.screen_width, self.screen_height = sg.Window.get_screen_size()
+        print(self.screen_width, self.screen_height)
         # 设置视频预览区域大小
         self.video_preview_width = 960
         self.video_preview_height = self.video_preview_width * 9 // 16
@@ -114,6 +115,18 @@ class SubtitleExtractorGUI:
                     self.window['-FILE-'].update(disabled=False)
                     self.window['-FILE_BTN-'].update(disabled=False)
                     self.window['-LANGUAGE-MODE-'].update(disabled=False)
+                    self.se = None
+                if len(self.video_paths) >= 1:
+                    # 1) 打开修改字幕滑块区域按钮
+                    self.window['-Y-SLIDER-'].update(disabled=True)
+                    self.window['-X-SLIDER-'].update(disabled=True)
+                    self.window['-Y-SLIDER-H-'].update(disabled=True)
+                    self.window['-X-SLIDER-W-'].update(disabled=True)
+                    # 2) 打开【运行】、【打开】和【识别语言】按钮
+                    self.window['-RUN-'].update(disabled=True)
+                    self.window['-FILE-'].update(disabled=True)
+                    self.window['-FILE_BTN-'].update(disabled=True)
+                    self.window['-LANGUAGE-MODE-'].update(disabled=True)
 
     def update_interface_text(self):
         self._load_config()
@@ -270,7 +283,8 @@ class SubtitleExtractorGUI:
                 subtitle_area = (self.ymin, self.ymax, self.xmin, self.xmax)
 
                 def task():
-                    for video_path in self.video_paths:
+                    while self.video_paths:
+                        video_path = self.video_paths.pop()
                         self.se = backend.main.SubtitleExtractor(video_path, subtitle_area)
                         self.se.run()
                 Thread(target=task, daemon=True).start()
