@@ -11,7 +11,6 @@ warnings.filterwarnings("ignore", category=Warning)
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 import sys
 import os
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dependencies'))
 import configparser
 import PySimpleGUI as sg
 import cv2
@@ -43,6 +42,7 @@ class SubtitleExtractorGUI:
         sg.theme(self.theme)
         self._load_config()
         self.screen_width, self.screen_height = sg.Window.get_screen_size()
+        print(self.screen_width, self.screen_height)
         # 设置视频预览区域大小
         self.video_preview_width = 960
         self.video_preview_height = self.video_preview_width * 9 // 16
@@ -52,11 +52,11 @@ class SubtitleExtractorGUI:
         self.progressbar_size = (60, 20)
         # 分辨率低于1080
         if self.screen_width // 2 < 960:
-            self.video_preview_width = 720
+            self.video_preview_width = 640
             self.video_preview_height = self.video_preview_width * 9 // 16
-            self.horizontal_slider_size = (70, 20)
-            self.output_size = (70, 10)
-            self.progressbar_size = (37, 20)
+            self.horizontal_slider_size = (60, 20)
+            self.output_size = (58, 10)
+            self.progressbar_size = (28, 20)
         # 字幕提取器布局
         self.layout = None
         # 字幕提取其窗口
@@ -123,6 +123,18 @@ class SubtitleExtractorGUI:
                     self.window['-FILE-'].update(disabled=False)
                     self.window['-FILE_BTN-'].update(disabled=False)
                     self.window['-LANGUAGE-MODE-'].update(disabled=False)
+                    self.se = None
+                if len(self.video_paths) >= 1:
+                    # 1) 关闭修改字幕滑块区域按钮
+                    self.window['-Y-SLIDER-'].update(disabled=True)
+                    self.window['-X-SLIDER-'].update(disabled=True)
+                    self.window['-Y-SLIDER-H-'].update(disabled=True)
+                    self.window['-X-SLIDER-W-'].update(disabled=True)
+                    # 2) 关闭【运行】、【打开】和【识别语言】按钮
+                    self.window['-RUN-'].update(disabled=True)
+                    self.window['-FILE-'].update(disabled=True)
+                    self.window['-FILE_BTN-'].update(disabled=True)
+                    self.window['-LANGUAGE-MODE-'].update(disabled=True)
 
     def update_interface_text(self):
         self._load_config()
@@ -290,11 +302,14 @@ class SubtitleExtractorGUI:
                 self.ymax = int(values['-Y-SLIDER-'] + values['-Y-SLIDER-H-'])
                 if self.ymax > self.frame_height:
                     self.ymax = self.frame_height
+                if self.xmax > self.frame_width:
+                    self.xmax = self.frame_width
                 print(f"{self.interface_config['SubtitleExtractorGUI']['SubtitleArea']}：({self.ymin},{self.ymax},{self.xmin},{self.xmax})")
                 subtitle_area = (self.ymin, self.ymax, self.xmin, self.xmax)
 
                 def task():
-                    for video_path in self.video_paths:
+                    while self.video_paths:
+                        video_path = self.video_paths.pop()
                         self.se = backend.main.SubtitleExtractor(video_path, subtitle_area, self.bd_video_path)
                         self.se.run()
                 Thread(target=task, daemon=True).start()
@@ -315,6 +330,7 @@ class SubtitleExtractorGUI:
                 ret, frame = self.video_cap.read()
                 if ret:
                     self.window['-Y-SLIDER-H-'].update(range=(0, self.frame_height-values['-Y-SLIDER-']))
+                    self.window['-X-SLIDER-W-'].update(range=(0, self.frame_width-values['-X-SLIDER-']))
                     # 画字幕框
                     y = int(values['-Y-SLIDER-'])
                     h = int(values['-Y-SLIDER-H-'])
