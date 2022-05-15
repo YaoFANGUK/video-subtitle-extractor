@@ -160,6 +160,13 @@ THRESHOLD_TEXT_SIMILARITY = 0.8
 
 # 字幕提取中置信度低于0.8的不要
 DROP_SCORE = 0.8
+
+# 字幕区域允许偏差, 0为不允许越界, 0.03表示可以越界3%
+SUB_AREA_DEVIATION_RATE = 0.03
+
+# 输出丢失的字幕帧, 仅简体中文,繁体中文,日文,韩语有效, 默认将调试信息输出到: 视频路径/loss
+DEBUG_OCR_LOSS = True
+
 # --------------------- 请根据自己的实际情况改 end-----------------------------
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'

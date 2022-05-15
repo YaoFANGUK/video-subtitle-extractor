@@ -930,8 +930,12 @@ class SubtitleExtractor:
         thread, task_queue, progress_queue = subtitle_ocr.async_start(self.video_path,
                                                                       self.raw_subtitle_path,
                                                                       self.sub_area,
-                                                                      config.REC_CHAR_TYPE,
-                                                                      config.DROP_SCORE)
+                                                                      options={'REC_CHAR_TYPE': config.REC_CHAR_TYPE,
+                                                                               'DROP_SCORE': config.DROP_SCORE,
+                                                                               'SUB_AREA_DEVIATION_RATE': config.SUB_AREA_DEVIATION_RATE,
+                                                                               'DEBUG_OCR_LOSS': config.DEBUG_OCR_LOSS,
+                                                                              }
+                                                                      )
         self.subtitle_ocr_queue = task_queue
         self.subtitle_ocr_progress_queue = progress_queue
         Thread(target=recv_ocr_progress, daemon=True).start()
