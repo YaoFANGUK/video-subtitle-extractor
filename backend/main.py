@@ -179,8 +179,6 @@ class SubtitleExtractor:
             else:
                 self.generate_subtitle_file()
         self.subtitle_final_process()
-        if config.REC_CHAR_TYPE in ('ch', 'EN', 'en', 'ch_tra'):
-            reformat(os.path.join(os.path.splitext(self.video_path)[0] + '.srt'))
         print(config.interface_config['Main']['FinishGenerateSub'], f"{round(time.time() - start_time, 2)}s")
         self.update_progress(ocr=100, frame_extract=100)
         self.isFinished = True
