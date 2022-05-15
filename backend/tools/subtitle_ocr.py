@@ -2,15 +2,26 @@ import os
 import re
 from multiprocessing import Queue, Process
 import cv2
+from PIL import ImageFont, ImageDraw, Image
 from tqdm import tqdm
 from tools.ocr import OcrRecogniser, get_coordinates
 from tools.constant import SubtitleArea
 from threading import Thread
 import queue
+from shapely.geometry import Polygon
+from types import SimpleNamespace
+import shutil
+import numpy as np
+from collections import namedtuple
+
+BGR_COLOR_GREEN = (0, 0xff, 0)
+BGR_COLOR_BLUE = (0xff, 0, 0)
+BGR_COLOR_RED = (0, 0, 0xff)
+BGR_COLOR_WHITE = (0xff, 0xff, 0xff)
 
 
-def extract_subtitles(data, text_recogniser, img, raw_subtitle_file, sub_area,
-                      rec_char_type, drop_score, dt_box, rec_res):
+def extract_subtitles(data, text_recogniser, img, raw_subtitle_file,
+                      sub_area, options, dt_box, rec_res, ocr_loss_debug_path):
     """
         提取视频帧中的字幕信息
     """
@@ -22,33 +33,96 @@ def extract_subtitles(data, text_recogniser, img, raw_subtitle_file, sub_area,
     # 获取文本坐标
     coordinates = get_coordinates(dt_box)
     # 将结果写入txt文本中
-    if rec_char_type == 'en':
+    if options.REC_CHAR_TYPE == 'en':
         # 如果识别语言为英文，则去除中文
         text_res = [(re.sub('[\u4e00-\u9fa5]', '', res[0]), res[1]) for res in rec_res]
     else:
         text_res = [(res[0], res[1]) for res in rec_res]
+    line = ''
+    loss_list = []
     for content, coordinate in zip(text_res, coordinates):
+        text = content[0]
+        prob = content[1]
         if sub_area is not None:
-            s_ymin = sub_area[0]
-            s_ymax = sub_area[1]
-            s_xmin = sub_area[2]
-            s_xmax = sub_area[3]
-            xmin = coordinate[0]
-            xmax = coordinate[1]
-            ymin = coordinate[2]
-            ymax = coordinate[3]
-            if s_xmin <= xmin and xmax <= s_xmax and s_ymin <= ymin and ymax <= s_ymax:
-                if content[1] > drop_score:
-                    raw_subtitle_file.write(f'{str(data["i"]).zfill(8)}\t{coordinate}\t{content[0]}\n')
+            selected = False
+            overflow_area_rate = 0
+            sub_area_polygon = sub_area_to_polygon(sub_area)
+            coordinate_polygon = coordinate_to_polygon(coordinate)
+            # 计算交集
+            intersection = sub_area_polygon.intersection(coordinate_polygon)
+            # 如果有交集
+            if not intersection.is_empty:
+                # 计算越界允许偏差
+                overflow_area_rate = ((sub_area_polygon.area + coordinate_polygon.area - intersection.area)\
+                                     / sub_area_polygon.area) - 1
+                if overflow_area_rate <= options.SUB_AREA_DEVIATION_RATE:
+                    if prob > options.DROP_SCORE:
+                        selected = True
+                        line += f'{str(data["i"]).zfill(8)}\t{coordinate}\t{text}\n'
+                        raw_subtitle_file.write(f'{str(data["i"]).zfill(8)}\t{coordinate}\t{text}\n')
+            loss_info = namedtuple('loss_info', 'text prob overflow_area_rate coordinate selected')
+            loss_list.append(loss_info(text, prob, overflow_area_rate, coordinate, selected))
         else:
-            raw_subtitle_file.write(f'{str(data["i"]).zfill(8)}\t{coordinate}\t{content[0]}\n')
+            raw_subtitle_file.write(f'{str(data["i"]).zfill(8)}\t{coordinate}\t{text}\n')
+    # 输出调试信息
+    dump_debug_info(options, line, img, loss_list, ocr_loss_debug_path, sub_area, data)
     data["i"] += 1
 
 
-def recv_video_frame_handle(ocr_queue, raw_subtitle_path, sub_area, rec_char_type, drop_score):
+def dump_debug_info(options, line, img, loss_list, ocr_loss_debug_path, sub_area, data):
+    loss = False
+    if options.DEBUG_OCR_LOSS and options.REC_CHAR_TYPE in ('ch', 'japan ', 'korea', 'ch_tra'):
+        loss = len(line) > 0 and re.search(r'[\u4e00-\u9fa5\u3400-\u4db5\u3130-\u318F\uAC00-\uD7A3\u0800-\u4e00]', line) is None
+    if loss:
+        if not os.path.exists(ocr_loss_debug_path):
+            os.makedirs(ocr_loss_debug_path, mode=0o777, exist_ok=True)
+        img = cv2.rectangle(img, (sub_area[2], sub_area[0]), (sub_area[3], sub_area[1]), BGR_COLOR_BLUE, 2)
+        for loss_info in loss_list:
+            coordinate = loss_info.coordinate
+            color = BGR_COLOR_GREEN if loss_info.selected else BGR_COLOR_RED
+            text = f"[{loss_info.text}] prob:{loss_info.prob:.4f} or:{loss_info.overflow_area_rate:.2f}"
+            img = paint_chinese_opencv(img, text, pos=(coordinate[0], coordinate[2] - 30), color=color)
+            img = cv2.rectangle(img, (coordinate[0], coordinate[2]), (coordinate[1], coordinate[3]), color, 2)
+        cv2.imwrite(os.path.join(os.path.abspath(ocr_loss_debug_path), f'{str(data["i"]).zfill(8)}.png'), img)
+
+
+def sub_area_to_polygon(sub_area):
+    s_ymin = sub_area[0]
+    s_ymax = sub_area[1]
+    s_xmin = sub_area[2]
+    s_xmax = sub_area[3]
+    return Polygon([[s_xmin, s_ymin], [s_xmax, s_ymin], [s_xmax, s_ymax], [s_xmin, s_ymax]])
+
+
+def coordinate_to_polygon(coordinate):
+    xmin = coordinate[0]
+    xmax = coordinate[1]
+    ymin = coordinate[2]
+    ymax = coordinate[3]
+    return Polygon([[xmin, ymin], [xmax, ymin], [xmax, ymax], [xmin, ymax]])
+
+
+FONT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'NotoSansCJK-Bold.otf')
+FONT = ImageFont.truetype(FONT_PATH,20)
+
+
+def paint_chinese_opencv(im,chinese,pos,color):
+    img_PIL = Image.fromarray(im)
+    fillColor = color  # (color[2], color[1], color[0])
+    position = pos
+    draw = ImageDraw.Draw(img_PIL)
+    draw.text(position, chinese, font=FONT, fill=fillColor)
+    img = np.asarray(img_PIL)
+    return img
+
+
+def recv_video_frame_handle(ocr_queue, raw_subtitle_path, sub_area, video_path, options):
     data = {'i': 1}
     # 初始化文本识别对象
     text_recogniser = OcrRecogniser()
+    ocr_loss_debug_path = os.path.join(os.path.abspath(os.path.splitext(video_path)[0]), 'loss')
+    if os.path.exists(ocr_loss_debug_path):
+        shutil.rmtree(ocr_loss_debug_path, True)
     with open(raw_subtitle_path, mode='w+', encoding='utf-8') as raw_subtitle_file:
         while True:
             try:
@@ -57,9 +131,8 @@ def recv_video_frame_handle(ocr_queue, raw_subtitle_path, sub_area, rec_char_typ
                     return
                 if frame_no > 0:
                     data['i'] = frame_no
-                extract_subtitles(data, text_recogniser, frame, raw_subtitle_file, sub_area,
-                                  rec_char_type, drop_score, dt_box, rec_res)
-
+                extract_subtitles(data, text_recogniser, frame, raw_subtitle_file,
+                                  sub_area, options, dt_box, rec_res, ocr_loss_debug_path)
             except Exception as e:
                 print(e)
                 break
@@ -94,11 +167,11 @@ def recv_ocr_event_handle(ocr_queue, event_queue, progress_queue, video_path, ra
     cap.release()
 
 
-def handle(event_queue, progress_queue, video_path, raw_subtitle_path, sub_area, rec_char_type, drop_score):
+def handle(event_queue, progress_queue, video_path, raw_subtitle_path, sub_area, options):
     # 建议值8-20
     ocr_queue = queue.Queue(20)
     recv_video_frame_thread = Thread(target=recv_video_frame_handle,
-                                     args=(ocr_queue, raw_subtitle_path, sub_area, rec_char_type, drop_score,),
+                                     args=(ocr_queue, raw_subtitle_path, sub_area, video_path, options,),
                                      daemon=True)
     recv_ocr_event_thread = Thread(target=recv_ocr_event_handle,
                                    args=(ocr_queue, event_queue, progress_queue, video_path, raw_subtitle_path,),
@@ -109,11 +182,21 @@ def handle(event_queue, progress_queue, video_path, raw_subtitle_path, sub_area,
     recv_ocr_event_thread.join()
 
 
-def async_start(video_path, raw_subtitle_path, sub_area, rec_char_type, drop_score):
+"""
+    options.REC_CHAR_TYPE
+    options.DROP_SCORE
+    options.SUB_AREA_DEVIATION_RATE
+    options.DEBUG_OCR_LOSS
+"""
+def async_start(video_path, raw_subtitle_path, sub_area, options):
+    assert 'REC_CHAR_TYPE' in options
+    assert 'DROP_SCORE' in options
+    assert 'SUB_AREA_DEVIATION_RATE' in options
+    assert 'DEBUG_OCR_LOSS' in options
     event_queue = Queue()
     progress_queue = Queue()
     t = Process(target=handle,
-                args=(event_queue, progress_queue, video_path, raw_subtitle_path, sub_area, rec_char_type, drop_score,))
+                args=(event_queue, progress_queue, video_path, raw_subtitle_path, sub_area, SimpleNamespace(**options),))
     t.start()
     return t, event_queue, progress_queue
 
