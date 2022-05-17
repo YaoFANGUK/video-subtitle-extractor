@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-@Author  : Fang Yao 
+@Author  : Fang Yao
 @Time    : 2021/4/1 6:07 下午
 @FileName: gui.py
 @desc: 字幕提取器图形化界面
@@ -39,6 +39,7 @@ class SubtitleExtractorGUI:
         self.font = 'Arial 10'
         self.theme = 'LightBrown12'
         sg.theme(self.theme)
+        self.icon = os.path.join(os.path.dirname(__file__), 'design', 'vse.ico')
         self._load_config()
         self.screen_width, self.screen_height = sg.Window.get_screen_size()
         print(self.screen_width, self.screen_height)
@@ -86,7 +87,8 @@ class SubtitleExtractorGUI:
         # 创建布局
         self._create_layout()
         # 创建窗口
-        self.window = sg.Window(title=self.interface_config['SubtitleExtractorGUI']['Title'], layout=self.layout)
+        self.window = sg.Window(title=self.interface_config['SubtitleExtractorGUI']['Title'], layout=self.layout,
+                                icon=self.icon)
         once = False
         while True:
             # 循环读取事件
@@ -362,6 +364,7 @@ class SubtitleExtractorGUI:
 class LanguageModeGUI:
     def __init__(self, subtitle_extractor_gui):
         self.subtitle_extractor_gui = subtitle_extractor_gui
+        self.icon = os.path.join(os.path.dirname(__file__), 'design', 'vse.ico')
         self.config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'settings.ini')
         # 设置界面
         self.INTERFACE_DEF = '简体中文'
@@ -391,7 +394,7 @@ class LanguageModeGUI:
         # 创建布局
         title = self._create_layout()
         # 创建窗口
-        self.window = sg.Window(title=title, layout=self.layout)
+        self.window = sg.Window(title=title, layout=self.layout, icon=self.icon)
         while True:
             # 循环读取事件
             event, values = self.window.read(timeout=10)
@@ -507,7 +510,7 @@ class LanguageModeGUI:
                                 config['DEFAULT']['Mode'])
             self.window.close()
             title = self._create_layout()
-            self.window = sg.Window(title=title, layout=self.layout)
+            self.window = sg.Window(title=title, layout=self.layout, icon=self.icon)
 
     @staticmethod
     def set_config(config_file, interface, language_code, mode):
