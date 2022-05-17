@@ -33,7 +33,7 @@ config.read(MODE_CONFIG_PATH, encoding='utf-8')
 interface_config = configparser.ConfigParser()
 INTERFACE_KEY_NAME_MAP = {
     '简体中文': 'ch',
-    '繁體中文': 'ch_tra',
+    '繁體中文': 'chinese_cht',
     'English': 'en',
 }
 interface_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'interface',
@@ -73,6 +73,8 @@ while not IS_LEGAL_PATH:
     print(interface_config['Main']['IllegalPathWarning'])
     time.sleep(3)
 # 模型文件目录
+# 默认模型版本 V3
+MODEL_VERSION = 'V3'
 # 文本检测模型
 DET_MODEL_BASE = os.path.join(BASE_DIR, 'models')
 # 设置文本识别模型 + 字典
@@ -80,30 +82,40 @@ REC_MODEL_BASE = os.path.join(BASE_DIR, 'models')
 # 默认字典路径为中文
 DICT_BASE = os.path.join(BASE_DIR, 'ppocr', 'utils', 'dict')
 REC_IMAGE_SHAPE = '3,48,320'
+REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'{REC_CHAR_TYPE}_rec')
+DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, MODEL_VERSION, f'{REC_CHAR_TYPE}_det')
 
 # 如果设置了识别文本语言类型，则设置为对应的语言
 if REC_CHAR_TYPE in ('ch', 'japan', 'korean', 'en', 'EN_symbol', 'french', 'german', 'it', 'es', 'pt', 'ru', 'ar',
-                     'ta', 'ug', 'fa', 'ur', 'rs_latin', 'oc', 'rs_cyrillic', 'bg', 'uk', 'be', 'te', 'kn', 'ch_tra', 'hi', 'mr', 'ne', 'EN'):
-    # 定义文本检测模型
-    if REC_CHAR_TYPE == 'en':
-        DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, 'en_det')
-    else:
-        if USE_GPU:
-            DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, 'ch_det')
-        else:
-            DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, 'ch_det_fast')
+                     'ta', 'ug', 'fa', 'ur', 'rs_latin', 'oc', 'cyrillic', 'bg', 'uk', 'be', 'te', 'kn', 'chinese_cht', 'hi', 'mr', 'ne', 'EN'):
+    # 不管有无GPU和是否开启精准模式，默认使用大模型
     # 定义文本识别模型
-    if USE_GPU:
-        REC_MODEL_PATH = os.path.join(BASE_DIR, 'models', f'{REC_CHAR_TYPE}_rec')
-        if REC_CHAR_TYPE == 'ch':
-            REC_IMAGE_SHAPE = '3,32,320'
-    else:
-        REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, f'{REC_CHAR_TYPE}_rec_fast')
-        # 没有快速版的就使用一般版
-        if not os.path.exists(REC_MODEL_PATH):
-            REC_MODEL_PATH = os.path.join(BASE_DIR, 'models', f'{REC_CHAR_TYPE}_rec')
+    REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'{REC_CHAR_TYPE}_rec')
+    # 如果当前模型版本没有大模型，则切换为V2版本
+    if not os.path.exists(REC_MODEL_PATH):
+        MODEL_VERSION = 'V2'
+        REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'{REC_CHAR_TYPE}_rec')
+    # 如果V2版本也没有大模型版本，则切换V3的fast版本
+    if not os.path.exists(REC_MODEL_PATH):
+        MODEL_VERSION = 'V3'
+        REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'{REC_CHAR_TYPE}_rec_fast')
+    # 定义文本检测模型
+    tmp_dir = REC_MODEL_PATH.replace(os.path.dirname(REC_MODEL_PATH), '').split('_')
+    if len(tmp_dir) > 3:
+        tmp_dir = tmp_dir[1:]
+    tmp_dir[1] = 'det'
+    DET_MODEL_PATH = os.path.join(os.path.dirname(REC_MODEL_PATH), "_".join(tmp_dir))
+    if not os.path.exists(DET_MODEL_PATH):
+        tmp_dir[0] = 'ch'
+        DET_MODEL_PATH = os.path.join(os.path.dirname(REC_MODEL_PATH), "_".join(tmp_dir))
+
     # 定义字典路径
     DICT_PATH = os.path.join(DICT_BASE, f'{REC_CHAR_TYPE}_dict.txt')
+    # 定义图像识别shape
+    if MODEL_VERSION == 'V2':
+        REC_IMAGE_SHAPE = '3,32,320'
+    else:
+        REC_IMAGE_SHAPE = '3,48,320'
 
     # 查看该路径下是否有文本模型识别完整文件，没有的话合并小文件生成完整文件
     if 'inference.pdiparams' not in (os.listdir(REC_MODEL_PATH)):
@@ -159,7 +171,7 @@ WATERMARK_AREA_NUM = 5
 THRESHOLD_TEXT_SIMILARITY = 0.8
 
 # 字幕提取中置信度低于0.8的不要
-DROP_SCORE = 0.8
+DROP_SCORE = 0.75
 
 # 字幕区域允许偏差, 0为不允许越界, 0.03表示可以越界3%
 SUB_AREA_DEVIATION_RATE = 0.03
