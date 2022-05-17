@@ -544,7 +544,7 @@ class SubtitleExtractor:
                         timestamp.append(line.replace('\n', '').replace('\r', ''))
                 for i in zip(frame_no, timestamp):
                     subtitle_timestamp.append(i)
-            subtitle_content = self._remove_duplicate_subtitle(use_vsf=True)
+            subtitle_content = self._remove_duplicate_subtitle()
             final_subtitle = []
             for sc in subtitle_content:
                 frame_no = sc[0]
@@ -712,7 +712,7 @@ class SubtitleExtractor:
     def _frameno_to_milliseconds(self, frame_no):
         return float(int(frame_no / self.fps * 1000))
 
-    def _remove_duplicate_subtitle(self, use_vsf=False):
+    def _remove_duplicate_subtitle(self):
         """
         读取原始的raw txt，去除重复行，返回去除了重复后的字幕列表
         """
@@ -724,59 +724,51 @@ class SubtitleExtractor:
             frame_no = line.split('\t')[0]
             content = line.split('\t')[2]
             content_list.append((frame_no, content))
-        if not use_vsf:
-            # 循环遍历每行字幕，记录开始时间与结束时间
-            index = 0
-            # 去重后的字幕列表
-            unique_subtitle_list = []
-            for i in content_list:
-                # TODO: 时间复杂度非常高，有待优化
-                # 定义字幕开始帧帧号
-                start_frame = i[0]
-                for j in content_list[index:]:
-                    # 计算当前行与下一行的Levenshtein距离
-                    distance = ratio(i[1], j[1])
-                    if distance < config.THRESHOLD_TEXT_SIMILARITY or j == content_list[-1]:
-                        # 定义字幕结束帧帧号
-                        end_frame = content_list[content_list.index(j) - 1][0]
-                        if end_frame == start_frame:
-                            end_frame = j[0]
-                        # 如果是第一行字幕，直接添加进列表
-                        if len(unique_subtitle_list) < 1:
+        # 循环遍历每行字幕，记录开始时间与结束时间
+        index = 0
+        # 去重后的字幕列表
+        unique_subtitle_list = []
+        for i in content_list:
+            # TODO: 时间复杂度非常高，有待优化
+            # 定义字幕开始帧帧号
+            start_frame = i[0]
+            for j in content_list[index:]:
+                # 计算当前行与下一行的Levenshtein距离
+                distance = ratio(i[1], j[1])
+                if distance < config.THRESHOLD_TEXT_SIMILARITY or j == content_list[-1]:
+                    # 定义字幕结束帧帧号
+                    end_frame = content_list[content_list.index(j) - 1][0]
+                    if end_frame == start_frame:
+                        end_frame = j[0]
+                    # 如果是第一行字幕，直接添加进列表
+                    if len(unique_subtitle_list) < 1:
+                        unique_subtitle_list.append((start_frame, end_frame, i[1]))
+                    else:
+                        string_a = unique_subtitle_list[-1][2].replace(' ', '')
+                        string_b = i[1].replace(' ', '')
+                        similarity_ratio = ratio(string_a, string_b)
+                        # 打印相似度
+                        # print(f'{similarity_ratio}: {unique_subtitle_list[-1][2]} vs {i[1]}')
+                        # 如果相似度小于阈值，说明该两行字幕不一样
+                        if similarity_ratio < config.THRESHOLD_TEXT_SIMILARITY:
                             unique_subtitle_list.append((start_frame, end_frame, i[1]))
                         else:
-                            string_a = unique_subtitle_list[-1][2].replace(' ', '')
-                            string_b = i[1].replace(' ', '')
-                            similarity_ratio = ratio(string_a, string_b)
-                            # 打印相似度
-                            # print(f'{similarity_ratio}: {unique_subtitle_list[-1][2]} vs {i[1]}')
-                            # 如果相似度小于阈值，说明该两行字幕不一样
-                            if similarity_ratio < config.THRESHOLD_TEXT_SIMILARITY:
-                                unique_subtitle_list.append((start_frame, end_frame, i[1]))
-                            else:
-                                # 如果大于阈值，但又不完全相同，说明两行字幕相似
-                                # 可能出现以下情况: "但如何进人并接管上海" vs "但如何进入并接管上海"
-                                # OCR识别出现了错误识别
-                                if similarity_ratio < 1:
-                                    # TODO:
-                                    # 1) 取出两行字幕的并集
-                                    # 2) 纠错
-                                    # print(f'{round(similarity_ratio, 2)}, 需要手动纠错:\n {string_a} vs\n {string_b}')
-                                    # 保存较长的
-                                    if len(string_a) < len(string_b):
-                                        unique_subtitle_list[-1] = (start_frame, end_frame, i[1])
-                        index += 1
-                        break
-                    else:
-                        continue
-            return unique_subtitle_list
-        else:
-            vsf_subtitle_list = []
-            for i in content_list:
-                start_frame = i[0]
-                content = i[1]
-                vsf_subtitle_list.append((start_frame, -1, content))
-            return vsf_subtitle_list
+                            # 如果大于阈值，但又不完全相同，说明两行字幕相似
+                            # 可能出现以下情况: "但如何进人并接管上海" vs "但如何进入并接管上海"
+                            # OCR识别出现了错误识别
+                            if similarity_ratio < 1:
+                                # TODO:
+                                # 1) 取出两行字幕的并集
+                                # 2) 纠错
+                                # print(f'{round(similarity_ratio, 2)}, 需要手动纠错:\n {string_a} vs\n {string_b}')
+                                # 保存较长的
+                                if len(string_a) < len(string_b):
+                                    unique_subtitle_list[-1] = (start_frame, end_frame, i[1])
+                    index += 1
+                    break
+                else:
+                    continue
+        return unique_subtitle_list
 
     def _concat_content_with_same_frameno(self):
         """
