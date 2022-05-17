@@ -14,7 +14,9 @@
 - Filter non-subtitle text (e.g., Logo and watermark etc.)
 - Remove duplicated subtitle line and **generate srt file** (by calculating text similarity)
 - Batch extraction. You can select multiple video files at one time and this tool can generate subtitles for each video.
-- Multiple language support, you can extract the following subtitle languages: **Simplified Chinese**, **English**, **Japanese**, **Korean**, **Traditional Chinese**, **French**, **German**, **Russian**, **Spanish**, **Portuguese**, **Italian**
+- Multiple language support, you can extract the following subtitle languages: **Simplified Chinese**, **English**, 
+  **Japanese**, **Korean**, **Arabic**, **Traditional Chinese**, **French**, **German**, **Russian**, **Spanish**, 
+  **Portuguese**, **Italian**
 - Multiple mode:
   - **fast**: high extraction speed while few subtitle missing (**Recommended**)
   - **accurate**: no subtitle missing while low extraction speed

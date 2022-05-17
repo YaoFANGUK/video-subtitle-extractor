@@ -23,12 +23,7 @@ import sys
 sys.path.insert(0, os.path.dirname(__file__))
 import importlib
 import config
-from pathlib import Path
-import zipfile
 from tools.reformat_en import reformat
-from tools.srt2ass import write_srt_to_ass
-from tools.translation import chs_to_cht
-from sushi.sushi_main import subtitle_sync
 from tools.infer import utility
 from tools.infer.predict_det import TextDetector
 from tools.ocr import OcrRecogniser, get_coordinates
@@ -58,8 +53,7 @@ class SubtitleExtractor:
     """
     视频字幕提取类
     """
-
-    def __init__(self, vd_path, sub_area=None, bd_video_path=None):
+    def __init__(self, vd_path, sub_area=None):
         importlib.reload(config)
         # 线程锁
         self.lock = threading.RLock()
@@ -96,7 +90,6 @@ class SubtitleExtractor:
         self.raw_subtitle_path = os.path.join(self.subtitle_output_dir, 'raw.txt')
         # 自定义ocr对象
         self.ocr = None
-        self.bd_video_path = bd_video_path
         print(f"{config.interface_config['Main']['RecSubLang']}：{config.REC_CHAR_TYPE}")
         print(f"{config.interface_config['Main']['RecMode']}：{config.MODE_TYPE}")
         if config.USE_GPU:
@@ -178,55 +171,15 @@ class SubtitleExtractor:
                 self.generate_subtitle_file_vsf()
             else:
                 self.generate_subtitle_file()
-        self.subtitle_final_process()
+        # 如果识别的字幕语言包含英文，则将英文分词
+        if config.REC_CHAR_TYPE in ('ch', 'EN', 'en', 'ch_tra'):
+            reformat(os.path.join(os.path.splitext(self.video_path)[0] + '.srt'))
         print(config.interface_config['Main']['FinishGenerateSub'], f"{round(time.time() - start_time, 2)}s")
         self.update_progress(ocr=100, frame_extract=100)
         self.isFinished = True
         # 删除缓存文件
         self.empty_cache()
         self.lock.release()
-
-
-    # 字幕后期处理
-    def subtitle_final_process(self):
-        video_path_prefix = os.path.splitext(self.video_path)[0]
-        srt_filename = video_path_prefix + '.zh.简体-英文.srt'
-        srt_filename_cht = video_path_prefix + '.zh.繁体-英文.srt'
-        os.replace(video_path_prefix + '.srt', srt_filename)
-        # 如果识别的字幕语言包含英文，则将英文分词
-        if config.REC_CHAR_TYPE in ('ch', 'EN', 'en', 'ch_tra'):
-            reformat(srt_filename, self.bd_video_path)
-        chs_to_cht(srt_filename, srt_filename_cht)
-        write_srt_to_ass(srt_filename_cht)
-        write_srt_to_ass(srt_filename)
-
-        if self.bd_video_path is not None:
-            print("开始同步时间轴")
-            temp_dir = os.path.join(self.temp_output_dir, 'sushi')
-            bd_video_path_prefix = os.path.splitext(self.bd_video_path)[0]
-            subtitle_sync([self.video_path, self.bd_video_path, srt_filename], {'temp': temp_dir})
-            srt_filename_eng = bd_video_path_prefix + '.eng.srt'
-            srt_filename = bd_video_path_prefix + '.zh.简体-英文.srt'
-            srt_filename_cht = bd_video_path_prefix + '.zh.繁体-英文.srt'
-            ass_filename = bd_video_path_prefix + '.zh.简体-英文.ass'
-            ass_filename_cht = bd_video_path_prefix + '.zh.繁体-英文.ass'
-            os.replace(bd_video_path_prefix + '.srt', srt_filename)
-            chs_to_cht(srt_filename, srt_filename_cht)
-            write_srt_to_ass(srt_filename_cht, ass_filename_cht)
-            write_srt_to_ass(srt_filename, ass_filename)
-            # zip
-            subtitle_path_list = [
-                srt_filename_eng,
-                srt_filename,
-                srt_filename_cht,
-                ass_filename,
-                ass_filename_cht,
-            ]
-            with zipfile.ZipFile(bd_video_path_prefix + '.zh.zip', 'w', zipfile.ZIP_DEFLATED) as zf:
-                for file in subtitle_path_list:
-                    if os.path.exists(file):
-                        zf.write(file, Path(file).name)
-
 
     def extract_frame_by_fps(self):
         """
@@ -240,7 +193,6 @@ class SubtitleExtractor:
 
         duration_ms = (self.frame_count / self.fps) * 1000
         while self.video_cap.isOpened():
-            total_ms = self.video_cap.get(cv2.CAP_PROP_POS_MSEC)
             ret, frame = self.video_cap.read()
             # 如果读取视频帧失败（视频读到最后一帧）
             if not ret:
@@ -278,7 +230,6 @@ class SubtitleExtractor:
         compare_ocr_result_cache = {}
         tbar = tqdm(total=int(self.frame_count), unit='f', position=0, file=sys.__stdout__)
         while self.video_cap.isOpened():
-            total_ms = self.video_cap.get(cv2.CAP_PROP_POS_MSEC)
             ret, frame = self.video_cap.read()
             # 如果读取视频帧失败（视频读到最后一帧）
             if not ret:
