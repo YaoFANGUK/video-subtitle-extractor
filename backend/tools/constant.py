@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 # 默认字幕出现的大致区域
 class SubtitleArea(Enum):
     # 字幕区域出现在下半部分
