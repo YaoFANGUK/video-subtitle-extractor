@@ -16,6 +16,8 @@ from fsplit.filesplit import Filesplit
 from paddle import fluid
 from tools.constant import *
 
+
+# --------------------- 请你不要改 start-----------------------------
 # 判断代码路径是否合法
 IS_LEGAL_PATH = True
 config = configparser.ConfigParser()
@@ -60,7 +62,6 @@ if fluid.is_compiled_with_cuda():
         # 如果有GPU则使用GPU
         USE_GPU = True
 
-# --------------------- 请你不要改 start-----------------------------
 # 项目的base目录
 BASE_DIR = str(Path(os.path.abspath(__file__)).parent)
 # 是否包含中文
@@ -81,13 +82,15 @@ DET_MODEL_BASE = os.path.join(BASE_DIR, 'models')
 REC_MODEL_BASE = os.path.join(BASE_DIR, 'models')
 # 默认字典路径为中文
 DICT_BASE = os.path.join(BASE_DIR, 'ppocr', 'utils', 'dict')
+# V3模型默认图形识别的shape为3, 48, 320
 REC_IMAGE_SHAPE = '3,48,320'
 REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'{REC_CHAR_TYPE}_rec')
 DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, MODEL_VERSION, f'{REC_CHAR_TYPE}_det')
 
 # 如果设置了识别文本语言类型，则设置为对应的语言
-if REC_CHAR_TYPE in ('ch', 'japan', 'korean', 'en', 'EN_symbol', 'french', 'german', 'it', 'es', 'pt', 'ru', 'ar',
-                     'ta', 'ug', 'fa', 'ur', 'rs_latin', 'oc', 'cyrillic', 'bg', 'uk', 'be', 'te', 'kn', 'chinese_cht', 'hi', 'mr', 'ne', 'EN'):
+if REC_CHAR_TYPE in ('ch', 'japan', 'korean', 'en', 'chinese_cht', 'EN_symbol', 'french', 'german', 'it', 'es', 'pt',
+                     'cyrillic', 'ru', 'ar', 'ta', 'ug', 'fa', 'ur', 'rs_latin', 'oc', 'bg', 'uk', 'be', 'te', 'kn',
+                     'hi', 'mr', 'ne', 'EN'):
     # 不管有无GPU和是否开启精准模式，默认使用大模型
     # 定义文本识别模型
     REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'{REC_CHAR_TYPE}_rec')
@@ -126,7 +129,7 @@ if REC_CHAR_TYPE in ('ch', 'japan', 'korean', 'en', 'EN_symbol', 'french', 'germ
 
 
 # --------------------- 请根据自己的实际情况改 start-----------------
-# 使用快速字幕检测算法时，背景颜色
+# 使用快速字幕检测算法(_analyse_subtitle_frame)时，背景颜色
 BG_MOD = BackgroundColor.DARK
 # 黑色背景被减矩阵阈值
 BG_VALUE_DARK = 200
@@ -141,7 +144,7 @@ SUBTITLE_AREA = SubtitleArea.UNKNOWN
 # 余弦相似度阈值
 # 数值越小生成的视频帧越少，相对提取速度更快但生成的字幕越不精准
 # 1表示最精准，每一帧视频帧都进行字幕检测与提取，生成的字幕最精准
-# 0.925表示，当视频帧1与视频帧2相似度高达92.5%时，视频帧2将直接pass，不字检测与提取视频帧2的字幕
+# 0.925表示，当视频帧1与视频帧2相似度高达92.5%时，视频帧2将直接pass，不检测与提取视频帧2的字幕
 COSINE_SIMILARITY_THRESHOLD = 0.95 if SUBTITLE_AREA == SubtitleArea.UNKNOWN else 0.9
 
 # 当前帧与之后的多少帧比较
@@ -170,7 +173,7 @@ WATERMARK_AREA_NUM = 5
 # 采用动态算法实现相似度阈值判断: 对于短文本要求较低的阈值，对于长文本要求较高的阈值
 THRESHOLD_TEXT_SIMILARITY = 0.8
 
-# 字幕提取中置信度低于0.8的不要
+# 字幕提取中置信度低于0.75的不要
 DROP_SCORE = 0.75
 
 # 字幕区域允许偏差, 0为不允许越界, 0.03表示可以越界3%
