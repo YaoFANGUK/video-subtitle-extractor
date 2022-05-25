@@ -79,6 +79,8 @@ class SubtitleExtractor:
         self.frame_output_dir = os.path.join(self.temp_output_dir, 'frames')
         # 提取的字幕文件存储目录
         self.subtitle_output_dir = os.path.join(self.temp_output_dir, 'subtitle')
+        # 定义是否使用vsf提取字幕帧
+        self.use_vsf = False
         # 定义vsf的字幕输出路径
         self.vsf_subtitle = os.path.join(self.subtitle_output_dir, 'raw_vsf.srt')
         # 不存在则创建文件夹
@@ -161,16 +163,13 @@ class SubtitleExtractor:
             self.filter_scene_text()
             print(config.interface_config['Main']['FinishDeleteNonSub'])
         print(config.interface_config['Main']['StartGenerateSub'])
-        # 判断是否开启精准模式
-        if config.ACCURATE_MODE_ON:
-            # 如果开启精准模式则使用原生字幕生成
-            self.generate_subtitle_file()
+        # 判断是否使用了vsf提取字幕
+        if self.use_vsf:
+            # 如果使用了vsf提取字幕，则使用vsf的字幕生成方法
+            self.generate_subtitle_file_vsf()
         else:
-            # 如果没有开启精准模式，则Windows平台默认使用vsf提取
-            if platform.system() == 'Windows':
-                self.generate_subtitle_file_vsf()
-            else:
-                self.generate_subtitle_file()
+            # 如果未使用vsf提取字幕，则使用常规字幕生成方法
+            self.generate_subtitle_file()
         # 如果识别的字幕语言包含英文，则将英文分词
         if config.REC_CHAR_TYPE in ('ch', 'EN', 'en', 'ch_tra'):
             reformat(os.path.join(os.path.splitext(self.video_path)[0] + '.srt'))
@@ -297,6 +296,8 @@ class SubtitleExtractor:
         """
        通过调用videoSubFinder获取字幕帧
        """
+        self.use_vsf = True
+
         def count_process():
             duration_ms = (self.frame_count / self.fps) * 1000
             last_total_ms = 0
@@ -485,6 +486,7 @@ class SubtitleExtractor:
 
     def generate_subtitle_file_vsf(self):
         try:
+            # 从vsf生产的srt文件读取时间轴
             subtitle_timestamp = []
             with open(self.vsf_subtitle, mode='r', encoding='utf-8') as f:
                 lines = f.readlines()
