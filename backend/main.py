@@ -480,7 +480,7 @@ class SubtitleExtractor:
                 frame_content = content[2]
                 subtitle_line = f'{line_code}\n{frame_start} --> {frame_end}\n{frame_content}\n'
                 f.write(subtitle_line)
-        print(f"{config.interface_config['Main']['SubLocation']} {srt_filename}")
+        print(f"[NO-VSF]{config.interface_config['Main']['SubLocation']} {srt_filename}")
         # 返回持续时间低于1s的字幕行
         return post_process_subtitle
 
@@ -514,7 +514,7 @@ class SubtitleExtractor:
                     f.write(f'{i + 1}\n')
                     f.write(f'{subtitle_line[0]}\n')
                     f.write(f'{subtitle_line[1]}\n')
-            print(f"{config.interface_config['Main']['SubLocation']} {srt_filename}")
+            print(f"[VSF]{config.interface_config['Main']['SubLocation']} {srt_filename}")
         except FileNotFoundError:
             self.generate_subtitle_file()
 

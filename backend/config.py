@@ -147,9 +147,6 @@ SUBTITLE_AREA = SubtitleArea.UNKNOWN
 # 0.925表示，当视频帧1与视频帧2相似度高达92.5%时，视频帧2将直接pass，不检测与提取视频帧2的字幕
 COSINE_SIMILARITY_THRESHOLD = 0.95 if SUBTITLE_AREA == SubtitleArea.UNKNOWN else 0.9
 
-# 当前帧与之后的多少帧比较
-FRAME_COMPARE_TIMES = 10
-
 # 每一秒抓取多少帧进行OCR识别
 EXTRACT_FREQUENCY = 3
 # 每几帧抽取一帧进行OCR识别
@@ -177,10 +174,10 @@ THRESHOLD_TEXT_SIMILARITY = 0.8
 DROP_SCORE = 0.75
 
 # 字幕区域允许偏差, 0为不允许越界, 0.03表示可以越界3%
-SUB_AREA_DEVIATION_RATE = 0.03
+SUB_AREA_DEVIATION_RATE = 0
 
 # 输出丢失的字幕帧, 仅简体中文,繁体中文,日文,韩语有效, 默认将调试信息输出到: 视频路径/loss
-DEBUG_OCR_LOSS = True
+DEBUG_OCR_LOSS = False
 
 # --------------------- 请根据自己的实际情况改 end-----------------------------
 

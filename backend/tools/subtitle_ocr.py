@@ -6,6 +6,7 @@ from PIL import ImageFont, ImageDraw, Image
 from tqdm import tqdm
 from tools.ocr import OcrRecogniser, get_coordinates
 from tools.constant import SubtitleArea
+from tools import constant
 from threading import Thread
 import queue
 from shapely.geometry import Polygon
@@ -13,11 +14,6 @@ from types import SimpleNamespace
 import shutil
 import numpy as np
 from collections import namedtuple
-
-BGR_COLOR_GREEN = (0, 0xff, 0)
-BGR_COLOR_BLUE = (0xff, 0, 0)
-BGR_COLOR_RED = (0, 0, 0xff)
-BGR_COLOR_WHITE = (0xff, 0xff, 0xff)
 
 
 def extract_subtitles(data, text_recogniser, img, raw_subtitle_file,
@@ -53,8 +49,7 @@ def extract_subtitles(data, text_recogniser, img, raw_subtitle_file,
             # 如果有交集
             if not intersection.is_empty:
                 # 计算越界允许偏差
-                overflow_area_rate = ((sub_area_polygon.area + coordinate_polygon.area - intersection.area)\
-                                     / sub_area_polygon.area) - 1
+                overflow_area_rate = ((sub_area_polygon.area + coordinate_polygon.area - intersection.area) / sub_area_polygon.area) - 1
                 if overflow_area_rate <= options.SUB_AREA_DEVIATION_RATE:
                     if prob > options.DROP_SCORE:
                         selected = True
@@ -76,10 +71,10 @@ def dump_debug_info(options, line, img, loss_list, ocr_loss_debug_path, sub_area
     if loss:
         if not os.path.exists(ocr_loss_debug_path):
             os.makedirs(ocr_loss_debug_path, mode=0o777, exist_ok=True)
-        img = cv2.rectangle(img, (sub_area[2], sub_area[0]), (sub_area[3], sub_area[1]), BGR_COLOR_BLUE, 2)
+        img = cv2.rectangle(img, (sub_area[2], sub_area[0]), (sub_area[3], sub_area[1]), constant.BGR_COLOR_BLUE, 2)
         for loss_info in loss_list:
             coordinate = loss_info.coordinate
-            color = BGR_COLOR_GREEN if loss_info.selected else BGR_COLOR_RED
+            color = constant.BGR_COLOR_GREEN if loss_info.selected else constant.BGR_COLOR_RED
             text = f"[{loss_info.text}] prob:{loss_info.prob:.4f} or:{loss_info.overflow_area_rate:.2f}"
             img = paint_chinese_opencv(img, text, pos=(coordinate[0], coordinate[2] - 30), color=color)
             img = cv2.rectangle(img, (coordinate[0], coordinate[2]), (coordinate[1], coordinate[3]), color, 2)
@@ -103,16 +98,16 @@ def coordinate_to_polygon(coordinate):
 
 
 FONT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'NotoSansCJK-Bold.otf')
-FONT = ImageFont.truetype(FONT_PATH,20)
+FONT = ImageFont.truetype(FONT_PATH, 20)
 
 
-def paint_chinese_opencv(im,chinese,pos,color):
-    img_PIL = Image.fromarray(im)
-    fillColor = color  # (color[2], color[1], color[0])
+def paint_chinese_opencv(im, chinese, pos, color):
+    img_pil = Image.fromarray(im)
+    fill_color = color  # (color[2], color[1], color[0])
     position = pos
-    draw = ImageDraw.Draw(img_PIL)
-    draw.text(position, chinese, font=FONT, fill=fillColor)
-    img = np.asarray(img_PIL)
+    draw = ImageDraw.Draw(img_pil)
+    draw.text(position, chinese, font=FONT, fill=fill_color)
+    img = np.asarray(img_pil)
     return img
 
 
@@ -182,13 +177,14 @@ def handle(event_queue, progress_queue, video_path, raw_subtitle_path, sub_area,
     recv_ocr_event_thread.join()
 
 
-"""
-    options.REC_CHAR_TYPE
-    options.DROP_SCORE
-    options.SUB_AREA_DEVIATION_RATE
-    options.DEBUG_OCR_LOSS
-"""
+
 def async_start(video_path, raw_subtitle_path, sub_area, options):
+    """
+        options.REC_CHAR_TYPE
+        options.DROP_SCORE
+        options.SUB_AREA_DEVIATION_RATE
+        options.DEBUG_OCR_LOSS
+    """
     assert 'REC_CHAR_TYPE' in options
     assert 'DROP_SCORE' in options
     assert 'SUB_AREA_DEVIATION_RATE' in options

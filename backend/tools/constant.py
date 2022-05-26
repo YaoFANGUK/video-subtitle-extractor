@@ -18,3 +18,9 @@ class BackgroundColor(Enum):
     WHITE = 0
     DARK = 1
     UNKNOWN = 2
+
+
+BGR_COLOR_GREEN = (0, 0xff, 0)
+BGR_COLOR_BLUE = (0xff, 0, 0)
+BGR_COLOR_RED = (0, 0, 0xff)
+BGR_COLOR_WHITE = (0xff, 0xff, 0xff)
