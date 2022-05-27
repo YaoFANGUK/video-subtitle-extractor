@@ -75,6 +75,12 @@
 
 #### 2. Activate Vitrual Environment
 
+(1) Switch to working directory
+```shell
+cd <your source code path>
+```
+
+(2) create and activate conda environment
 ```shell
 conda create -n videoEnv python=3.8 pip
 ```
