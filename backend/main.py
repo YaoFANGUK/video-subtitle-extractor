@@ -66,6 +66,8 @@ class SubtitleExtractor:
         # 临时存储文件夹
         self.vd_name = Path(self.video_path).stem
         self.temp_output_dir = os.path.join(os.path.dirname(config.BASE_DIR), 'output', str(self.vd_name))
+        # 删除缓存文件
+        self.empty_cache()
         # 视频帧总数
         self.frame_count = self.video_cap.get(cv2.CAP_PROP_FRAME_COUNT)
         # 视频帧率
@@ -176,8 +178,6 @@ class SubtitleExtractor:
         print(config.interface_config['Main']['FinishGenerateSub'], f"{round(time.time() - start_time, 2)}s")
         self.update_progress(ocr=100, frame_extract=100)
         self.isFinished = True
-        # 删除缓存文件
-        self.empty_cache()
         self.lock.release()
 
     def extract_frame_by_fps(self):
