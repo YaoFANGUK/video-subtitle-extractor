@@ -546,13 +546,18 @@ class SubtitleExtractor:
                     subtitle_timestamp.append(i)
             subtitle_content = self._remove_duplicate_subtitle()
             final_subtitle = []
-            for sc in subtitle_content:
-                frame_no = sc[0]
-                content = sc[2]
-                for st in subtitle_timestamp:
+            for st in subtitle_timestamp:
+                found = False
+                timestamp = st[1]
+                for sc in subtitle_content:
+                    frame_no = sc[0]
+                    content = sc[2]
                     if st[0] == frame_no:
-                        timestamp = st[1]
                         final_subtitle.append((timestamp, content))
+                        found = True
+                        break
+                if not found:
+                    final_subtitle.append((timestamp, ""))
             srt_filename = os.path.join(os.path.splitext(self.video_path)[0] + '.srt')
             with open(srt_filename, mode='w', encoding='utf-8') as f:
                 for i, subtitle_line in enumerate(final_subtitle):
