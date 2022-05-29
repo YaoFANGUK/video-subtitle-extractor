@@ -102,6 +102,10 @@ if REC_CHAR_TYPE in ('ch', 'japan', 'korean', 'en', 'chinese_cht', 'EN_symbol', 
     if not os.path.exists(REC_MODEL_PATH):
         MODEL_VERSION = 'V3'
         REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'{REC_CHAR_TYPE}_rec_fast')
+    # 如果没有V3的fast版本，则切换V2的fast版本
+    if not os.path.exists(REC_MODEL_PATH):
+        MODEL_VERSION = 'V2'
+        REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'{REC_CHAR_TYPE}_rec_fast')
     # 定义文本检测模型
     tmp_dir = REC_MODEL_PATH.replace(os.path.dirname(REC_MODEL_PATH), '').split('_')
     if len(tmp_dir) > 3:
