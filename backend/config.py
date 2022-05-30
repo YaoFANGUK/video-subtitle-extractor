@@ -186,6 +186,10 @@ DEBUG_OCR_LOSS = False
 
 # 是否不删除缓存数据，以方便调试
 DEBUG_NO_DELETE_CACHE = False
+
+# 是否删除空时间轴
+DELETE_EMPTY_TIMESTAMP = True
+
 # --------------------- 请根据自己的实际情况改 end-----------------------------
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'

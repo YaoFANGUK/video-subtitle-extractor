@@ -516,7 +516,7 @@ class SubtitleExtractor:
                         final_subtitle.append((timestamp, content))
                         found = True
                         break
-                if not found:
+                if not found and not config.DELETE_EMPTY_TIMESTAMP:
                     final_subtitle.append((timestamp, ""))
             srt_filename = os.path.join(os.path.splitext(self.video_path)[0] + '.srt')
             with open(srt_filename, mode='w', encoding='utf-8') as f:
