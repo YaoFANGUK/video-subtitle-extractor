@@ -305,6 +305,7 @@ class SubtitleExtractor:
             last_total_ms = 0
             processed_image = set()
             rgb_images_path = os.path.join(self.temp_output_dir, 'RGBImages')
+            frame_no = 0
             while self.vsf_running and not self.isFinished:
                 if not os.path.exists(rgb_images_path):
                     continue
@@ -318,7 +319,8 @@ class SubtitleExtractor:
                         h, m, s, ms = rgb_image.split('__')[0].split('_')
                         total_ms = int(ms) + int(s) * 1000 + int(m) * 60 * 1000 + int(h) * 60 * 60 * 1000
                         if total_ms > last_total_ms:
-                            self.subtitle_ocr_queue.put((total_ms, duration_ms, -1, None, None, self.subtitle_area))
+                            self.subtitle_ocr_queue.put((total_ms, duration_ms, frame_no, None, None, self.subtitle_area))
+                            frame_no += 1
                         last_total_ms = total_ms
                         if total_ms / duration_ms >= 1:
                             self.update_progress(frame_extract=100)
@@ -466,31 +468,40 @@ class SubtitleExtractor:
         """
         生成srt格式的字幕文件
         """
-        subtitle_content = self._remove_duplicate_subtitle()
-        srt_filename = os.path.join(os.path.splitext(self.video_path)[0] + '.srt')
-        # 保存持续时间不足1秒的字幕行，用于后续处理
-        post_process_subtitle = []
-        with open(srt_filename, mode='w', encoding='utf-8') as f:
-            for index, content in enumerate(subtitle_content):
-                line_code = index + 1
-                frame_start = self._frame_to_timecode(int(content[0]))
-                # 比较起始帧号与结束帧号， 如果字幕持续时间不足1秒，则将显示时间设为1s
-                if abs(int(content[1]) - int(content[0])) < self.fps:
-                    frame_end = self._frame_to_timecode(int(int(content[0]) + self.fps))
-                    post_process_subtitle.append(line_code)
-                else:
-                    frame_end = self._frame_to_timecode(int(content[1]))
-                frame_content = content[2]
-                subtitle_line = f'{line_code}\n{frame_start} --> {frame_end}\n{frame_content}\n'
-                f.write(subtitle_line)
-        print(f"[NO-VSF]{config.interface_config['Main']['SubLocation']} {srt_filename}")
-        # 返回持续时间低于1s的字幕行
-        return post_process_subtitle
+        if not self.use_vsf:
+            subtitle_content = self._remove_duplicate_subtitle()
+            srt_filename = os.path.join(os.path.splitext(self.video_path)[0] + '.srt')
+            # 保存持续时间不足1秒的字幕行，用于后续处理
+            post_process_subtitle = []
+            with open(srt_filename, mode='w', encoding='utf-8') as f:
+                for index, content in enumerate(subtitle_content):
+                    line_code = index + 1
+                    frame_start = self._frame_to_timecode(int(content[0]))
+                    # 比较起始帧号与结束帧号， 如果字幕持续时间不足1秒，则将显示时间设为1s
+                    if abs(int(content[1]) - int(content[0])) < self.fps:
+                        frame_end = self._frame_to_timecode(int(int(content[0]) + self.fps))
+                        post_process_subtitle.append(line_code)
+                    else:
+                        frame_end = self._frame_to_timecode(int(content[1]))
+                    frame_content = content[2]
+                    subtitle_line = f'{line_code}\n{frame_start} --> {frame_end}\n{frame_content}\n'
+                    f.write(subtitle_line)
+            print(f"[NO-VSF]{config.interface_config['Main']['SubLocation']} {srt_filename}")
+            # 返回持续时间低于1s的字幕行
+            return post_process_subtitle
 
     def generate_subtitle_file_vsf(self):
-        try:
+        if self.use_vsf:
             # 从vsf生成的srt文件读取时间轴
             subtitle_timestamp = []
+            # 等待vsf生成字幕文件 - 最长等待60秒
+            time_to_wait = 60
+            time_counter = 0
+            while not os.path.exists(self.vsf_subtitle):
+                time.sleep(1)
+                time_counter += 1
+                if time_counter > time_to_wait:
+                    break
             with open(self.vsf_subtitle, mode='r', encoding='utf-8') as f:
                 lines = f.readlines()
                 timestamp = []
@@ -525,8 +536,6 @@ class SubtitleExtractor:
                     f.write(f'{subtitle_line[0]}\n')
                     f.write(f'{subtitle_line[1]}\n')
             print(f"[VSF]{config.interface_config['Main']['SubLocation']} {srt_filename}")
-        except FileNotFoundError:
-            self.generate_subtitle_file()
 
     def _analyse_subtitle_frame(self):
         """
@@ -957,7 +966,7 @@ class SubtitleExtractor:
 
 
 if __name__ == '__main__':
-    multiprocessing.set_start_method("spawn")
+    # multiprocessing.set_start_method("spawn")
     # 提示用户输入视频路径
     video_path = input(f"{config.interface_config['Main']['InputVideo']}").strip()
     # 提示用户输入字幕区域
