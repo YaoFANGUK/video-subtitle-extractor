@@ -199,7 +199,9 @@ class SubtitleExtractor:
             # 读取视频帧成功
             else:
                 total_ms = self.video_cap.get(cv2.CAP_PROP_POS_MSEC)
+                # 如果opencv读取时间失败
                 if total_ms <= 0:
+                    # 将帧号转为时间
                     total_ms = self._frameno_to_milliseconds(self.video_cap.get(cv2.CAP_PROP_POS_FRAMES))
                 frame_no += 1
                 self.subtitle_ocr_queue.put((total_ms, duration_ms, frame_no, None, None, self.subtitle_area))
@@ -910,8 +912,9 @@ class SubtitleExtractor:
         """
         删除字幕提取过程中所有生产的缓存文件
         """
-        if os.path.exists(self.temp_output_dir):
-            shutil.rmtree(self.temp_output_dir, True)
+        if not config.DEBUG_NO_DELETE_CACHE:
+            if os.path.exists(self.temp_output_dir):
+                shutil.rmtree(self.temp_output_dir, True)
 
     def update_progress(self, ocr=None, frame_extract=None):
         if ocr is not None:
