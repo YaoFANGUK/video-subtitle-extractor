@@ -309,6 +309,7 @@ class SubtitleExtractor:
                 if not os.path.exists(rgb_images_path):
                     continue
                 try:
+                    # 将列表按文件名排序
                     rgb_images = sorted(os.listdir(rgb_images_path))
                     for rgb_image in rgb_images:
                         if rgb_image in processed_image:
@@ -488,15 +489,17 @@ class SubtitleExtractor:
 
     def generate_subtitle_file_vsf(self):
         try:
-            # 从vsf生产的srt文件读取时间轴
+            # 从vsf生成的srt文件读取时间轴
             subtitle_timestamp = []
             with open(self.vsf_subtitle, mode='r', encoding='utf-8') as f:
                 lines = f.readlines()
                 timestamp = []
                 frame_no = []
                 for line in lines:
+                    # 找到字幕行标
                     if re.match(r'^\d{1,}$', line):
                         frame_no.append(line.replace('\n', '').replace('\r', '').zfill(8))
+                    # 找到时间戳
                     if re.match(r'^\d{2,}:\d{2,}:\d{2,},\d{1,3}.*', line):
                         timestamp.append(line.replace('\n', '').replace('\r', ''))
                 for i in zip(frame_no, timestamp):
@@ -904,9 +907,10 @@ class SubtitleExtractor:
         return image
 
     def __delete_frame_cache(self):
-        if len(os.listdir(self.frame_output_dir)) > 0:
-            for i in os.listdir(self.frame_output_dir):
-                os.remove(os.path.join(self.frame_output_dir, i))
+        if not config.DEBUG_NO_DELETE_CACHE:
+            if len(os.listdir(self.frame_output_dir)) > 0:
+                for i in os.listdir(self.frame_output_dir):
+                    os.remove(os.path.join(self.frame_output_dir, i))
 
     def empty_cache(self):
         """
@@ -944,7 +948,7 @@ class SubtitleExtractor:
                                                                                'DROP_SCORE': config.DROP_SCORE,
                                                                                'SUB_AREA_DEVIATION_RATE': config.SUB_AREA_DEVIATION_RATE,
                                                                                'DEBUG_OCR_LOSS': config.DEBUG_OCR_LOSS,
-                                                                              }
+                                                                               }
                                                                       )
         self.subtitle_ocr_queue = task_queue
         self.subtitle_ocr_progress_queue = progress_queue
