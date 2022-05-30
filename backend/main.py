@@ -966,7 +966,7 @@ class SubtitleExtractor:
 
 
 if __name__ == '__main__':
-    # multiprocessing.set_start_method("spawn")
+    multiprocessing.set_start_method("spawn")
     # 提示用户输入视频路径
     video_path = input(f"{config.interface_config['Main']['InputVideo']}").strip()
     # 提示用户输入字幕区域
