@@ -109,13 +109,14 @@ if REC_CHAR_TYPE in ('ch', 'japan', 'korean', 'en', 'chinese_cht', 'EN_symbol', 
     # 定义文本检测模型
     tmp_dir = REC_MODEL_PATH.replace(os.path.dirname(REC_MODEL_PATH), '').split('_')
     if len(tmp_dir) > 3:
-        tmp_dir = tmp_dir[1:]
+        tmp_dir = tmp_dir[-3:]
     tmp_dir[1] = 'det'
     DET_MODEL_PATH = os.path.join(os.path.dirname(REC_MODEL_PATH), "_".join(tmp_dir))
     if not os.path.exists(DET_MODEL_PATH):
         tmp_dir[0] = 'ch'
         DET_MODEL_PATH = os.path.join(os.path.dirname(REC_MODEL_PATH), "_".join(tmp_dir))
-
+    if MODEL_VERSION == 'V2':
+        DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, MODEL_VERSION, 'ch_det')
     # 定义字典路径
     DICT_PATH = os.path.join(DICT_BASE, f'{REC_CHAR_TYPE}_dict.txt')
     # 定义图像识别shape
@@ -183,6 +184,8 @@ SUB_AREA_DEVIATION_RATE = 0
 # 输出丢失的字幕帧, 仅简体中文,繁体中文,日文,韩语有效, 默认将调试信息输出到: 视频路径/loss
 DEBUG_OCR_LOSS = False
 
+# 是否不删除缓存数据，以方便调试
+DEBUG_NO_DELETE_CACHE = False
 # --------------------- 请根据自己的实际情况改 end-----------------------------
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
