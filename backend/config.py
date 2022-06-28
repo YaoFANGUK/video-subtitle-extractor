@@ -17,10 +17,12 @@ from paddle import fluid
 from tools.constant import *
 
 
-# --------------------- 请你不要改 start-----------------------------
-# 判断代码路径是否合法
-IS_LEGAL_PATH = True
-config = configparser.ConfigParser()
+# 项目的base目录
+BASE_DIR = str(Path(os.path.abspath(__file__)).parent)
+
+# ×××××××××××××××××××× [不要改]读取配置文件 start ××××××××××××××××××××
+# 读取settings.ini配置
+settings_config = configparser.ConfigParser()
 MODE_CONFIG_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'settings.ini')
 if not os.path.exists(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'settings.ini')):
     # 如果没有配置文件，默认使用中文
@@ -29,9 +31,9 @@ if not os.path.exists(os.path.join(os.path.dirname(os.path.dirname(__file__)), '
         f.write('Interface = 简体中文\n')
         f.write('Language = ch\n')
         f.write('Mode = fast')
-config.read(MODE_CONFIG_PATH, encoding='utf-8')
+settings_config.read(MODE_CONFIG_PATH, encoding='utf-8')
 
-
+# 读取interface下的语言配置,e.g. ch.ini
 interface_config = configparser.ConfigParser()
 INTERFACE_KEY_NAME_MAP = {
     '简体中文': 'ch',
@@ -39,21 +41,30 @@ INTERFACE_KEY_NAME_MAP = {
     'English': 'en',
 }
 interface_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'interface',
-                              f"{INTERFACE_KEY_NAME_MAP[config['DEFAULT']['Interface']]}.ini")
+                              f"{INTERFACE_KEY_NAME_MAP[settings_config['DEFAULT']['Interface']]}.ini")
 interface_config.read(interface_file, encoding='utf-8')
-# 设置识别语言
-REC_CHAR_TYPE = config['DEFAULT']['Language']
+# ×××××××××××××××××××× [不要改]读取配置文件 end ××××××××××××××××××××
 
-# 设置识别模式
-MODE_TYPE = config['DEFAULT']['Mode']
-ACCURATE_MODE_ON = False
-if MODE_TYPE == 'accurate':
-    ACCURATE_MODE_ON = True
-if MODE_TYPE == 'fast':
-    ACCURATE_MODE_ON = False
 
+# ×××××××××××××××××××× [不要改]判断程序运行路径是否合法 start ××××××××××××××××××××
+# 程序运行路径如果包含中文或者空格，运行过程在程序可能会存在bug，因此需要检查路径合法性
+# 默认为合法路径
+IS_LEGAL_PATH = True
+# 如果路径包含中文，设置路径为非法
+if re.search(r"[\u4e00-\u9fa5]+", BASE_DIR):
+    IS_LEGAL_PATH = False
+# 如果路径包含空格，设置路径为非法
+if re.search(r"\s", BASE_DIR):
+    IS_LEGAL_PATH = False
+# 如果为程序存放在非法路径则一直提示用户路径不合法
+while not IS_LEGAL_PATH:
+    print(interface_config['Main']['IllegalPathWarning'])
+    time.sleep(3)
+# ×××××××××××××××××××× [不要改]判断程序运行路径是否合法 end ××××××××××××××××××××
+
+
+# ×××××××××××××××××××× [不要改]判断是否使用GPU start ××××××××××××××××××××
 # 是否使用GPU
-# 使用GPU可以提速20倍+，你要是有N卡你就改成 True
 USE_GPU = False
 # 如果paddlepaddle编译了gpu的版本
 if fluid.is_compiled_with_cuda():
@@ -61,18 +72,21 @@ if fluid.is_compiled_with_cuda():
     if len(fluid.cuda_places()) > 0:
         # 如果有GPU则使用GPU
         USE_GPU = True
+# ×××××××××××××××××××× [不要改]判断是否使用GPU start ××××××××××××××××××××
 
-# 项目的base目录
-BASE_DIR = str(Path(os.path.abspath(__file__)).parent)
-# 是否包含中文
-if re.search(r"[\u4e00-\u9fa5]+", BASE_DIR):
-    IS_LEGAL_PATH = False
-# 是否包含空格
-if re.search(r"\s", BASE_DIR):
-    IS_LEGAL_PATH = False
-while not IS_LEGAL_PATH:
-    print(interface_config['Main']['IllegalPathWarning'])
-    time.sleep(3)
+
+
+# ×××××××××××××××××××× [不要改]读取语言、模型路径、字典路径 start ××××××××××××××××××××
+# 设置识别语言
+REC_CHAR_TYPE = settings_config['DEFAULT']['Language']
+
+# 设置识别模式
+MODE_TYPE = settings_config['DEFAULT']['Mode']
+ACCURATE_MODE_ON = False
+if MODE_TYPE == 'accurate':
+    ACCURATE_MODE_ON = True
+if MODE_TYPE == 'fast':
+    ACCURATE_MODE_ON = False
 # 模型文件目录
 # 默认模型版本 V3
 MODEL_VERSION = 'V3'
@@ -129,8 +143,7 @@ if REC_CHAR_TYPE in ('ch', 'japan', 'korean', 'en', 'chinese_cht', 'EN_symbol', 
     if 'inference.pdiparams' not in (os.listdir(REC_MODEL_PATH)):
         fs = Filesplit()
         fs.merge(input_dir=REC_MODEL_PATH)
-
-# --------------------- 请你不要改 end-----------------------------
+# ×××××××××××××××××××× [不要改]读取语言、模型路径、字典路径 end ××××××××××××××××××××
 
 
 # --------------------- 请根据自己的实际情况改 start-----------------
@@ -144,13 +157,13 @@ BG_VALUE_OTHER = 63
 ROI_RATE = 0.4
 
 # 默认字幕出现区域为下方
-SUBTITLE_AREA = SubtitleArea.UNKNOWN
+DEFAULT_SUBTITLE_AREA = SubtitleArea.UNKNOWN
 
 # 余弦相似度阈值
 # 数值越小生成的视频帧越少，相对提取速度更快但生成的字幕越不精准
 # 1表示最精准，每一帧视频帧都进行字幕检测与提取，生成的字幕最精准
 # 0.925表示，当视频帧1与视频帧2相似度高达92.5%时，视频帧2将直接pass，不检测与提取视频帧2的字幕
-COSINE_SIMILARITY_THRESHOLD = 0.95 if SUBTITLE_AREA == SubtitleArea.UNKNOWN else 0.9
+COSINE_SIMILARITY_THRESHOLD = 0.95 if DEFAULT_SUBTITLE_AREA == SubtitleArea.UNKNOWN else 0.9
 
 # 每一秒抓取多少帧进行OCR识别
 EXTRACT_FREQUENCY = 3
@@ -173,6 +186,7 @@ WATERMARK_AREA_NUM = 5
 # 文本相似度阈值
 # 用于去重时判断两行字幕是不是同一行，这个值越高越严格。 e.g. 0.99表示100个字里面有99各个字一模一样才算相似
 # 采用动态算法实现相似度阈值判断: 对于短文本要求较低的阈值，对于长文本要求较高的阈值
+# 如：文本较短，人民、入民，0.5就算相似
 THRESHOLD_TEXT_SIMILARITY = 0.8
 
 # 字幕提取中置信度低于0.75的不要

@@ -145,7 +145,7 @@ class SerRePredictor(object):
 
 def preprocess():
     FLAGS = ReArgsParser().parse_args()
-    config = load_config(FLAGS.config)
+    config = load_config(FLAGS.settings_config)
     config = merge_config(config, FLAGS.opt)
 
     ser_config = load_config(FLAGS.config_ser)
