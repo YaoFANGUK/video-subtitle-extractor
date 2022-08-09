@@ -656,7 +656,7 @@ class SubtitleExtractor:
         """
         将视频帧转换成时间
         :param frame_no: 视频的帧号，i.e. 第几帧视频帧
-        :returns: SMPTE格式时间戳 as string, 如'01:02:12:32' 或者 '01:02:12;32'
+        :returns: SMPTE格式时间戳 as string, 如'01:02:12:032' 或者 '01:02:12;032'
         """
         # 设置当前帧号
         cap = cv2.VideoCapture(self.video_path)
@@ -666,7 +666,7 @@ class SubtitleExtractor:
         if ret:
             milliseconds = cap.get(cv2.CAP_PROP_POS_MSEC)
             if milliseconds <= 0:
-                return '{0:02d}:{1:02d}:{2:02d},{3:02d}'.format(int(frame_no / (3600 * self.fps)),
+                return '{0:02d}:{1:02d}:{2:02d},{3:03d}'.format(int(frame_no / (3600 * self.fps)),
                                                                 int(frame_no / (60 * self.fps) % 60),
                                                                 int(frame_no / self.fps % 60),
                                                                 int(frame_no % self.fps))
@@ -682,9 +682,9 @@ class SubtitleExtractor:
                 minutes = int(minutes % 60)
             smpte_token = ','
             cap.release()
-            return "%02d:%02d:%02d%s%02d" % (hours, minutes, seconds, smpte_token, milliseconds)
+            return "%02d:%02d:%02d%s%03d" % (hours, minutes, seconds, smpte_token, milliseconds)
         else:
-            return '{0:02d}:{1:02d}:{2:02d},{3:02d}'.format(int(frame_no / (3600 * self.fps)),
+            return '{0:02d}:{1:02d}:{2:02d},{3:03d}'.format(int(frame_no / (3600 * self.fps)),
                                                             int(frame_no / (60 * self.fps) % 60),
                                                             int(frame_no / self.fps % 60),
                                                             int(frame_no % self.fps))
