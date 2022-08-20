@@ -1,6 +1,7 @@
 import argparse
 import sys
 import os
+import multiprocessing
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='VideoSubtitleExtractor')
@@ -20,6 +21,7 @@ if __name__ == '__main__':
         f.write('Language = ' + args.lang + '\n')
         f.write('Mode = fast')
 
+    multiprocessing.set_start_method("spawn")
     from main import SubtitleExtractor
     # 新建字幕提取对象
     se = SubtitleExtractor(args.path, subtitle_area)

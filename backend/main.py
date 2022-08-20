@@ -96,6 +96,7 @@ class SubtitleExtractor:
             xmin = int(xmin * self.frame_width)
         if 1 >= xmax > 0:
             xmax = int(xmax * self.frame_width)
+        self.sub_area = (ymin, ymax, xmin, xmax)
         # 用户未指定字幕区域时，默认字幕出现的区域
         self.default_subtitle_area = config.DEFAULT_SUBTITLE_AREA
         # 提取的视频帧储存目录
