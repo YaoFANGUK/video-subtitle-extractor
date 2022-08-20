@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 # 默认字幕出现的大致区域
 class SubtitleArea(Enum):
     # 字幕区域出现在下半部分
@@ -17,3 +18,9 @@ class BackgroundColor(Enum):
     WHITE = 0
     DARK = 1
     UNKNOWN = 2
+
+
+BGR_COLOR_GREEN = (0, 0xff, 0)
+BGR_COLOR_BLUE = (0xff, 0, 0)
+BGR_COLOR_RED = (0, 0, 0xff)
+BGR_COLOR_WHITE = (0xff, 0xff, 0xff)
