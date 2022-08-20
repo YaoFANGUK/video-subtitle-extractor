@@ -81,6 +81,17 @@ class SubtitleExtractor:
         # 视频尺寸
         self.frame_height = int(self.video_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         self.frame_width = int(self.video_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        # 按比例还原字幕区域位置
+        ymin, ymax, xmin, xmax = self.sub_area
+        if 1 >= ymin > 0:
+            ymin = int(ymin * self.frame_height)
+        if 1 >= ymax > 0:
+            ymax = int(ymax * self.frame_height)
+        if 1 >= xmin > 0:
+            xmin = int(xmin * self.frame_width)
+        if 1 >= xmax > 0:
+            xmax = int(xmax * self.frame_width)
+        self.sub_area = (ymin, ymax, xmin, xmax)
         # 字幕出现区域
         self.subtitle_area = config.SUBTITLE_AREA
         # 提取的视频帧储存目录
