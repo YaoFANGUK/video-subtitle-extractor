@@ -39,7 +39,7 @@ class WandbLogger(BaseLogger):
         _ = self.run
 
         if self.config:
-            self.run.config.update(self.config)
+            self.run.settings_config.update(self.config)
 
     @property
     def run(self):

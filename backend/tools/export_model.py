@@ -105,7 +105,7 @@ def export_single_model(model, arch_config, save_path, logger, quanter=None):
 
 def main():
     FLAGS = ArgsParser().parse_args()
-    config = load_config(FLAGS.config)
+    config = load_config(FLAGS.settings_config)
     config = merge_config(config, FLAGS.opt)
     logger = get_logger()
     # build post process

@@ -97,6 +97,13 @@ Video-subtitle-extractor (vse) 是一款将视频中的硬字幕提取为外挂�
 
 #### 2. 创建并激活虚机环境
 
+（1）切换到源码所在目录：
+```shell
+cd <源码所在目录>
+```
+> 例如：如果你的源代码放在D盘的tools文件下，并且源代码的文件夹名为video-subtitle-extractor，就输入 ```cd D:/tools/video-subtitle-extractor-main```
+
+（2）创建激活conda环境
 ```shell
 conda create -n videoEnv python=3.8
 ```

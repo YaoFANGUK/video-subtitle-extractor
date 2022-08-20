@@ -5,10 +5,7 @@
 @FileName: gui.py
 @desc: 字幕提取器图形化界面
 """
-import warnings
 import backend.main
-warnings.filterwarnings("ignore", category=Warning)
-warnings.filterwarnings("ignore", category=DeprecationWarning)
 import os
 import configparser
 import PySimpleGUI as sg
@@ -36,6 +33,9 @@ class SubtitleExtractorGUI:
         self.interface_config.read(self.interface_file, encoding='utf-8')
 
     def __init__(self):
+        # 初次运行检查运行环境是否正常
+        from paddle import fluid
+        fluid.install_check.run_check()
         self.font = 'Arial 10'
         self.theme = 'LightBrown12'
         sg.theme(self.theme)
