@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from operator import truediv
 import os
 import sys
 sys.path.insert(0, os.path.dirname(__file__))
@@ -8,7 +9,12 @@ import multiprocessing
 from extractor import SubtitleExtractor
 import cv2
 
-currFolder='/Users/sameer.shemna/Private/Test/Python/video-subtitle-extractor/backend'
+currFolder = '/Users/sameer.shemna/Private/Test/Python/video-subtitle-extractor/backend'
+# currFolder = '/home/ec2-user/work/video-subtitle-extractor/backend'
+
+hasMargin = True
+marginPercentage = 1
+marginSize = 10
 
 if __name__ == '__main__':
     multiprocessing.set_start_method("spawn")
@@ -24,6 +30,15 @@ if __name__ == '__main__':
     x_min=0
     x_max=int(width)
     subtitle_area = (y_min, y_max, x_min, x_max)
+    
+    if hasMargin and marginPercentage > 0:
+      marginSizeY = int(y_max * marginPercentage / 100)
+      marginSizeX = int(x_max * marginPercentage / 100)
+      y_min = 0 + marginSizeY
+      y_max = y_max - marginSizeY
+      x_min = 0 + marginSizeX
+      x_max = x_max - marginSizeX
+      subtitle_area = (y_min, y_max, x_min, x_max)
 
     # (224,988,0,1920)
     # subtitle_area = (224, 988, 0, 1920)

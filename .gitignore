@@ -1,4 +1,5 @@
-
+.DS_Store
+.history
 # Created by https://www.toptal.com/developers/gitignore/api/intellij+all,python,pycharm+all,macos,windows
 # Edit at https://www.toptal.com/developers/gitignore?templates=intellij+all,python,pycharm+all,macos,windows
 
