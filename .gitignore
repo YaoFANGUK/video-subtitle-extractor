@@ -355,5 +355,9 @@ $RECYCLE.BIN/
 /backend/test.py
 /dylib/
 /settings.ini
+
 /test.py
 /test2.py
+
+/bulk/download/*
+/bulk/*.csv
