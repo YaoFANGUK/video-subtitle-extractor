@@ -13,7 +13,7 @@ import re
 import time
 from pathlib import Path
 from fsplit.filesplit import Filesplit
-from paddle import fluid
+# from paddle import fluid
 from tools.constant import *
 
 
@@ -67,11 +67,11 @@ while not IS_LEGAL_PATH:
 # 是否使用GPU
 USE_GPU = False
 # 如果paddlepaddle编译了gpu的版本
-if fluid.is_compiled_with_cuda():
-    # 查看是否有可用的gpu
-    if len(fluid.cuda_places()) > 0:
-        # 如果有GPU则使用GPU
-        USE_GPU = True
+# if fluid.is_compiled_with_cuda():
+#     # 查看是否有可用的gpu
+#     if len(fluid.cuda_places()) > 0:
+#         # 如果有GPU则使用GPU
+#         USE_GPU = True
 # ×××××××××××××××××××× [不要改]判断是否使用GPU start ××××××××××××××××××××
 
 
@@ -146,8 +146,18 @@ if REC_CHAR_TYPE in ('ch', 'japan', 'korean', 'en', 'chinese_cht', 'EN_symbol', 
 # ×××××××××××××××××××× [不要改]读取语言、模型路径、字典路径 end ××××××××××××××××××××
 
 
-# --------------------- 请根据自己的实际情况改 start-----------------
-# 使用快速字幕检测算法(_analyse_subtitle_frame)时，背景颜色
+# --------------------- 请根据自己的实际情况改 start-----------------------------
+# 是否使用GPU
+# 使用GPU可以提速20倍+，你要是有N卡你就改成 True
+USE_GPU = False
+# 如果paddlepaddle编译了gpu的版本
+# if fluid.is_compiled_with_cuda():
+#     # 查看是否有可用的gpu
+#     if len(fluid.cuda_places()) > 0:
+#         # 如果有GPU则使用GPU
+#         USE_GPU = True
+
+# 使用快速字幕检测算法时，背景颜色
 BG_MOD = BackgroundColor.DARK
 # 黑色背景被减矩阵阈值
 BG_VALUE_DARK = 200
@@ -190,7 +200,7 @@ WATERMARK_AREA_NUM = 5
 THRESHOLD_TEXT_SIMILARITY = 0.8
 
 # 字幕提取中置信度低于0.75的不要
-DROP_SCORE = 0.75
+DROP_SCORE = 0.1
 
 # 字幕区域允许偏差, 0为不允许越界, 0.03表示可以越界3%
 SUB_AREA_DEVIATION_RATE = 0
