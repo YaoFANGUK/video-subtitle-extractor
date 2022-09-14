@@ -7,6 +7,10 @@
 """
 import backend.main
 import os
+import sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dependencies'))
+import site
+site.USER_SITE=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dependencies')
 import configparser
 import PySimpleGUI as sg
 import cv2
@@ -521,6 +525,7 @@ class LanguageModeGUI:
 
 
 if __name__ == '__main__':
+    sys.argv = [os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backend/main.py')]
     try:
         multiprocessing.set_start_method("spawn")
         # 运行图形化界面

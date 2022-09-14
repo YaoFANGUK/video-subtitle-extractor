@@ -1,15 +1,14 @@
-from tools.infer import utility
-from tools.infer.predict_system import TextSystem
-import config
-import importlib
-
 
 # 加载文本检测+识别模型
 class OcrRecogniser:
     def __init__(self):
+        import config
+        import importlib
+
+        from tools.infer.predict_system import TextSystem
         # 获取参数对象
         importlib.reload(config)
-        self.args = utility.parse_args()
+        self.args = []
         self.recogniser = self.init_model()
 
     @staticmethod
@@ -94,6 +93,9 @@ class OcrRecogniser:
         # 设置识别文本的类型
         self.args.rec_char_type = config.REC_CHAR_TYPE
         return TextSystem(self.args)
+
+    def get_coordinates(self, dt_box):
+        return get_coordinates(dt_box)
 
 
 def get_coordinates(dt_box):

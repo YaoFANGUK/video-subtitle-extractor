@@ -4,7 +4,8 @@ from multiprocessing import Queue, Process
 import cv2
 from PIL import ImageFont, ImageDraw, Image
 from tqdm import tqdm
-from tools.ocr import OcrRecogniser, get_coordinates
+from tools.apple_vision import OcrRecogniser
+#from tools.ocr import OcrRecogniser
 from tools.constant import SubtitleArea
 from tools import constant
 from threading import Thread
@@ -29,7 +30,7 @@ def extract_subtitles(data, text_recogniser, img, raw_subtitle_file,
         dt_box, rec_res = text_recogniser.predict(img)
         # rec_res格式为： ("hello", 0.997)
     # 获取文本坐标
-    coordinates = get_coordinates(dt_box)
+    coordinates = text_recogniser.get_coordinates(dt_box)
     # 将结果写入txt文本中
     if options.REC_CHAR_TYPE == 'en':
         # 如果识别语言为英文，则去除中文
@@ -274,6 +275,3 @@ def frame_preprocess(subtitle_area, frame):
         frame = frame[:cropped]
     return frame
 
-
-if __name__ == "__main__":
-    pass

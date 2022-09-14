@@ -21,13 +21,18 @@ import numpy as np
 import paddle
 from PIL import Image, ImageDraw, ImageFont
 import math
-from paddle import inference
+# from paddle import inference
 import time
-from ppocr.utils.logging import get_logger
+# from ppocr.utils.logging import get_logger
 
 
 def str2bool(v):
     return v.lower() in ("true", "t", "1")
+
+def parse_args():
+    return []
+    def str2bool(v):
+        return v.lower() in ("true", "t", "1")
 
 
 def init_args():
@@ -144,6 +149,7 @@ def parse_args():
 
 
 def create_predictor(args, mode, logger):
+    from paddle import inference
     if mode == "det":
         model_dir = args.det_model_dir
     elif mode == 'cls':

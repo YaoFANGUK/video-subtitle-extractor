@@ -24,8 +24,6 @@ sys.path.insert(0, os.path.dirname(__file__))
 import importlib
 import config
 from tools.reformat_en import reformat
-from tools.infer import utility
-from tools.infer.predict_det import TextDetector
 from tools.ocr import OcrRecogniser, get_coordinates
 from tools import subtitle_ocr
 from tools.constant import BackgroundColor
@@ -40,6 +38,8 @@ class SubtitleDetect:
     文本框检测类，用于检测视频帧中是否存在文本框
     """
     def __init__(self):
+        from tools.infer import utility
+        from tools.infer.predict_det import TextDetector
         # 获取参数对象
         importlib.reload(config)
         args = utility.parse_args()
@@ -238,6 +238,7 @@ class SubtitleExtractor:
         ocr_args_list = []
         compare_ocr_result_cache = {}
         tbar = tqdm(total=int(self.frame_count), unit='f', position=0, file=sys.__stdout__)
+        sub_detector = SubtitleDetect()
         while self.video_cap.isOpened():
             ret, frame = self.video_cap.read()
             # 如果读取视频帧失败（视频读到最后一帧）
@@ -313,6 +314,7 @@ class SubtitleExtractor:
             last_total_ms = 0
             processed_image = set()
             rgb_images_path = os.path.join(self.temp_output_dir, 'RGBImages')
+            frame_no = 0
             while self.vsf_running and not self.isFinished:
                 # 如果还没有rgb_images_path说明vsf还没处理完
                 if not os.path.exists(rgb_images_path):
