@@ -241,6 +241,15 @@ class SubtitleExtractorGUI:
                     self.frame_width = self.video_cap.get(cv2.CAP_PROP_FRAME_WIDTH)
                     # 获取视频的帧率
                     self.fps = self.video_cap.get(cv2.CAP_PROP_FPS)
+                    # 修正错误帧率
+                    if self.fps > 60:
+                        try:
+                            import subprocess
+                            self.frame_count = int(subprocess.run(['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-count_packets', '-show_entries', 'stream=nb_read_packets', '-of', 'csv=p=0', self.video_path], stdout=subprocess.PIPE).stdout.decode('utf-8').strip())
+                            duration_s = float(subprocess.run(['ffprobe', '-v', 'error', '-show_entries' ,'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', self.video_path], stdout=subprocess.PIPE).stdout.decode('utf-8').strip())
+                            self.fps = self.frame_count / duration_s
+                        except ValueError as err:
+                            print("Error in ffprobe:" + err)
                     # 调整视频帧大小，使播放器能够显示
                     resized_frame = self._img_resize(frame)
                     # resized_frame = cv2.resize(src=frame, dsize=(self.video_preview_width, self.video_preview_height))

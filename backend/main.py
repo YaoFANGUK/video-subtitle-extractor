@@ -83,7 +83,16 @@ class SubtitleExtractor:
         self.frame_count = self.video_cap.get(cv2.CAP_PROP_FRAME_COUNT)
         # 视频帧率
         self.fps = self.video_cap.get(cv2.CAP_PROP_FPS)
-        # 视频尺寸
+        # 修正错误帧率
+        if self.fps > 60:
+            try:
+                import subprocess
+                self.frame_count = int(subprocess.run(['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-count_packets', '-show_entries', 'stream=nb_read_packets', '-of', 'csv=p=0', self.video_path], stdout=subprocess.PIPE).stdout.decode('utf-8').strip())
+                duration_s = float(subprocess.run(['ffprobe', '-v', 'error', '-show_entries' ,'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', self.video_path], stdout=subprocess.PIPE).stdout.decode('utf-8').strip())
+                self.fps = self.frame_count / duration_s
+            except ValueError as err:
+                print("Error in ffprobe:" + err)
+            # 视频尺寸
         self.frame_height = int(self.video_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         self.frame_width = int(self.video_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         # 按比例还原字幕区域位置
@@ -97,6 +106,7 @@ class SubtitleExtractor:
         if 1 >= xmax > 0:
             xmax = int(xmax * self.frame_width)
         self.sub_area = (ymin, ymax, xmin, xmax)
+        print("sub_area", self.sub_area)
         # 用户未指定字幕区域时，默认字幕出现的区域
         self.default_subtitle_area = config.DEFAULT_SUBTITLE_AREA
         # 提取的视频帧储存目录
