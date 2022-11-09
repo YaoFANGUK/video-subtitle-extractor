@@ -177,13 +177,15 @@ def ocr_task_producer(ocr_queue, task_queue, progress_queue, video_path, raw_sub
                 # 更新进度条
                 tbar.update(tbar.total - tbar.n)
                 break
-            tbar.update(round(current_frame_no - tbar.n))
             # 设置当前视频帧
             # 如果total_ms不为空，则使用了VSF提取字幕
             if total_ms is not None:
                 cap.set(cv2.CAP_PROP_POS_MSEC, total_ms)
+                # 修复VSF动态帧率情况下用时间计算当前帧号不准: total_ms/fps
+                current_frame_no = int(cap.get(cv2.CAP_PROP_POS_FRAMES))
             else:
                 cap.set(cv2.CAP_PROP_POS_FRAMES, current_frame_no)
+            tbar.update(round(current_frame_no - tbar.n))
             # 读取视频帧
             ret, frame = cap.read()
             # 如果读取成功
