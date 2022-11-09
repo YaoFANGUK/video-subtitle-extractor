@@ -193,7 +193,7 @@ THRESHOLD_TEXT_SIMILARITY = 0.8
 DROP_SCORE = 0.75
 
 # 字幕区域允许偏差, 0为不允许越界, 0.03表示可以越界3%
-SUB_AREA_DEVIATION_RATE = 0
+SUB_AREA_DEVIATION_RATE = 0.03
 
 # 输出丢失的字幕帧, 仅简体中文,繁体中文,日文,韩语有效, 默认将调试信息输出到: 视频路径/loss
 DEBUG_OCR_LOSS = False
