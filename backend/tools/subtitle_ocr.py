@@ -181,11 +181,13 @@ def ocr_task_producer(ocr_queue, task_queue, progress_queue, video_path, raw_sub
             # 如果total_ms不为空，则使用了VSF提取字幕
             if total_ms is not None:
                 cap.set(cv2.CAP_PROP_POS_MSEC, total_ms)
-                # 修复VSF动态帧率情况下用时间计算当前帧号不准: total_ms/fps
-                current_frame_no = int(cap.get(cv2.CAP_PROP_POS_FRAMES))
+                # 修复VSF动态帧率情况下用时间计算当前进度(帧号?TODO)不准: total_ms/fps
+                # TODO main#generate_subtitle_file_vsf _timestamp_to_frameno error frameNo mapping...
+                # current_frame_no = int(cap.get(cv2.CAP_PROP_POS_FRAMES))
+                tbar.update(round(int(cap.get(cv2.CAP_PROP_POS_FRAMES)) - tbar.n))
             else:
                 cap.set(cv2.CAP_PROP_POS_FRAMES, current_frame_no)
-            tbar.update(round(current_frame_no - tbar.n))
+                tbar.update(round(current_frame_no - tbar.n))
             # 读取视频帧
             ret, frame = cap.read()
             # 如果读取成功
