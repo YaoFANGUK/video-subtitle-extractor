@@ -4,7 +4,6 @@ from multiprocessing import Queue, Process
 import cv2
 from PIL import ImageFont, ImageDraw, Image
 from tqdm import tqdm
-from tools.ocr import OcrRecogniser, get_coordinates
 from tools.constant import SubtitleArea
 from tools import constant
 from threading import Thread
@@ -14,6 +13,8 @@ from types import SimpleNamespace
 import shutil
 import numpy as np
 from collections import namedtuple
+import traceback
+
 
 
 def extract_subtitles(data, text_recogniser, img, raw_subtitle_file,
@@ -26,10 +27,10 @@ def extract_subtitles(data, text_recogniser, img, raw_subtitle_file,
     rec_res = rec_res_arg
     # 如果没有检测结果，则获取检测结果
     if dt_box is None or rec_res is None:
-        dt_box, rec_res = text_recogniser.predict(img)
+        dt_box, rec_res = text_recogniser.predict(img, sub_area)
         # rec_res格式为： ("hello", 0.997)
     # 获取文本坐标
-    coordinates = get_coordinates(dt_box)
+    coordinates = text_recogniser.get_coordinates(dt_box)
     # 将结果写入txt文本中
     if options.REC_CHAR_TYPE == 'en':
         # 如果识别语言为英文，则去除中文
@@ -116,7 +117,6 @@ def paint_chinese_opencv(im, chinese, pos, color):
     img = np.asarray(img_pil)
     return img
 
-
 def ocr_task_consumer(ocr_queue, raw_subtitle_path, sub_area, video_path, options):
     """
     消费者： 消费ocr_queue，将ocr队列中的数据取出，进行ocr识别，写入字幕文件中
@@ -127,6 +127,11 @@ def ocr_task_consumer(ocr_queue, raw_subtitle_path, sub_area, video_path, option
     :param options
     """
     data = {'i': 1}
+    global OcrRecogniser
+    if options.OCR_ENGINE == 'tr':
+        from tools.trwebocr import OcrRecogniser
+    else:
+        from tools.ocr import OcrRecogniser
     # 初始化文本识别对象
     text_recogniser = OcrRecogniser()
     # 丢失字幕的存储路径
@@ -144,9 +149,9 @@ def ocr_task_consumer(ocr_queue, raw_subtitle_path, sub_area, video_path, option
                 data['i'] = frame_no
                 extract_subtitles(data, text_recogniser, frame, raw_subtitle_file, sub_area, options, dt_box,
                                   rec_res, ocr_loss_debug_path)
-            except Exception as e:
-                print(e)
-                break
+            except Exception:
+                traceback.print_exc()
+                raise
 
 
 def ocr_task_producer(ocr_queue, task_queue, progress_queue, video_path, raw_subtitle_path):
@@ -196,9 +201,9 @@ def ocr_task_producer(ocr_queue, task_queue, progress_queue, video_path, raw_sub
                 if default_subtitle_area is not None:
                     frame = frame_preprocess(default_subtitle_area, frame)
                 ocr_queue.put((current_frame_no, frame, dt_box, rec_res))
-        except Exception as e:
-            print(e)
-            break
+        except Exception:
+            traceback.print_exc()
+            raise
     cap.release()
 
 
@@ -239,11 +244,13 @@ def async_start(video_path, raw_subtitle_path, sub_area, options):
     options.DROP_SCORE
     options.SUB_AREA_DEVIATION_RATE
     options.DEBUG_OCR_LOSS
+    options.OCR_ENGINE
     """
     assert 'REC_CHAR_TYPE' in options, "options缺少参数：REC_CHAR_TYPE"
     assert 'DROP_SCORE' in options, "options缺少参数: DROP_SCORE'"
     assert 'SUB_AREA_DEVIATION_RATE' in options, "options缺少参数: SUB_AREA_DEVIATION_RATE"
     assert 'DEBUG_OCR_LOSS' in options, "options缺少参数: DEBUG_OCR_LOSS"
+    assert 'OCR_ENGINE' in options, "options缺少参数: OCR_ENGINE"
     # 创建一个任务队列
     # 任务格式为：(total_frame_count总帧数, current_frame_no当前帧, dt_box检测框, rec_res识别结果, subtitle_area字幕区域)
     task_queue = Queue()

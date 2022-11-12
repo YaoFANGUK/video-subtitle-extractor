@@ -1038,6 +1038,7 @@ class SubtitleExtractor:
                                                                                 'DROP_SCORE': config.DROP_SCORE,
                                                                                 'SUB_AREA_DEVIATION_RATE': config.SUB_AREA_DEVIATION_RATE,
                                                                                 'DEBUG_OCR_LOSS': config.DEBUG_OCR_LOSS,
+                                                                                'OCR_ENGINE': config.OCR_ENGINE,
                                                                                 }
                                                                        )
         self.subtitle_ocr_task_queue = task_queue

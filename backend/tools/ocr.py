@@ -21,7 +21,7 @@ class OcrRecogniser:
         else:
             return y_max
 
-    def predict(self, image):
+    def predict(self, image, sub_area):
         detection_box, recognise_result = self.recogniser(image)
         if len(detection_box) > 0:
             coordinate_list = list()
@@ -94,6 +94,9 @@ class OcrRecogniser:
         # 设置识别文本的类型
         self.args.rec_char_type = config.REC_CHAR_TYPE
         return TextSystem(self.args)
+
+    def get_coordinates(self, dt_box):
+        return get_coordinates(dt_box)
 
 
 def get_coordinates(dt_box):

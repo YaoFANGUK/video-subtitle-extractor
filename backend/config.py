@@ -82,6 +82,8 @@ REC_CHAR_TYPE = settings_config['DEFAULT']['Language']
 
 # 设置识别模式
 MODE_TYPE = settings_config['DEFAULT']['Mode']
+# 设置识别引擎
+OCR_ENGINE = settings_config['DEFAULT']['Engine']
 ACCURATE_MODE_ON = False
 if MODE_TYPE == 'accurate':
     ACCURATE_MODE_ON = True
