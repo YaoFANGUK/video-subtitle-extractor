@@ -21,7 +21,7 @@ class OcrRecogniser:
         else:
             return y_max
 
-    def predict(self, image, sub_area):
+    def predict(self, id, image, sub_area):
         detection_box, recognise_result = self.recogniser(image)
         if len(detection_box) > 0:
             coordinate_list = list()

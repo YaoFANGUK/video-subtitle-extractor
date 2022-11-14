@@ -14,7 +14,7 @@ import shutil
 import numpy as np
 from collections import namedtuple
 import traceback
-
+import operator
 
 
 def extract_subtitles(data, text_recogniser, img, raw_subtitle_file,
@@ -22,12 +22,13 @@ def extract_subtitles(data, text_recogniser, img, raw_subtitle_file,
     """
     提取视频帧中的字幕信息
     """
+    id = str(data["i"]).zfill(8)
     # 从参数中获取检测框与检测结果
     dt_box = dt_box_arg
     rec_res = rec_res_arg
     # 如果没有检测结果，则获取检测结果
     if dt_box is None or rec_res is None:
-        dt_box, rec_res = text_recogniser.predict(img, sub_area)
+        dt_box, rec_res = text_recogniser.predict(id, img, sub_area)
         # rec_res格式为： ("hello", 0.997)
     # 获取文本坐标
     coordinates = text_recogniser.get_coordinates(dt_box)
@@ -44,6 +45,7 @@ def extract_subtitles(data, text_recogniser, img, raw_subtitle_file,
         prob = content[1]
         if sub_area is not None:
             selected = False
+            intersected = False
             # 初始化超界偏差为0
             overflow_area_rate = 0
             # 用户指定的字幕区域
@@ -54,27 +56,39 @@ def extract_subtitles(data, text_recogniser, img, raw_subtitle_file,
             intersection = sub_area_polygon.intersection(coordinate_polygon)
             # 如果有交集
             if not intersection.is_empty:
+                intersected = True
                 # 计算越界允许偏差
                 overflow_area_rate = ((sub_area_polygon.area + coordinate_polygon.area - intersection.area) / sub_area_polygon.area) - 1
                 # 如果越界比例低于设定阈值且该行文本识别的置信度高于设定阈值
                 if overflow_area_rate <= options.SUB_AREA_DEVIATION_RATE and prob > options.DROP_SCORE:
                     # 保留该帧
                     selected = True
-                    line += f'{str(data["i"]).zfill(8)}\t{coordinate}\t{text}\n'
-                    raw_subtitle_file.write(f'{str(data["i"]).zfill(8)}\t{coordinate}\t{text}\n')
+                    line += f'{id}\t{coordinate}\t{text}\n'
+                    raw_subtitle_file.write(f'{id}\t{coordinate}\t{text}\n')
             # 保存丢掉的识别结果
-            loss_info = namedtuple('loss_info', 'text prob overflow_area_rate coordinate selected')
-            loss_list.append(loss_info(text, prob, overflow_area_rate, coordinate, selected))
+            loss_info = namedtuple('loss_info', 'text prob overflow_area_rate coordinate selected intersected')
+            loss_list.append(loss_info(text, prob, overflow_area_rate, coordinate, selected, intersected))
         else:
-            raw_subtitle_file.write(f'{str(data["i"]).zfill(8)}\t{coordinate}\t{text}\n')
+            raw_subtitle_file.write(f'{id}\t{coordinate}\t{text}\n')
     # 输出调试信息
     dump_debug_info(options, line, img, loss_list, ocr_loss_debug_path, sub_area, data)
 
 
 def dump_debug_info(options, line, img, loss_list, ocr_loss_debug_path, sub_area, data):
     loss = False
-    if options.DEBUG_OCR_LOSS and options.REC_CHAR_TYPE in ('ch', 'japan ', 'korea', 'ch_tra'):
-        loss = len(line) > 0 and re.search(r'[\u4e00-\u9fa5\u3400-\u4db5\u3130-\u318F\uAC00-\uD7A3\u0800-\u4e00]', line) is None
+    if not options.DEBUG_OCR_LOSS:
+        return
+    if options.REC_CHAR_TYPE not in ('ch', 'japan ', 'korea', 'ch_tra'):
+        return
+    if len(line) == 0:
+        return
+    loss = re.search(r'[\u4e00-\u9fa5\u3400-\u4db5\u3130-\u318F\uAC00-\uD7A3\u0800-\u4e00]', line) is None
+    if not loss:
+        for loss_info in loss_list:
+            # 如果有文字, 且文字和sub_area没交叉了但没选中
+            if len(loss_info.text) > 0 and loss_info.selected == False and loss_info.intersected:
+                loss = True
+                break
     if loss:
         if not os.path.exists(ocr_loss_debug_path):
             os.makedirs(ocr_loss_debug_path, mode=0o777, exist_ok=True)
@@ -130,6 +144,9 @@ def ocr_task_consumer(ocr_queue, raw_subtitle_path, sub_area, video_path, option
     global OcrRecogniser
     if options.OCR_ENGINE == 'tr':
         from tools.trwebocr import OcrRecogniser
+        # tr的框似乎大一点会导致越界导致选不中字幕
+        if options.SUB_AREA_DEVIATION_RATE > 0:
+            options.SUB_AREA_DEVIATION_RATE += 0.02
     else:
         from tools.ocr import OcrRecogniser
     # 初始化文本识别对象

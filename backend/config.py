@@ -198,7 +198,7 @@ DROP_SCORE = 0.75
 SUB_AREA_DEVIATION_RATE = 0.03
 
 # 输出丢失的字幕帧, 仅简体中文,繁体中文,日文,韩语有效, 默认将调试信息输出到: 视频路径/loss
-DEBUG_OCR_LOSS = False
+DEBUG_OCR_LOSS = True
 
 # 是否不删除缓存数据，以方便调试
 DEBUG_NO_DELETE_CACHE = False

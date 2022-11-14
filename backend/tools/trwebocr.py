@@ -3,13 +3,17 @@ import io
 import requests
 import json
 import numpy as np
+import urllib
 
 # https://github.com/alisen39/TrWebOCR/wiki/%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3
+
+DEBUG_OCR_OUTPUT = False
+DEBUG_OCR_OUTPUT_LOCATION = 'E:/Temp/vse'
 class OcrRecogniser:
     # def __init__(self):
     #     pass
 
-    def predict(self, image, sub_area):
+    def predict(self, id, image, sub_area):
         self.height, self.width = image.shape[0:2]
         font_size = int(min(self.height, self.width) / 5)
         sub_area = np.array(sub_area)
@@ -22,15 +26,19 @@ class OcrRecogniser:
         # print(f"trwebocr image ymin:{f_ymin}, ymax:{f_ymax}, xmin:{f_xmin}, xmax:{f_xmax}")
         is_success, buffer = cv2.imencode(".jpg", image[f_ymin:f_ymax, f_xmin:f_xmax])
         url = 'http://127.0.0.1:18089/api/tr-run/'
-        res = requests.post(url=url, data={'compress': 0, 'is_draw': 0},
+        res = requests.post(url=url, data={'compress': 0, 'is_draw': 1 if DEBUG_OCR_OUTPUT else 0},
                             files={'file': io.BytesIO(buffer)}, timeout=5)
         if not res.ok:
             print(f"trwebocr image ymin:{f_ymin}, ymax:{f_ymax}, xmin:{f_xmin}, xmax:{f_xmax}")
             print("trwebocr res ", res.text)
             return [], []
         # result = res.content.decode('unicode-escape')
-        # print("trwebocr", res)
+        # print("trwebocr", res.text)
         res = json.loads(res.text)
+        if DEBUG_OCR_OUTPUT:
+            response = urllib.request.urlopen(res['data']['img_detected'])
+            with open(f'{DEBUG_OCR_OUTPUT_LOCATION}/{id}.jpg', 'wb') as f:
+                f.write(response.file.read())
         # print(res['data']['raw_out'])
         rec_res = list()
         dt_box = list()
@@ -41,10 +49,12 @@ class OcrRecogniser:
             y = y + f_ymin
             width_half = width / 2
             height_half = height / 2
-            xmin = max(int(x - width_half - 0.5), 0)
-            ymin = max(int(y - height_half - 0.5), 0)
-            xmax = min(int(x + width_half + 0.5), self.width)
-            ymax = min(int(y + height_half + 0.5), self.height)
+            # tr的框大了点, 适当缩小
+            adjust_size = height_half / 5
+            xmin = max(int(x - width_half - 0.5 + adjust_size), f_xmin)
+            ymin = max(int(y - height_half - 0.5 + adjust_size), f_ymin)
+            xmax = min(int(x + width_half - 0.5 - adjust_size), f_xmax)
+            ymax = min(int(y + height_half - 0.5 - adjust_size), f_ymax)
             dt_box.append((xmin, xmax, ymin, ymax))
         return dt_box, rec_res
 

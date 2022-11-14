@@ -102,9 +102,9 @@ class SubtitleExtractor:
         if 1 >= ymax > 0:
             ymax = int(ymax * self.frame_height)
         if 1 >= xmin > 0:
-            xmin = int(xmin * self.frame_width)
+            xmin = int(xmin * self.frame_width + 0.5)
         if 1 >= xmax > 0:
-            xmax = int(xmax * self.frame_width)
+            xmax = int(xmax * self.frame_width + 0.5)
         self.sub_area = (ymin, ymax, xmin, xmax)
         print("sub_area", self.sub_area)
         # 用户未指定字幕区域时，默认字幕出现的区域
