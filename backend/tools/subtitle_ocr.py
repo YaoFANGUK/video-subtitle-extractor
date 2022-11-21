@@ -142,7 +142,7 @@ def ocr_task_consumer(ocr_queue, raw_subtitle_path, sub_area, video_path, option
     """
     data = {'i': 1}
     global OcrRecogniser
-    if options.OCR_ENGINE == 'tr':
+    if options.OCR_ENGINE == 'tr' or options.OCR_ENGINE == 'tr_full':
         from tools.trwebocr import OcrRecogniser
         # tr的框似乎大一点会导致越界导致选不中字幕
         if options.SUB_AREA_DEVIATION_RATE > 0:
@@ -151,6 +151,8 @@ def ocr_task_consumer(ocr_queue, raw_subtitle_path, sub_area, video_path, option
         from tools.ocr import OcrRecogniser
     # 初始化文本识别对象
     text_recogniser = OcrRecogniser()
+    if options.OCR_ENGINE == 'tr_full':
+        text_recogniser.ocr_fullscreen_mode = True
     # 丢失字幕的存储路径
     ocr_loss_debug_path = os.path.join(os.path.abspath(os.path.splitext(video_path)[0]), 'loss')
     # 删除之前的缓存垃圾

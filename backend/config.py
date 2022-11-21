@@ -82,8 +82,6 @@ REC_CHAR_TYPE = settings_config['DEFAULT']['Language']
 
 # 设置识别模式
 MODE_TYPE = settings_config['DEFAULT']['Mode']
-# 设置识别引擎
-OCR_ENGINE = settings_config['DEFAULT']['Engine']
 ACCURATE_MODE_ON = False
 if MODE_TYPE == 'accurate':
     ACCURATE_MODE_ON = True
@@ -195,10 +193,10 @@ THRESHOLD_TEXT_SIMILARITY = 0.8
 DROP_SCORE = 0.75
 
 # 字幕区域允许偏差, 0为不允许越界, 0.03表示可以越界3%
-SUB_AREA_DEVIATION_RATE = 0.03
+SUB_AREA_DEVIATION_RATE = 0.05
 
 # 输出丢失的字幕帧, 仅简体中文,繁体中文,日文,韩语有效, 默认将调试信息输出到: 视频路径/loss
-DEBUG_OCR_LOSS = True
+DEBUG_OCR_LOSS = False
 
 # 是否不删除缓存数据，以方便调试
 DEBUG_NO_DELETE_CACHE = False

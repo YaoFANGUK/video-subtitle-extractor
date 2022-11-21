@@ -76,7 +76,10 @@ class SubtitleExtractor:
         # 通过视频路径获取视频名称
         self.vd_name = Path(self.video_path).stem
         # 临时存储文件夹
-        self.temp_output_dir = os.path.join(os.path.dirname(config.BASE_DIR), 'output', str(self.vd_name))
+        if os.path.exists("R:/"):  # for ramdisk
+            self.temp_output_dir = os.path.join("R:/TEMP/vsf/", 'output', str(self.vd_name))
+        else:
+            self.temp_output_dir = os.path.join(os.path.dirname(config.BASE_DIR), 'output', str(self.vd_name))
         # 删除缓存文件
         self.empty_cache()
         # 视频帧总数
@@ -97,13 +100,13 @@ class SubtitleExtractor:
         self.frame_width = int(self.video_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         # 按比例还原字幕区域位置
         ymin, ymax, xmin, xmax = self.sub_area
-        if 1 >= ymin > 0:
+        if 1 >= ymin >= 0:
             ymin = int(ymin * self.frame_height)
-        if 1 >= ymax > 0:
+        if 1 >= ymax >= 0:
             ymax = int(ymax * self.frame_height)
-        if 1 >= xmin > 0:
+        if 1 >= xmin >= 0:
             xmin = int(xmin * self.frame_width + 0.5)
-        if 1 >= xmax > 0:
+        if 1 >= xmax >= 0:
             xmax = int(xmax * self.frame_width + 0.5)
         self.sub_area = (ymin, ymax, xmin, xmax)
         print("sub_area", self.sub_area)
@@ -147,6 +150,8 @@ class SubtitleExtractor:
         self.subtitle_ocr_progress_queue = None
         # vsf运行状态
         self.vsf_running = False
+        self.vsf_open_video_mode = 'ffmpeg'
+        self.ocr_engine = 'ppocr'
 
     def run(self):
         """
@@ -216,7 +221,12 @@ class SubtitleExtractor:
             # 如果未使用vsf提取字幕，则使用常规字幕生成方法
             self.generate_subtitle_file()
         self.subtitle_final_process()
-        print(config.interface_config['Main']['FinishGenerateSub'], f"{round(time.time() - start_time, 2)}s")
+        # 删除缓存文件
+        self.empty_cache()
+        video_path_prefix = os.path.splitext(self.video_path)[0]
+        srt_filename = video_path_prefix + '.zh.简体-英文.srt'
+        if os.path.exists(srt_filename) and os.path.getsize(srt_filename) > 12:
+            print(config.interface_config['Main']['FinishGenerateSub'], f"{round(time.time() - start_time, 2)}s")
         self.update_progress(ocr=100, frame_extract=100)
         self.isFinished = True
         self.lock.release()
@@ -423,11 +433,16 @@ class SubtitleExtractor:
         left_end = self.sub_area[2] / self.frame_width
         # re：图像右半部分所占百分比，取值【0-1】
         right_end = self.sub_area[3] / self.frame_width
-        cpu_count = max(int(multiprocessing.cpu_count() * 2 / 3), 1)
-        if cpu_count < 4:
-            cpu_count = max(multiprocessing.cpu_count() - 1, 1)
+        if self.ocr_engine == 'tr' or self.ocr_engine == 'tr_full':
+            cpu_count = multiprocessing.cpu_count()
+        else:
+            cpu_count = max(int(multiprocessing.cpu_count() * 2 / 3), 1)
+            if cpu_count < 4:
+                cpu_count = max(multiprocessing.cpu_count() - 1, 1)
         # 定义执行命令
-        cmd = f"{path_vsf} -c -r -i \"{self.video_path}\" -o \"{self.temp_output_dir}\" -ces \"{self.vsf_subtitle}\" "
+        cmd = f"{path_vsf} --use_cuda -c -r -i \"{self.video_path}\" -o \"{self.temp_output_dir}\" -ces \"{self.vsf_subtitle}\" "
+        if self.vsf_open_video_mode == 'ffmpeg':
+            cmd += "--open_video_ffmpeg "
         cmd += f"-te {top_end} -be {bottom_end} -le {left_end} -re {right_end} -nthr {cpu_count} -nocrthr {cpu_count}"
         self.vsf_running = True
         # 计算进度
@@ -1038,7 +1053,7 @@ class SubtitleExtractor:
                                                                                 'DROP_SCORE': config.DROP_SCORE,
                                                                                 'SUB_AREA_DEVIATION_RATE': config.SUB_AREA_DEVIATION_RATE,
                                                                                 'DEBUG_OCR_LOSS': config.DEBUG_OCR_LOSS,
-                                                                                'OCR_ENGINE': config.OCR_ENGINE,
+                                                                                'OCR_ENGINE': self.ocr_engine,
                                                                                 }
                                                                        )
         self.subtitle_ocr_task_queue = task_queue
