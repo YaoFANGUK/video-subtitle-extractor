@@ -17,6 +17,7 @@ import multiprocessing
 class SubtitleExtractorGUI:
     def _load_config(self):
         self.config_file = os.path.join(os.path.dirname(__file__), 'settings.ini')
+        self.subtitle_config_file = os.path.join(os.path.dirname(__file__), 'subtitle.ini')
         self.config = configparser.ConfigParser()
         self.interface_config = configparser.ConfigParser()
         if not os.path.exists(self.config_file):
@@ -235,10 +236,11 @@ class SubtitleExtractorGUI:
                     self.window['-SLIDER-'].update(range=(1, self.frame_count))
                     self.window['-SLIDER-'].update(1)
                     # 预设字幕区域位置
-                    y = self.frame_height * .78
-                    h = self.frame_height * .21
-                    x = self.frame_width * .05
-                    w = self.frame_width * .9
+                    y_p, h_p, x_p, w_p = self.parse_subtitle_config()
+                    y = self.frame_height * y_p
+                    h = self.frame_height * h_p
+                    x = self.frame_width * x_p
+                    w = self.frame_width * w_p
                     # 更新视频字幕位置滑块range
                     # 更新Y-SLIDER范围
                     self.window['-Y-SLIDER-'].update(range=(0, self.frame_height), disabled=False)
@@ -297,6 +299,11 @@ class SubtitleExtractorGUI:
                     self.xmax = self.frame_width
                 print(f"{self.interface_config['SubtitleExtractorGUI']['SubtitleArea']}：({self.ymin},{self.ymax},{self.xmin},{self.xmax})")
                 subtitle_area = (self.ymin, self.ymax, self.xmin, self.xmax)
+                y_p = self.ymin / self.frame_height
+                h_p = (self.ymax - self.ymin) / self.frame_height
+                x_p = self.xmin / self.frame_width
+                w_p = (self.xmax - self.xmin) / self.frame_width
+                self.set_subtitle_config(y_p, h_p, x_p, w_p)
 
                 def task():
                     while self.video_paths:
@@ -355,6 +362,31 @@ class SubtitleExtractorGUI:
         # 给图像增加边界
         constant = cv2.copyMakeBorder(image, top, bottom, left, right, cv2.BORDER_CONSTANT, value=[0, 0, 0])
         return cv2.resize(constant, (self.video_preview_width, self.video_preview_height))
+
+    def set_subtitle_config(self, y, h, x, w):
+        # 写入配置文件
+        with open(self.subtitle_config_file, mode='w', encoding='utf-8') as f:
+            f.write('[AREA]\n')
+            f.write(f'Y = {y}\n')
+            f.write(f'H = {h}\n')
+            f.write(f'X = {x}\n')
+            f.write(f'W = {w}\n')
+
+    def parse_subtitle_config(self):
+        y_p, h_p, x_p, w_p = .78, .21, .05, .9
+        # 如果配置文件不存在，则写入配置文件
+        if not os.path.exists(self.subtitle_config_file):
+            self.set_subtitle_config(y_p, h_p, x_p, w_p)
+            return y_p, h_p, x_p, w_p
+        else:
+            try:
+                config = configparser.ConfigParser()
+                config.read(self.subtitle_config_file, encoding='utf-8')
+                conf_y_p, conf_h_p, conf_x_p, conf_w_p = float(config['AREA']['Y']), float(config['AREA']['H']), float(config['AREA']['X']), float(config['AREA']['W'])
+                return conf_y_p, conf_h_p, conf_x_p, conf_w_p
+            except Exception:
+                self.set_subtitle_config(y_p, h_p, x_p, w_p)
+                return y_p, h_p, x_p, w_p
 
 
 class LanguageModeGUI:
