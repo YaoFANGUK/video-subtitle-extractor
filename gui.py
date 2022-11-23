@@ -234,15 +234,29 @@ class SubtitleExtractorGUI:
                     # 更新视频进度条滑块range
                     self.window['-SLIDER-'].update(range=(1, self.frame_count))
                     self.window['-SLIDER-'].update(1)
+                    # 预设字幕区域位置
+                    y = self.frame_height * .78
+                    h = self.frame_height * .21
+                    x = self.frame_width * .05
+                    w = self.frame_width * .9
                     # 更新视频字幕位置滑块range
+                    # 更新Y-SLIDER范围
                     self.window['-Y-SLIDER-'].update(range=(0, self.frame_height), disabled=False)
-                    self.window['-Y-SLIDER-H-'].update(range=(0, self.frame_height), disabled=False)
-                    self.window['-Y-SLIDER-'].update(self.frame_height * .78)
-                    self.window['-Y-SLIDER-H-'].update(self.frame_height * .366)
+                    # 更新Y-SLIDER默认值
+                    self.window['-Y-SLIDER-'].update(y)
+                    # 更新X-SLIDER范围
                     self.window['-X-SLIDER-'].update(range=(0, self.frame_width), disabled=False)
-                    self.window['-X-SLIDER-W-'].update(range=(0, self.frame_width), disabled=False)
-                    self.window['-X-SLIDER-'].update(self.frame_width * .05)
-                    self.window['-X-SLIDER-W-'].update(self.frame_width * .9)
+                    # 更新X-SLIDER默认值
+                    self.window['-X-SLIDER-'].update(x)
+                    # 更新Y-SLIDER-H范围
+                    self.window['-Y-SLIDER-H-'].update(range=(0, self.frame_height - y))
+                    # 更新Y-SLIDER-H默认值
+                    self.window['-Y-SLIDER-H-'].update(h)
+                    # 更新X-SLIDER-W范围
+                    self.window['-X-SLIDER-W-'].update(range=(0, self.frame_width - x))
+                    # 更新X-SLIDER-W默认值
+                    self.window['-X-SLIDER-W-'].update(w)
+                    self._update_preview(frame, (y, h, x, w))
 
     def _language_mode_event_handler(self, event):
         if event != '-LANGUAGE-MODE-':
@@ -313,12 +327,18 @@ class SubtitleExtractorGUI:
                     h = int(values['-Y-SLIDER-H-'])
                     x = int(values['-X-SLIDER-'])
                     w = int(values['-X-SLIDER-W-'])
-                    draw = cv2.rectangle(img=frame, pt1=(x, y), pt2=(x + w, y + h),
-                                         color=(0, 255, 0), thickness=3)
-                    # 调整视频帧大小，使播放器能够显示
-                    resized_frame = self._img_resize(draw)
-                    # 显示视频帧
-                    self.window['-DISPLAY-'].update(data=cv2.imencode('.png', resized_frame)[1].tobytes())
+                    self._update_preview(frame, (y, h, x, w))
+
+    def _update_preview(self, frame, y_h_x_w):
+        y, h, x, w = y_h_x_w
+        # 画字幕框
+        draw = cv2.rectangle(img=frame, pt1=(int(x), int(y)), pt2=(int(x) + int(w), int(y) + int(h)),
+                             color=(0, 255, 0), thickness=3)
+        # 调整视频帧大小，使播放器能够显示
+        resized_frame = self._img_resize(draw)
+        # 显示视频帧
+        self.window['-DISPLAY-'].update(data=cv2.imencode('.png', resized_frame)[1].tobytes())
+
 
     def _img_resize(self, image):
         top, bottom, left, right = (0, 0, 0, 0)
