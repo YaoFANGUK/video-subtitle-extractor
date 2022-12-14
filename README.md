@@ -112,7 +112,7 @@ conda create -n videoEnv python=3.8
 conda activate videoEnv
 ```
 
-#### 2. 安装依赖文件
+#### 3. 安装依赖文件
 
 请确保你已经安装 python 3.8+，使用conda创建项目虚拟环境并激活环境 (建议创建虚拟环境运行，以免后续出现问题)
 
@@ -197,7 +197,7 @@ conda activate videoEnv
     ```
   
 
-#### 3. 运行程序
+#### 4. 运行程序
 
 - 运行图形化界面版本(GUI)
 
