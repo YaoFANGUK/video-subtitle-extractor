@@ -37,13 +37,13 @@ Video-subtitle-extractor (vse) 是一款将视频中的硬字幕提取为外挂�
 
 **下载地址**：
 
-- Windows 单文件版本(双击直接运行，每次打开时会有一点慢，**推荐小白使用**)： <a href=https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/vse.exe>vse.exe</a>
+- Windows 单文件版本(双击直接运行，每次打开时会有一点慢，**推荐小白使用**)： <a href=https://gh.api.99988866.xyz/https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/vse.exe>vse.exe</a>
 
-- Windows GPU版本： <a href="https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/vse_windows_GPU.7z">vse_windows_GPU.7z</a>
+- Windows GPU版本： <a href="https://gh.api.99988866.xyz/https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/vse_windows_GPU.7z">vse_windows_GPU.7z</a>
 
-- Windows CPU版本： <a href=https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/vse_windows_CPU.zip>vse_windows_CPU.zip</a>
+- Windows CPU版本： <a href=https://gh.api.99988866.xyz/https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/vse_windows_CPU.zip>vse_windows_CPU.zip</a>
 
-- MacOS CPU版本： <a href="https://github.91chi.fun/https://github.com//YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/vse_macOS_CPU.dmg">vse_macOS_CPU.dmg</a>
+- MacOS CPU版本： <a href="https://gh.api.99988866.xyz/https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/vse_macos_CPU.zip">vse_macOS_CPU.dmg</a>
 
 > PS: 若无法下载，请前往<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases"> Release </a>下载
 
