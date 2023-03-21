@@ -14,10 +14,11 @@ import wordsegment
 import re
 
 
-def reformat(path):
+def execute(path, lang='en'):
     # fix "RecursionError: maximum recursion depth exceeded in comparison" in wordsegment.segment call
     if sys.getrecursionlimit() < 100000:
         sys.setrecursionlimit(100000)
+
     wordsegment.load()
     subs = pysrt.open(path)
     verb_forms = ["I'm", "you're", "he's", "she's", "we're", "it's", "isn't", "aren't", "they're", "there's", "wasn't",
@@ -84,7 +85,8 @@ def reformat(path):
         # 替换中文前的多个空格成单个空格, 避免中英文分行出错
         sub.text = re.sub(' +([\\u4e00-\\u9fa5])', ' \\1', sub.text)
         # 中英文分行
-        sub.text = sub.text.replace("  ", "\n")
+        if lang in ["ch", "ch_tra"]:
+            sub.text = sub.text.replace("  ", "\n")
         lines = []
         remain = sub.text
         seg = remove_invalid_segment(seg, sub.text)
@@ -133,6 +135,12 @@ def reformat(path):
         ss = re.sub('·$', '.', ss)
         # 移除Dr.后的空格
         ss = re.sub(r'\bDr\. *\b', "Dr.", ss)
+        # 中文引号转英文
+        ss = re.sub(r'[“”]', "\"", ss)
+        # 中文逗号转英文
+        ss = re.sub(r'，', ",", ss)
+        # .,?后面加空格
+        ss = re.sub('([\\.,\\!\\?])([A-Za-z0-9\\u4e00-\\u9fa5])', '\\1 \\2', ss)
         ss = ss.replace("\n\n", "\n")
         sub.text = ss.strip()
     subs.save(path, encoding='utf-8')
@@ -140,5 +148,5 @@ def reformat(path):
 
 if __name__ == '__main__':
     path = "/home/yao/Videos/null.srt"
-    reformat(path)
+    execute(path)
 

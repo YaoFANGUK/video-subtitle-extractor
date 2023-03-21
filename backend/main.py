@@ -23,7 +23,7 @@ import sys
 sys.path.insert(0, os.path.dirname(__file__))
 import importlib
 import config
-from tools.reformat_en import reformat
+from tools import reformat
 from tools.infer import utility
 from tools.infer.predict_det import TextDetector
 from tools.ocr import OcrRecogniser, get_coordinates
@@ -185,9 +185,8 @@ class SubtitleExtractor:
         else:
             # 如果未使用vsf提取字幕，则使用常规字幕生成方法
             self.generate_subtitle_file()
-        # 如果识别的字幕语言包含英文，则将英文分词
-        if config.REC_CHAR_TYPE in ('ch', 'EN', 'en', 'ch_tra'):
-            reformat(os.path.join(os.path.splitext(self.video_path)[0] + '.srt'))
+        if config.WORD_SEGMENTATION:
+            reformat.execute(os.path.join(os.path.splitext(self.video_path)[0] + '.srt'), config.REC_CHAR_TYPE)
         print(config.interface_config['Main']['FinishGenerateSub'], f"{round(time.time() - start_time, 2)}s")
         self.update_progress(ocr=100, frame_extract=100)
         self.isFinished = True
