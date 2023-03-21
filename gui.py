@@ -445,30 +445,20 @@ class LanguageModeGUI:
 
     def _load_interface_text(self):
         self.interface_config.read(self.interface_file, encoding='utf-8')
+        config_language_mode_gui = self.interface_config["LanguageModeGUI"]
         # 设置界面
-        self.INTERFACE_DEF = self.interface_config["LanguageModeGUI"]["InterfaceDefault"]
+        self.INTERFACE_DEF = config_language_mode_gui["InterfaceDefault"]
 
-        self.LANGUAGE_DEF = self.interface_config["LanguageModeGUI"]["LanguageSimplifiedChinese"]
-        self.LANGUAGE_NAME_KEY_MAP = {
-            self.interface_config["LanguageModeGUI"]["LanguageSimplifiedChinese"]: 'ch',
-            self.interface_config["LanguageModeGUI"]["LanguageTraditionalChinese"]: 'chinese_cht',
-            self.interface_config["LanguageModeGUI"]["LanguageEnglish"]: 'en',
-            self.interface_config["LanguageModeGUI"]["LanguageJapanese"]: 'japan',
-            self.interface_config["LanguageModeGUI"]["LanguageKorean"]: 'korean',
-            self.interface_config["LanguageModeGUI"]["LanguageArabic"]: 'ar',
-            self.interface_config["LanguageModeGUI"]["LanguageRussian"]: 'cyrillic',
-            self.interface_config["LanguageModeGUI"]["LanguageFrench"]: 'french',
-            self.interface_config["LanguageModeGUI"]["LanguageGerman"]: 'german',
-            self.interface_config["LanguageModeGUI"]["LanguageSpanish"]: 'es',
-            self.interface_config["LanguageModeGUI"]["LanguagePortuguese"]: 'pt',
-            self.interface_config["LanguageModeGUI"]["LanguageItalian"]: 'it',
-        }
-
+        self.LANGUAGE_DEF = config_language_mode_gui["LanguageCH"]
+        self.LANGUAGE_NAME_KEY_MAP = {}
+        for lang in backend.main.config.MULTI_LANG:
+            self.LANGUAGE_NAME_KEY_MAP[config_language_mode_gui[f"Language{lang.upper()}"]] = lang
+        self.LANGUAGE_NAME_KEY_MAP = dict(sorted(self.LANGUAGE_NAME_KEY_MAP.items(), key=lambda item: item[1]))
         self.LANGUAGE_KEY_NAME_MAP = {v: k for k, v in self.LANGUAGE_NAME_KEY_MAP.items()}
-        self.MODE_DEF = self.interface_config["LanguageModeGUI"]['ModeFast']
+        self.MODE_DEF = config_language_mode_gui['ModeFast']
         self.MODE_NAME_KEY_MAP = {
-            self.interface_config["LanguageModeGUI"]['ModeFast']: 'fast',
-            self.interface_config["LanguageModeGUI"]['ModeAccurate']: 'accurate',
+            config_language_mode_gui['ModeFast']: 'fast',
+            config_language_mode_gui['ModeAccurate']: 'accurate',
         }
         self.MODE_KEY_NAME_MAP = {v: k for k, v in self.MODE_NAME_KEY_MAP.items()}
 

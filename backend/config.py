@@ -12,7 +12,11 @@ import os
 import re
 import time
 from pathlib import Path
-from fsplit.filesplit import Filesplit
+try:
+    from fsplit.filesplit import Filesplit
+except ImportError:
+    # for linux
+    from fsplit.filesplit import FileSplit
 from paddle import fluid
 from tools.constant import *
 
@@ -101,10 +105,33 @@ REC_IMAGE_SHAPE = '3,48,320'
 REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'{REC_CHAR_TYPE}_rec')
 DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, MODEL_VERSION, f'{REC_CHAR_TYPE}_det')
 
+LATIN_LANG = [
+    'af', 'az', 'bs', 'cs', 'cy', 'da', 'de', 'es', 'et', 'fr', 'ga', 'hr',
+    'hu', 'id', 'is', 'it', 'ku', 'la', 'lt', 'lv', 'mi', 'ms', 'mt', 'nl',
+    'no', 'oc', 'pi', 'pl', 'pt', 'ro', 'rs_latin', 'sk', 'sl', 'sq', 'sv',
+    'sw', 'tl', 'tr', 'uz', 'vi', 'latin'
+]
+ARABIC_LANG = ['ar', 'fa', 'ug', 'ur']
+CYRILLIC_LANG = [
+    'ru', 'rs_cyrillic', 'be', 'bg', 'uk', 'mn', 'abq', 'ady', 'kbd', 'ava',
+    'dar', 'inh', 'che', 'lbe', 'lez', 'tab', 'cyrillic'
+]
+DEVANAGARI_LANG = [
+    'hi', 'mr', 'ne', 'bh', 'mai', 'ang', 'bho', 'mah', 'sck', 'new', 'gom',
+    'sa', 'bgc', 'devanagari'
+]
+OTHER_LANG = [
+    'ch', 'japan', 'korean', 'en', 'french', 'german', 'ta', 'kn', 'te', 'ka',
+    'chinese_cht',
+]
+MULTI_LANG = LATIN_LANG + ARABIC_LANG + CYRILLIC_LANG + DEVANAGARI_LANG + \
+             OTHER_LANG
+
+# 定义字典路径
+DICT_PATH = os.path.join(DICT_BASE, f'{REC_CHAR_TYPE}_dict.txt')
+
 # 如果设置了识别文本语言类型，则设置为对应的语言
-if REC_CHAR_TYPE in ('ch', 'japan', 'korean', 'en', 'chinese_cht', 'EN_symbol', 'french', 'german', 'it', 'es', 'pt',
-                     'cyrillic', 'ru', 'ar', 'ta', 'ug', 'fa', 'ur', 'rs_latin', 'oc', 'bg', 'uk', 'be', 'te', 'kn',
-                     'hi', 'mr', 'ne', 'EN'):
+if REC_CHAR_TYPE in MULTI_LANG :
     # 不管有无GPU和是否开启精准模式，默认使用大模型
     # 定义文本识别模型
     REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'{REC_CHAR_TYPE}_rec')
@@ -120,6 +147,24 @@ if REC_CHAR_TYPE in ('ch', 'japan', 'korean', 'en', 'chinese_cht', 'EN_symbol', 
     if not os.path.exists(REC_MODEL_PATH):
         MODEL_VERSION = 'V2'
         REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'{REC_CHAR_TYPE}_rec_fast')
+
+    if REC_CHAR_TYPE in LATIN_LANG:
+        MODEL_VERSION = 'V3'
+        REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'latin_rec_fast')
+        DICT_PATH = os.path.join(DICT_BASE, f'latin_dict.txt')
+    elif REC_CHAR_TYPE in ARABIC_LANG:
+        MODEL_VERSION = 'V3'
+        REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'arabic_rec_fast')
+        DICT_PATH = os.path.join(DICT_BASE, f'arabic_dict.txt')
+    elif REC_CHAR_TYPE in CYRILLIC_LANG:
+        MODEL_VERSION = 'V3'
+        REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'cyrillic_rec_fast')
+        DICT_PATH = os.path.join(DICT_BASE, f'cyrillic_dict.txt')
+    elif REC_CHAR_TYPE in DEVANAGARI_LANG:
+        MODEL_VERSION = 'V3'
+        REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'devanagari_rec_fast')
+        DICT_PATH = os.path.join(DICT_BASE, f'devanagari_dict.txt')
+
     # 定义文本检测模型
     tmp_dir = REC_MODEL_PATH.replace(os.path.dirname(REC_MODEL_PATH), '').split('_')
     if len(tmp_dir) > 3:
@@ -127,12 +172,15 @@ if REC_CHAR_TYPE in ('ch', 'japan', 'korean', 'en', 'chinese_cht', 'EN_symbol', 
     tmp_dir[1] = 'det'
     DET_MODEL_PATH = os.path.join(os.path.dirname(REC_MODEL_PATH), "_".join(tmp_dir))
     if not os.path.exists(DET_MODEL_PATH):
-        tmp_dir[0] = 'ch'
+        if REC_CHAR_TYPE in ['ch', 'japan', 'korean', 'chinese_cht']:
+            tmp_dir[0] = 'ch'
+        elif REC_CHAR_TYPE == 'en':
+            tmp_dir[0] = 'en'
+        else:
+            tmp_dir[0] = 'ml'
         DET_MODEL_PATH = os.path.join(os.path.dirname(REC_MODEL_PATH), "_".join(tmp_dir))
     if MODEL_VERSION == 'V2':
         DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, MODEL_VERSION, 'ch_det')
-    # 定义字典路径
-    DICT_PATH = os.path.join(DICT_BASE, f'{REC_CHAR_TYPE}_dict.txt')
     # 定义图像识别shape
     if MODEL_VERSION == 'V2':
         REC_IMAGE_SHAPE = '3,32,320'
@@ -203,6 +251,9 @@ DEBUG_NO_DELETE_CACHE = False
 
 # 是否删除空时间轴
 DELETE_EMPTY_TIMESTAMP = True
+
+# 是否重新分词, 用于解决没有语句没有空格
+WORD_SEGMENTATION = True
 
 # --------------------- 请根据自己的实际情况改 end-----------------------------
 
