@@ -23,7 +23,7 @@ import sys
 sys.path.insert(0, os.path.dirname(__file__))
 import importlib
 import config
-from tools.reformat_en import reformat
+from tools import reformat
 from tools.infer import utility
 from tools.infer.predict_det import TextDetector
 from tools.ocr import OcrRecogniser, get_coordinates
@@ -144,8 +144,8 @@ class SubtitleExtractor:
                     self.extract_frame_by_fps()
             # 如果没有开启精准模式
             else:
-                # 没有开启精准模式且操作系统为Windows
-                if platform.system() == 'Windows':
+                # 没有开启精准模式且操作系统为Windows或Linux
+                if platform.system() in ['Windows', 'Linux']:
                     self.extract_frame_by_vsf()
                 else:
                     self.extract_frame_by_fps()
@@ -185,9 +185,8 @@ class SubtitleExtractor:
         else:
             # 如果未使用vsf提取字幕，则使用常规字幕生成方法
             self.generate_subtitle_file()
-        # 如果识别的字幕语言包含英文，则将英文分词
-        if config.REC_CHAR_TYPE in ('ch', 'EN', 'en', 'ch_tra'):
-            reformat(os.path.join(os.path.splitext(self.video_path)[0] + '.srt'))
+        if config.WORD_SEGMENTATION:
+            reformat.execute(os.path.join(os.path.splitext(self.video_path)[0] + '.srt'), config.REC_CHAR_TYPE)
         print(config.interface_config['Main']['FinishGenerateSub'], f"{round(time.time() - start_time, 2)}s")
         self.update_progress(ocr=100, frame_extract=100)
         self.isFinished = True
@@ -342,11 +341,41 @@ class SubtitleExtractor:
                 # 文件被清理了
                 except FileNotFoundError:
                     return
+        def vsf_output(out,):
+            duration_ms = (self.frame_count / self.fps) * 1000
+            last_total_ms = 0
+            for line in iter(out.readline, b''):
+                line = line.decode("utf-8")
+                # print('line', line, type(line), line.startswith('Frame: '))
+                if line.startswith('Frame: '):
+                    line = line.replace("\n", "")
+                    line = line.replace("Frame: ", "")
+                    h, m, s, ms = line.split('__')[0].split('_')
+                    total_ms = int(ms) + int(s) * 1000 + int(m) * 60 * 1000 + int(h) * 60 * 60 * 1000
+                    if total_ms > last_total_ms:
+                        frame_no = int(total_ms / self.fps)
+                        task = (self.frame_count, frame_no, None, None, total_ms, self.default_subtitle_area)
+                        self.subtitle_ocr_task_queue.put(task)
+                    last_total_ms = total_ms
+                    if total_ms / duration_ms >= 1:
+                        self.update_progress(frame_extract=100)
+                        return
+                    else:
+                        self.update_progress(frame_extract=(total_ms / duration_ms) * 100)
+                else:
+                    print(line.strip())
+            out.close()
 
         # 删除缓存
         self.__delete_frame_cache()
         # 定义videoSubFinder所在路径
-        path_vsf = os.path.join(config.BASE_DIR, '', 'subfinder', 'VideoSubFinderWXW.exe')
+        if platform.system() == 'Windows':
+            path_vsf = os.path.join(config.BASE_DIR, 'subfinder', 'windows', 'VideoSubFinderWXW.exe')
+        else:
+            if config.USE_GPU:
+                path_vsf = os.path.join(config.BASE_DIR, 'subfinder', 'linux', 'cuda', 'VideoSubFinderCli.run')
+            else:
+                path_vsf = os.path.join(config.BASE_DIR, 'subfinder', 'linux', 'cpu', 'VideoSubFinderCli.run')
         # ：图像上半部分所占百分比，取值【0-1】
         top_end = 1 - self.sub_area[0] / self.frame_height
         # bottom_end：图像下半部分所占百分比，取值【0-1】
@@ -358,15 +387,28 @@ class SubtitleExtractor:
         cpu_count = max(int(multiprocessing.cpu_count() * 2 / 3), 1)
         if cpu_count < 4:
             cpu_count = max(multiprocessing.cpu_count() - 1, 1)
-        # 定义执行命令
-        cmd = f"{path_vsf} -c -r -i \"{self.video_path}\" -o \"{self.temp_output_dir}\" -ces \"{self.vsf_subtitle}\" "
-        cmd += f"-te {top_end} -be {bottom_end} -le {left_end} -re {right_end} -nthr {cpu_count} -nocrthr {cpu_count}"
-        self.vsf_running = True
-        # 计算进度
-        Thread(target=count_process, daemon=True).start()
-        import subprocess
-        subprocess.run(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        self.vsf_running = False
+        if platform.system() == 'Windows':
+            # 定义执行命令
+            cmd = f"{path_vsf} --use_cuda -c -r -i \"{self.video_path}\" -o \"{self.temp_output_dir}\" -ces \"{self.vsf_subtitle}\" "
+            cmd += f"-te {top_end} -be {bottom_end} -le {left_end} -re {right_end} -nthr {cpu_count} -nocrthr {cpu_count}"
+            self.vsf_running = True
+            # 计算进度
+            Thread(target=count_process, daemon=True).start()
+            import subprocess
+            subprocess.run(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            self.vsf_running = False
+        else:
+            # 定义执行命令
+            cmd = f"{path_vsf} -c -r -i \"{self.video_path}\" -o \"{self.temp_output_dir}\" -ces \"{self.vsf_subtitle}\" "
+            if config.USE_GPU:
+                cmd += "--use_cuda "
+            cmd += f"-te {top_end} -be {bottom_end} -le {left_end} -re {right_end} -nthr {cpu_count} -dsi"
+            self.vsf_running = True
+            import subprocess
+            p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=1, close_fds='posix' in sys.builtin_module_names, shell=True)
+            Thread(target=vsf_output, daemon=True, args=(p.stderr, )).start()
+            p.wait()
+            self.vsf_running = False
 
     def filter_watermark(self):
         """
