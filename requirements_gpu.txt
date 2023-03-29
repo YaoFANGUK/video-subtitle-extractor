@@ -3,7 +3,7 @@ certifi==2021.10.8
 chardet==4.0.0
 cycler==0.11.0
 decorator==5.1.0
-filesplit==3.0.2
+filesplit==1.0.4
 gast==0.5.3
 idna==3.3
 imageio==2.13.3
@@ -12,7 +12,7 @@ kiwisolver==1.3.2
 lmdb==1.2.1
 matplotlib==3.5.1
 networkx==2.6.3
-numpy==1.19.3
+numpy==1.20.0
 opencv-python==4.5.4.60
 Pillow==8.4.0
 protobuf==3.19.1
