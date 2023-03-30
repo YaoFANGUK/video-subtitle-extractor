@@ -12,11 +12,7 @@ import os
 import re
 import time
 from pathlib import Path
-try:
-    from fsplit.filesplit import Filesplit
-except ImportError:
-    # for linux
-    from fsplit.filesplit import FileSplit
+from fsplit.filesplit import Filesplit
 from paddle import fluid
 from tools.constant import *
 
