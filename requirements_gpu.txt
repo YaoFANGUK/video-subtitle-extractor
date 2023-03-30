@@ -3,7 +3,7 @@ certifi==2021.10.8
 chardet==4.0.0
 cycler==0.11.0
 decorator==5.1.0
-filesplit==1.0.4
+filesplit==3.0.2
 gast==0.5.3
 idna==3.3
 imageio==2.13.3
