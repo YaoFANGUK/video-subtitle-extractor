@@ -376,6 +376,7 @@ class SubtitleExtractor:
                 path_vsf = os.path.join(config.BASE_DIR, 'subfinder', 'linux', 'cuda', 'VideoSubFinderCli.run')
             else:
                 path_vsf = os.path.join(config.BASE_DIR, 'subfinder', 'linux', 'cpu', 'VideoSubFinderCli.run')
+            os.chmod(path_vsf, 0o775)
         # ：图像上半部分所占百分比，取值【0-1】
         top_end = 1 - self.sub_area[0] / self.frame_height
         # bottom_end：图像下半部分所占百分比，取值【0-1】
