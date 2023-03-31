@@ -109,42 +109,43 @@ Before you install dependencies, make sure your python 3.8+ has installed as wel
 
       <details>
           <summary>Linux</summary>
-          <h5>(1) Download CUDA 11.2</h5>
-          <pre><code>wget https://developer.download.nvidia.com/compute/cuda/11.2.0/local_installers/cuda_11.2.0_460.27.04_linux.run</code></pre>
-          <h5>(2) Install CUDA 11.2</h5>
-          <pre><code>sudo sh cuda_11.2.0_460.27.04_linux.run --override</code></pre>
+          <h5>(1) Download CUDA 11.7</h5>
+          <pre><code>wget https://developer.download.nvidia.com/compute/cuda/11.7.0/local_installers/cuda_11.7.0_515.43.04_linux.run</code></pre>
+          <h5>(2) Install CUDA 11.7</h5>
+          <pre><code>sudo sh cuda_11.7.0_515.43.04_linux.run</code></pre>
           <p>1. Input accept</p>
-          <img src="https://z3.ax1x.com/2021/05/24/gv0AVU.png" width="500" alt="">
-          <p>2. make sure CUDA Toolkit 11.2 is chosen (If you have already installed driver, do not select Driver)</p>
-          <img src="https://z3.ax1x.com/2021/10/11/5VnwfH.png" width="500" alt="">
+          <img src="https://i.328888.xyz/2023/03/31/iwVoeH.png" width="500" alt="">
+          <p>2. make sure CUDA Toolkit 11.7 is chosen (If you have already installed driver, do not select Driver)</p>
+          <img src="https://i.328888.xyz/2023/03/31/iwVThJ.png" width="500" alt="">
           <p>3. Add environment variables</p>
           <p>add the following content in  <strong>~/.bashrc</strong></p>
           <pre><code># CUDA
-      export PATH=/usr/local/cuda-11.2/bin${PATH:+:${PATH}}
-      export LD_LIBRARY_PATH=/usr/local/cuda-11.2/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}</code></pre>
+      export PATH=/usr/local/cuda-11.7/bin${PATH:+:${PATH}}
+      export LD_LIBRARY_PATH=/usr/local/cuda-11.7/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}</code></pre>
           <p>Make sure it works</p>
           <pre><code>source ~/.bashrc</code></pre>
-          <h5>(3) Download cuDNN 8.1.1</h5>
-          <p><a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.2.0/cudnn-11.2-linux-x64-v8.1.1.33.tgz">cudnn-11.2-linux-x64-v8.1.1.33.tgz</a></p>
-          <h5>(4) Install cuDNN 8.1.1</h5>
-          <pre><code> tar -zxvf cudnn-11.2-linux-x64-v8.1.1.33.tgz
-       sudo cp ./cuda/include/* /usr/local/cuda-11.2/include/
-       sudo cp ./cuda/lib64/* /usr/local/cuda-11.2/lib64/
-       sudo chmod a+r /usr/local/cuda-11.2/lib64/*
-       sudo chmod a+r /usr/local/cuda-11.2/include/*</code></pre>
+          <h5>(3) Download cuDNN 8.4.1</h5>
+          <p><a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/cudnn-linux-x86_64-8.4.1.50_cuda11.6-archive.tar.xz">cudnn-linux-x86_64-8.4.1.50_cuda11.6-archive.tar.xz</a></p>
+          <h5>(4) Install cuDNN 8.4.1</h5>
+          <pre><code> tar -xf cudnn-linux-x86_64-8.4.1.50_cuda11.6-archive.tar.xz
+     mv cudnn-linux-x86_64-8.4.1.50_cuda11.6-archive cuda
+     sudo cp ./cuda/include/* /usr/local/cuda-11.7/include/
+     sudo cp ./cuda/lib/* /usr/local/cuda-11.7/lib64/
+     sudo chmod a+r /usr/local/cuda-11.7/lib64/*
+     sudo chmod a+r /usr/local/cuda-11.7/include/*</code></pre>
       </details>
 
       <details>
           <summary>Windows</summary>
-          <h5>(1) Download CUDA 11.6</h5>
-          <a href="https://developer.download.nvidia.com/compute/cuda/11.6.2/local_installers/cuda_11.6.2_511.65_windows.exe">cuda_11.6.2_511.65_windows.exe</a>
-          <h5>(2) Install CUDA 11.6</h5>
-          <h5>(3) Download cuDNN 8.2.1</h5>
-          <p><a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/cudnn-11.3-windows-x64-v8.2.1.32.zip">cudnn-11.3-windows-x64-v8.2.1.32.zip</a></p>
-          <h5>(4) Install cuDNN 8.2.1</h5>
+          <h5>(1) Download CUDA 11.7</h5>
+          <a href="https://developer.download.nvidia.com/compute/cuda/11.7.0/local_installers/cuda_11.7.0_516.01_windows.exe">cuda_11.7.0_516.01_windows.exe</a>
+          <h5>(2) Install CUDA 11.7</h5>
+          <h5>(3) Download cuDNN 8.4.1</h5>
+          <p><a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/cudnn-windows-x86_64-8.4.1.50_cuda11.6-archive.zip">cudnn-windows-x86_64-8.4.1.50_cuda11.6-archive.zip</a></p>
+          <h5>(4) Install cuDNN 8.4.1</h5>
           <p>
-             unzip "cudnn-11.3-windows-x64-v8.2.1.32.zip", then move all files in "bin, include, lib" in cuda 
-      directory to C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.6\
+             unzip "cudnn-windows-x86_64-8.4.1.50_cuda11.6-archive.zip", then move all files in "bin, include, lib" in cuda 
+      directory to C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.7\
           </p>
       </details>
 
@@ -153,13 +154,13 @@ Before you install dependencies, make sure your python 3.8+ has installed as wel
     - windows:
 
       ```shell
-      python -m pip install paddlepaddle-gpu==2.2.2.post112 -f https://www.paddlepaddle.org.cn/whl/windows/mkl/avx/stable.html 
+        python -m pip install paddlepaddle-gpu==2.4.2.post117 -f https://www.paddlepaddle.org.cn/whl/windows/mkl/avx/stable.html
       ```
 
     - Linux:
 
       ```shell
-      python -m pip install paddlepaddle-gpu==2.2.2.post112 -f https://www.paddlepaddle.org.cn/whl/linux/mkl
+        python -m pip install paddlepaddle-gpu==2.4.2.post117 -f https://www.paddlepaddle.org.cn/whl/linux/mkl/avx/stable.html
       ```
 
     > If you installed cuda 10.2，please install cuDNN 7.6.5 instead of cuDNN v8.x
