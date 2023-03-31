@@ -1,4 +1,5 @@
 #!/bin/sh
 cd ${0%/*}
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD:/lib64
+chmod +x ./VideoSubFinderCli
 ./VideoSubFinderCli "$@"
