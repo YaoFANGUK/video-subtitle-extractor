@@ -41,11 +41,11 @@ Video-subtitle-extractor (vse) 是一款将视频中的硬字幕提取为外挂�
 
 > (双击直接运行，每次打开时会有一点慢，**推荐小白使用**)
 
-- Windows GPU版本： <a href="https://gh.api.99988866.xyz/https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/vse_windows_GPU.7z">vse_windows_GPU.7z</a>
+- Windows GPU版本： <a href="https://pan.baidu.com/s/1L-cdVHnBGva2bGrsStYnnQ">vse_windows_GPU.7z</a> 提取码：**r911**
 
-- Windows CPU版本： <a href=https://gh.api.99988866.xyz/https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/vse_windows_CPU.zip>vse_windows_CPU.zip</a>
+- Windows CPU版本： <a href="https://pan.baidu.com/s/1oPyJowF0XgHtgg2g9EA-nw">vse_windows_CPU.zip</a> 提取码：**1vi6** 
 
-- MacOS CPU版本： <a href="https://gh.api.99988866.xyz/https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/vse_macos_CPU.zip">vse_macOS_CPU.dmg</a>
+- MacOS CPU版本： <a href="https://pan.baidu.com/s/1WgZpr_8I3Dv7A8ThwcIPng">vse_macOS_CPU.dmg</a> 提取码：**7gbo** 
 
 > PS: 若无法下载，请前往<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases"> Release </a>下载
 
@@ -147,7 +147,7 @@ conda activate videoEnv
         <p>使其生效</p>
         <pre><code>source ~/.bashrc</code></pre>
         <h5>(3) 下载cuDNN 8.4.1</h5>
-        <p>国内：<a href="https://gh.api.99988866.xyz/https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/cudnn-linux-x86_64-8.4.1.50_cuda11.6-archive.tar.xz">cudnn-linux-x86_64-8.4.1.50_cuda11.6-archive.tar.xz</a></p>
+        <p>国内：<a href="https://pan.baidu.com/s/1Gd_pSVzWfX1G7zCuqz6YYA">cudnn-linux-x86_64-8.4.1.50_cuda11.6-archive.tar.xz</a> 提取码：57mg</p>
         <p>国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/cudnn-linux-x86_64-8.4.1.50_cuda11.6-archive.tar.xz">cudnn-linux-x86_64-8.4.1.50_cuda11.6-archive.tar.xz</a></p>
         <h5>(4) 安装cuDNN 8.4.1</h5>
         <pre><code> tar -xf cudnn-linux-x86_64-8.4.1.50_cuda11.6-archive.tar.xz
@@ -164,8 +164,7 @@ conda activate videoEnv
           <a href="https://developer.download.nvidia.com/compute/cuda/11.7.0/local_installers/cuda_11.7.0_516.01_windows.exe">cuda_11.7.0_516.01_windows.exe</a>
           <h5>(2) 安装CUDA 11.7</h5>
           <h5>(3) 下载cuDNN 8.2.4</h5>
-          <p>国内：<a href="https://gh.api.99988866.xyz/https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/cudnn-windows-x64-v8.2.4.15.zip">cudnn-windows-x64-v8.2.4.15.zip</a></p>
-          <p>国外：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/cudnn-windows-x64-v8.2.4.15.zip">cudnn-windows-x64-v8.2.4.15.zip</a></p>
+          <p><a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/cudnn-windows-x64-v8.2.4.15.zip">cudnn-windows-x64-v8.2.4.15.zip</a></p>
           <h5>(4) 安装cuDNN 8.2.4</h5>
           <p>
              将cuDNN解压后的cuda文件夹中的bin, include, lib目录下的文件复制到C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.7\对应目录下
