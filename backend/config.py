@@ -105,7 +105,7 @@ LATIN_LANG = [
     'af', 'az', 'bs', 'cs', 'cy', 'da', 'de', 'es', 'et', 'fr', 'ga', 'hr',
     'hu', 'id', 'is', 'it', 'ku', 'la', 'lt', 'lv', 'mi', 'ms', 'mt', 'nl',
     'no', 'oc', 'pi', 'pl', 'pt', 'ro', 'rs_latin', 'sk', 'sl', 'sq', 'sv',
-    'sw', 'tl', 'tr', 'uz', 'vi', 'latin'
+    'sw', 'tl', 'tr', 'uz', 'vi', 'latin', 'german'
 ]
 ARABIC_LANG = ['ar', 'fa', 'ug', 'ur']
 CYRILLIC_LANG = [
@@ -117,7 +117,7 @@ DEVANAGARI_LANG = [
     'sa', 'bgc', 'devanagari'
 ]
 OTHER_LANG = [
-    'ch', 'japan', 'korean', 'en', 'french', 'german', 'ta', 'kn', 'te', 'ka',
+    'ch', 'japan', 'korean', 'en', 'french', 'ta', 'kn', 'te', 'ka',
     'chinese_cht',
 ]
 MULTI_LANG = LATIN_LANG + ARABIC_LANG + CYRILLIC_LANG + DEVANAGARI_LANG + \
