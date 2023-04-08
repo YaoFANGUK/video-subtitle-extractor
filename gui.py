@@ -27,6 +27,7 @@ class SubtitleExtractorGUI:
             '简体中文': 'ch',
             '繁體中文': 'chinese_cht',
             'English': 'en',
+            '한국어': 'ko',
         }
         self.config.read(self.config_file, encoding='utf-8')
         self.interface_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backend', 'interface',
@@ -405,6 +406,7 @@ class LanguageModeGUI:
             '简体中文': 'ch',
             '繁體中文': 'chinese_cht',
             'English': 'en',
+            '한국어': 'ko',
         }
         # 设置语言
         self.LANGUAGE_DEF = 'ch'
