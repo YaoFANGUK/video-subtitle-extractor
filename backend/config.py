@@ -90,14 +90,14 @@ if MODE_TYPE == 'fast':
     ACCURATE_MODE_ON = False
 # 模型文件目录
 # 默认模型版本 V3
-MODEL_VERSION = 'V3'
+MODEL_VERSION = 'V4'
 # 文本检测模型
 DET_MODEL_BASE = os.path.join(BASE_DIR, 'models')
 # 设置文本识别模型 + 字典
 REC_MODEL_BASE = os.path.join(BASE_DIR, 'models')
 # 默认字典路径为中文
 DICT_BASE = os.path.join(BASE_DIR, 'ppocr', 'utils', 'dict')
-# V3模型默认图形识别的shape为3, 48, 320
+# V3, V4模型默认图形识别的shape为3, 48, 320
 REC_IMAGE_SHAPE = '3,48,320'
 REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'{REC_CHAR_TYPE}_rec')
 DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, MODEL_VERSION, f'{REC_CHAR_TYPE}_det')
@@ -128,56 +128,37 @@ MULTI_LANG = LATIN_LANG + ARABIC_LANG + CYRILLIC_LANG + DEVANAGARI_LANG + \
 DICT_PATH = os.path.join(DICT_BASE, f'{REC_CHAR_TYPE}_dict.txt')
 
 # 如果设置了识别文本语言类型，则设置为对应的语言
-if REC_CHAR_TYPE in MULTI_LANG :
-    # 不管有无GPU和是否开启精准模式，默认使用大模型
+if REC_CHAR_TYPE in MULTI_LANG:
     # 定义文本识别模型
+    # 不管有无GPU和是否开启精准模式，默认使用V4版本的大模型
     REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'{REC_CHAR_TYPE}_rec')
-    # 如果当前模型版本没有大模型，则切换为V2版本
+    # 如果默认版本(V4)没有大模型，则切换为默认版本(V4)的fast模型
     if not os.path.exists(REC_MODEL_PATH):
-        MODEL_VERSION = 'V2'
-        REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'{REC_CHAR_TYPE}_rec')
-    # 如果V2版本也没有大模型版本，则切换V3的fast版本
+        REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'{REC_CHAR_TYPE}_rec_fast')
+    # 如果默认版本(V4)既没有大模型，又没有fast模型，则使用V3版本的大模型
     if not os.path.exists(REC_MODEL_PATH):
         MODEL_VERSION = 'V3'
-        REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'{REC_CHAR_TYPE}_rec_fast')
-    # 如果没有V3的fast版本，则切换V2的fast版本
+        REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'{REC_CHAR_TYPE}_rec')
+    # 如果V3版本没有大模型，则使用V3版本的fast模型
     if not os.path.exists(REC_MODEL_PATH):
-        MODEL_VERSION = 'V2'
+        MODEL_VERSION = 'V3'
         REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'{REC_CHAR_TYPE}_rec_fast')
 
     if REC_CHAR_TYPE in LATIN_LANG:
-        MODEL_VERSION = 'V3'
         REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'latin_rec_fast')
         DICT_PATH = os.path.join(DICT_BASE, f'latin_dict.txt')
     elif REC_CHAR_TYPE in ARABIC_LANG:
-        MODEL_VERSION = 'V3'
         REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'arabic_rec_fast')
         DICT_PATH = os.path.join(DICT_BASE, f'arabic_dict.txt')
     elif REC_CHAR_TYPE in CYRILLIC_LANG:
-        MODEL_VERSION = 'V3'
         REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'cyrillic_rec_fast')
         DICT_PATH = os.path.join(DICT_BASE, f'cyrillic_dict.txt')
     elif REC_CHAR_TYPE in DEVANAGARI_LANG:
-        MODEL_VERSION = 'V3'
         REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'devanagari_rec_fast')
         DICT_PATH = os.path.join(DICT_BASE, f'devanagari_dict.txt')
 
     # 定义文本检测模型
-    tmp_dir = REC_MODEL_PATH.replace(os.path.dirname(REC_MODEL_PATH), '').split('_')
-    if len(tmp_dir) > 3:
-        tmp_dir = tmp_dir[-3:]
-    tmp_dir[1] = 'det'
-    DET_MODEL_PATH = os.path.join(os.path.dirname(REC_MODEL_PATH), "_".join(tmp_dir))
-    if not os.path.exists(DET_MODEL_PATH):
-        if REC_CHAR_TYPE in ['ch', 'japan', 'korean', 'chinese_cht']:
-            tmp_dir[0] = 'ch'
-        elif REC_CHAR_TYPE == 'en':
-            tmp_dir[0] = 'en'
-        else:
-            tmp_dir[0] = 'ml'
-        DET_MODEL_PATH = os.path.join(os.path.dirname(REC_MODEL_PATH), "_".join(tmp_dir))
-    if MODEL_VERSION == 'V2':
-        DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, MODEL_VERSION, 'ch_det')
+    DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, 'V4', 'ch_det')
     # 定义图像识别shape
     if MODEL_VERSION == 'V2':
         REC_IMAGE_SHAPE = '3,32,320'
