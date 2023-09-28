@@ -372,10 +372,7 @@ class SubtitleExtractor:
         if platform.system() == 'Windows':
             path_vsf = os.path.join(config.BASE_DIR, 'subfinder', 'windows', 'VideoSubFinderWXW.exe')
         else:
-            if config.USE_GPU:
-                path_vsf = os.path.join(config.BASE_DIR, 'subfinder', 'linux', 'cuda', 'VideoSubFinderCli.run')
-            else:
-                path_vsf = os.path.join(config.BASE_DIR, 'subfinder', 'linux', 'cpu', 'VideoSubFinderCli.run')
+            path_vsf = os.path.join(config.BASE_DIR, 'subfinder', 'linux', 'VideoSubFinderCli.run')
             os.chmod(path_vsf, 0o775)
         # ：图像上半部分所占百分比，取值【0-1】
         top_end = 1 - self.sub_area[0] / self.frame_height
