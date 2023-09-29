@@ -1,3 +1,2 @@
-VideoSubFinderCli filter=lfs diff=lfs merge=lfs -text
 backend/subfinder/linux/VideoSubFinderCli filter=lfs diff=lfs merge=lfs -text
 backend/models/V4/ch_det/inference.pdiparams filter=lfs diff=lfs merge=lfs -text
