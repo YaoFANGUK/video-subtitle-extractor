@@ -37,11 +37,11 @@ Video-subtitle-extractor (vse) 是一款将视频中的硬字幕提取为外挂�
 
 **下载地址**：
 
-- Windows 绿色版本v2.0.0（CPU）： <a href="https://pan.baidu.com/s/1gwo9oYYXUBaYP2h4u0MnVg?pwd=mcck">vse_windows_cpu_v2.0.0.zip</a> 提取码：**mcck** 
+- Windows 绿色版本v2.0.0（CPU）： <a href="https://pan.baidu.com/s/1gwo9oYYXUBaYP2h4u0MnVg?pwd=mcck" target=_blank>vse_windows_cpu_v2.0.0.zip</a> 提取码：**mcck** 
 
 > **推荐使用，启动速度较快**
 
-- Windows 单文件版本v2.0.0（CPU）： <a href=https://www.aliyundrive.com/s/LQREh4tKWzQ  target=_blank>vse_v2.0.0.exe</a>
+- Windows 单文件版本v2.0.0（CPU）： <a href=https://www.aliyundrive.com/s/LQREh4tKWzQ target=_blank>vse_v2.0.0.exe</a> 提取码：**p7x2** 
 
 > 双击直接运行，每次打开时会有一点慢，**若出现误报毒，使用绿色版**
 
