@@ -15,10 +15,10 @@ Video-subtitle-extractor (vse) 是一款将视频中的硬字幕提取为外挂�
 - 过滤非字幕区域的文本，去除水印（台标）文本
 - 去除重复字幕行，生成srt字幕文件
 - 支持视频字幕**批量提取**（打开文件的时候选择多个视频）
-- 多语言：支持**中文/英文**、**日语**、**韩语**、**阿拉伯语**、**繁体中文**、**法语**、**德语**、**俄语**、**西班牙语**、**葡萄牙语**、**意大利语**字幕的提取
+- 多语言：支持**简体中文/英文**、**繁体中文**、**日语**、**韩语**、**越南语**、**阿拉伯语**、**法语**、**德语**、**俄语**、**西班牙语**、**葡萄牙语**、**意大利语**等**87种**语言的字幕提取
 - 多模式：
   - **快速** - 快速提取字幕但可能丢字幕（推荐）
-  - **精准** - 不丢字幕但速度较慢
+  - **精准** - 逐帧检测，不丢字幕但速度非常慢（非常不推荐）
 
 
 **使用说明**：
@@ -37,15 +37,17 @@ Video-subtitle-extractor (vse) 是一款将视频中的硬字幕提取为外挂�
 
 **下载地址**：
 
-- Windows 单文件版本： <a href=https://www.aliyundrive.com/s/7mdRDJHVRiu target=_blank>vse.exe</a> 提取码：**17uj**
+- Windows 绿色版本v2.0.0（CPU）： <a href="https://pan.baidu.com/s/1gwo9oYYXUBaYP2h4u0MnVg?pwd=mcck">vse_windows_cpu_v2.0.0.zip</a> 提取码：**mcck** 
 
-> (双击直接运行，每次打开时会有一点慢，**推荐小白使用**)
+> **推荐使用，启动速度较快**
 
-- Windows GPU版本： <a href="https://pan.baidu.com/s/1L-cdVHnBGva2bGrsStYnnQ">vse_windows_GPU.7z</a> 提取码：**r911**
+- Windows 单文件版本v2.0.0（CPU）： <a href=https://www.aliyundrive.com/s/LQREh4tKWzQ  target=_blank>vse_v2.0.0.exe</a>
 
-- Windows CPU版本： <a href="https://pan.baidu.com/s/1oPyJowF0XgHtgg2g9EA-nw">vse_windows_CPU.zip</a> 提取码：**1vi6** 
+> 双击直接运行，每次打开时会有一点慢，**若出现误报毒，使用绿色版**
 
-- MacOS CPU版本： <a href="https://pan.baidu.com/s/1WgZpr_8I3Dv7A8ThwcIPng">vse_macOS_CPU.dmg</a> 提取码：**7gbo** 
+- Windows GPU版本v1.0.0（GPU）： <a href="https://pan.baidu.com/s/1L-cdVHnBGva2bGrsStYnnQ">vse_windows_GPU.7z</a> 提取码：**r911**
+
+- MacOS 版本v0.01（CPU）： <a href="https://pan.baidu.com/s/1WgZpr_8I3Dv7A8ThwcIPng">vse_macOS_CPU.dmg</a> 提取码：**7gbo** 
 
 > PS: 若无法下载，请前往<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases"> Release </a>下载
 
