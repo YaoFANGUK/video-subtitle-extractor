@@ -135,20 +135,10 @@ class SubtitleExtractor:
         # 创建一个字幕OCR识别进程
         subtitle_ocr_process = self.start_subtitle_ocr_async()
         if self.sub_area is not None:
-            # 如果开启精准模式
-            if config.ACCURATE_MODE_ON:
-                # 开启精准模式并且有GPU加速
-                if config.USE_GPU:
-                    self.extract_frame_by_det()
-                else:
-                    self.extract_frame_by_fps()
-            # 如果没有开启精准模式
+            if platform.system() in ['Windows', 'Linux']:
+                self.extract_frame_by_vsf()
             else:
-                # 没有开启精准模式且操作系统为Windows或Linux
-                if platform.system() in ['Windows', 'Linux']:
-                    self.extract_frame_by_vsf()
-                else:
-                    self.extract_frame_by_fps()
+                self.extract_frame_by_fps()
         else:
             self.extract_frame_by_fps()
 

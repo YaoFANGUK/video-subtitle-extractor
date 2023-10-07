@@ -157,7 +157,11 @@ if REC_CHAR_TYPE in MULTI_LANG:
         DICT_PATH = os.path.join(DICT_BASE, f'devanagari_dict.txt')
 
     # 定义文本检测模型
-    DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, 'V4', 'ch_det')
+    if MODE_TYPE == 'fast':
+        DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, 'V4', 'ch_det_fast')
+    else:
+        DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, 'V4', 'ch_det')
+
     # 定义图像识别shape
     if MODEL_VERSION == 'V2':
         REC_IMAGE_SHAPE = '3,32,320'
