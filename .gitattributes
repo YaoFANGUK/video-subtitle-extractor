@@ -1,1 +1,0 @@
-backend/models/V4/ch_det/inference.pdiparams filter=lfs diff=lfs merge=lfs -text

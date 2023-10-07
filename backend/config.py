@@ -76,7 +76,6 @@ if fluid.is_compiled_with_cuda():
 # ×××××××××××××××××××× [不要改]判断是否使用GPU start ××××××××××××××××××××
 
 
-
 # ×××××××××××××××××××× [不要改]读取语言、模型路径、字典路径 start ××××××××××××××××××××
 # 设置识别语言
 REC_CHAR_TYPE = settings_config['DEFAULT']['Language']
@@ -89,7 +88,7 @@ if MODE_TYPE == 'accurate':
 if MODE_TYPE == 'fast':
     ACCURATE_MODE_ON = False
 # 模型文件目录
-# 默认模型版本 V3
+# 默认模型版本 V4
 MODEL_VERSION = 'V4'
 # 文本检测模型
 DET_MODEL_BASE = os.path.join(BASE_DIR, 'models')
@@ -169,6 +168,10 @@ if REC_CHAR_TYPE in MULTI_LANG:
     if 'inference.pdiparams' not in (os.listdir(REC_MODEL_PATH)):
         fs = Filesplit()
         fs.merge(input_dir=REC_MODEL_PATH)
+    # 查看该路径下是否有文本模型识别完整文件，没有的话合并小文件生成完整文件
+    if 'inference.pdiparams' not in (os.listdir(DET_MODEL_PATH)):
+        fs = Filesplit()
+        fs.merge(input_dir=DET_MODEL_PATH)
 # ×××××××××××××××××××× [不要改]读取语言、模型路径、字典路径 end ××××××××××××××××××××
 
 
