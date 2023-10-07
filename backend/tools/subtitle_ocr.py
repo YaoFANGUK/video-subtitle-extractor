@@ -158,9 +158,6 @@ def ocr_task_producer(ocr_queue, task_queue, progress_queue, video_path, raw_sub
     :param video_path
     :param raw_subtitle_path
     """
-    # 删除缓存
-    if os.path.exists(raw_subtitle_path):
-        os.remove(raw_subtitle_path)
     cap = cv2.VideoCapture(video_path)
     tbar = None
     while True:
@@ -208,6 +205,9 @@ def subtitle_extract_handler(task_queue, progress_queue, video_path, raw_subtitl
     :param sub_area 字幕区域
     :param options 选项
     """
+    # 删除缓存
+    if os.path.exists(raw_subtitle_path):
+        os.remove(raw_subtitle_path)
     # 创建一个OCR队列，大小建议值8-20
     ocr_queue = queue.Queue(20)
     # 创建一个OCR事件生产者线程
