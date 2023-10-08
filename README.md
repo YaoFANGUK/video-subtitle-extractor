@@ -61,7 +61,8 @@ Video-subtitle-extractor (vse) 是一款将视频中的硬字幕提取为外挂�
 - (CLI版本) 无需用户手动设置字幕区域，项目通过文本检测模型自动检测字幕区域
 - (GUI版本) 图形化界面
 
-<img src="https://z3.ax1x.com/2021/04/09/cNrA1A.png" alt="demo">
+<p style="text-align:center;"><img src="https://github.com/YaoFANGUK/video-subtitle-extractor/raw/main/design/demo.png" alt="demo.png"/></p>
+
 
 点击【打开】后选择视频文件，调整字幕区域，点击【运行】
 
