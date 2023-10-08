@@ -45,7 +45,7 @@ Video-subtitle-extractor (vse) 是一款将视频中的硬字幕提取为外挂�
 
 > 双击直接运行，每次打开时会有一点慢，**若出现误报毒，使用绿色版**
 
-- Windows GPU版本v1.0.0（GPU）： <a href="https://pan.baidu.com/s/1L-cdVHnBGva2bGrsStYnnQ">vse_windows_GPU.7z</a> 提取码：**r911**
+- Windows GPU版本v2.0.0（GPU）： <a href="https://pan.baidu.com/s/1BtAmFYolG_9FEkyqo9D7WQ?pwd=vse2">vse_windows_gpu_v2.0.0.7z</a> 提取码：**vse2**
 
 - MacOS 版本v0.1.0（CPU）： <a href="https://pan.baidu.com/s/1WgZpr_8I3Dv7A8ThwcIPng">vse_macOS_CPU.dmg</a> 提取码：**7gbo** 
 
