@@ -279,3 +279,5 @@ python -m nuitka --standalone --windows-disable-console --mingw64 --lto no --inc
   <a href="https://jb.gg/OpenSourceSupport"><img src="https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.png" alt="JetBrains Logo (Main) logo." width="80"></a>
 </div>
 
+
+[![Star History Chart](https://api.star-history.com/svg?repos=YaoFANGUK/video-subtitle-extractor&type=Date)](https://star-history.com/#YaoFANGUK/video-subtitle-extractor&Date)
