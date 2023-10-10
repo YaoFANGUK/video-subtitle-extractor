@@ -278,3 +278,10 @@ python -m nuitka --standalone --windows-disable-console --mingw64 --lto no --inc
 <div align=center>
   <a href="https://jb.gg/OpenSourceSupport"><img src="https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.png" alt="JetBrains Logo (Main) logo." width="80"></a>
 </div>
+
+## 赞助
+<img src="https://i.imgur.com/THE81jM.jpg" width="300">
+
+| 捐赠者 | 累计捐赠金额 | 赞助席位 |
+| --- | --- | --- |
+| <a herf="https://github.com/neoyxm">neoyxm</a> | 50.00 RMB | 金牌赞助席位 |
