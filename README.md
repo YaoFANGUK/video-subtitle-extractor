@@ -285,3 +285,4 @@ python -m nuitka --standalone --windows-disable-console --mingw64 --lto no --inc
 | 捐赠者 | 累计捐赠金额 | 赞助席位 |
 | --- | --- | --- |
 | [neoyxm](https://github.com/neoyxm) | 50.00 RMB | 金牌赞助席位 |
+| [AcelXiao](https://github.com/acelxiao) | 20.00 RMB | 银牌赞助席位 |
