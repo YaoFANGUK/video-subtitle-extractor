@@ -139,9 +139,11 @@ class SubtitleExtractor:
         subtitle_ocr_process = self.start_subtitle_ocr_async()
         if self.sub_area is not None:
             if platform.system() in ['Windows', 'Linux']:
-                self.extract_frame_by_vsf()
-                # 如果想逐帧检测使用extract_frame_by_det()方法
-                # self.extract_frame_by_det()
+                # 使用GPU且使用accurate模式时才开放此方法：
+                if config.USE_GPU and config.MODE_TYPE == 'accurate':
+                    self.extract_frame_by_det()
+                else:
+                    self.extract_frame_by_vsf()
             else:
                 self.extract_frame_by_fps()
         else:

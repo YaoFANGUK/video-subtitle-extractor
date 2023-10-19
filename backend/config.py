@@ -158,7 +158,11 @@ if REC_CHAR_TYPE in MULTI_LANG:
 
     # 定义文本检测模型
     if MODE_TYPE == 'fast':
-        DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, 'V4', 'ch_det_fast')
+        # 如果使用GPU，则快速模型使用大模型
+        if USE_GPU:
+            DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, 'V4', 'ch_det')
+        else:
+            DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, 'V4', 'ch_det_fast')
     else:
         DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, 'V4', 'ch_det')
 
