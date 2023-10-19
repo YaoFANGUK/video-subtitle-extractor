@@ -125,7 +125,7 @@ MULTI_LANG = LATIN_LANG + ARABIC_LANG + CYRILLIC_LANG + DEVANAGARI_LANG + \
 
 # 定义字典路径
 DICT_PATH = os.path.join(DICT_BASE, f'{REC_CHAR_TYPE}_dict.txt')
-
+DET_MODEL_FAST_PATH = os.path.join(DET_MODEL_BASE, 'V4', 'ch_det_fast')
 # 如果设置了识别文本语言类型，则设置为对应的语言
 if REC_CHAR_TYPE in MULTI_LANG:
     # 定义文本识别模型

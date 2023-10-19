@@ -20,6 +20,7 @@ from numpy import average, dot, linalg
 import numpy as np
 from tqdm import tqdm
 import sys
+
 sys.path.insert(0, os.path.dirname(__file__))
 import importlib
 import config
@@ -39,6 +40,7 @@ class SubtitleDetect:
     """
     文本框检测类，用于检测视频帧中是否存在文本框
     """
+
     def __init__(self):
         # 获取参数对象
         importlib.reload(config)
@@ -56,6 +58,7 @@ class SubtitleExtractor:
     """
     视频字幕提取类
     """
+
     def __init__(self, vd_path, sub_area=None):
         importlib.reload(config)
         # 线程锁
@@ -137,6 +140,8 @@ class SubtitleExtractor:
         if self.sub_area is not None:
             if platform.system() in ['Windows', 'Linux']:
                 self.extract_frame_by_vsf()
+                # 如果想逐帧检测使用extract_frame_by_det()方法
+                # self.extract_frame_by_det()
             else:
                 self.extract_frame_by_fps()
         else:
@@ -240,7 +245,8 @@ class SubtitleExtractor:
                 s_ymin, s_ymax, s_xmin, s_xmax = self.sub_area
                 for box in dt_boxes:
                     xmin, xmax, ymin, ymax = box[0], box[1], box[2], box[3]
-                    if (s_xmin <= xmin).any() and (xmax <= s_xmax).any() and (s_ymin <= ymin).any() and (ymax <= s_ymax).any():
+                    if (s_xmin <= xmin).any() and (xmax <= s_xmax).any() and (s_ymin <= ymin).any() and (
+                            ymax <= s_ymax).any():
                         has_subtitle = True
                         break
             else:
@@ -331,7 +337,8 @@ class SubtitleExtractor:
                 # 文件被清理了
                 except FileNotFoundError:
                     return
-        def vsf_output(out,):
+
+        def vsf_output(out, ):
             duration_ms = (self.frame_count / self.fps) * 1000
             last_total_ms = 0
             for line in iter(out.readline, b''):
@@ -393,8 +400,9 @@ class SubtitleExtractor:
             cmd += f"-te {top_end} -be {bottom_end} -le {left_end} -re {right_end} -nthr {cpu_count} -dsi"
             self.vsf_running = True
             import subprocess
-            p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=1, close_fds='posix' in sys.builtin_module_names, shell=True)
-            Thread(target=vsf_output, daemon=True, args=(p.stderr, )).start()
+            p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=1,
+                                 close_fds='posix' in sys.builtin_module_names, shell=True)
+            Thread(target=vsf_output, daemon=True, args=(p.stderr,)).start()
             p.wait()
             self.vsf_running = False
 
@@ -742,49 +750,29 @@ class SubtitleExtractor:
             frame_no = line.split('\t')[0]
             content = line.split('\t')[2]
             content_list.append((frame_no, content))
-        # 循环遍历每行字幕，记录开始时间与结束时间
-        index = 0
         # 去重后的字幕列表
         unique_subtitle_list = []
-        for i in content_list:
-            # TODO: 时间复杂度非常高，有待优化
-            # 定义字幕开始帧帧号
+        idx_i = 0
+        # 循环遍历每行字幕，记录开始时间与结束时间
+        while idx_i < len(content_list):
+            i = content_list[idx_i]
             start_frame = i[0]
-            for j in content_list[index:]:
+            idx_j = idx_i
+            while idx_j < len(content_list):
                 # 计算当前行与下一行的Levenshtein距离
-                distance = ratio(i[1], j[1])
-                if distance < config.THRESHOLD_TEXT_SIMILARITY or j == content_list[-1]:
-                    # 定义字幕结束帧帧号
-                    end_frame = content_list[content_list.index(j) - 1][0]
-                    if end_frame == start_frame:
-                        end_frame = j[0]
-                    # 如果是第一行字幕，直接添加进列表
-                    if len(unique_subtitle_list) < 1:
-                        unique_subtitle_list.append((start_frame, end_frame, i[1]))
-                    else:
-                        string_a = unique_subtitle_list[-1][2].replace(' ', '')
-                        string_b = i[1].replace(' ', '')
-                        similarity_ratio = ratio(string_a, string_b)
-                        # 打印相似度
-                        # print(f'{similarity_ratio}: {unique_subtitle_list[-1][2]} vs {i[1]}')
-                        # 如果相似度小于阈值，说明该两行字幕不一样
-                        if similarity_ratio < config.THRESHOLD_TEXT_SIMILARITY:
-                            unique_subtitle_list.append((start_frame, end_frame, i[1]))
-                        else:
-                            # 如果大于阈值，但又不完全相同，说明两行字幕相似
-                            # 可能出现以下情况: "但如何进人并接管上海" vs "但如何进入并接管上海"
-                            # OCR识别出现了错误识别
-                            if similarity_ratio < 1:
-                                # TODO:
-                                # 1) 取出两行字幕的并集
-                                # 2) 纠错
-                                # print(f'{round(similarity_ratio, 2)}, 需要手动纠错:\n {string_a} vs\n {string_b}')
-                                # 保存较长的
-                                if len(string_a) < len(string_b):
-                                    unique_subtitle_list[-1] = (start_frame, end_frame, i[1])
-                    index += 1
+                # 判决idx_j的下一帧是否与idx_i不同，若不同（或者是最后一帧）则找到结束帧
+                if idx_j + 1 == len(content_list) or ratio(i[1], content_list[idx_j + 1][1]) < config.THRESHOLD_TEXT_SIMILARITY:
+                    # 若找到终点帧,定义字幕结束帧帧号
+                    end_frame = content_list[idx_j][0]
+                    if end_frame == start_frame and idx_j + 1 < len(content_list):
+                        # 针对只有一帧的情况，以下一帧的开始时间为准(除非是最后一帧)
+                        end_frame = content_list[idx_j + 1][0]
+                    # 添加进列表
+                    unique_subtitle_list.append((start_frame, end_frame, i[1]))
+                    idx_i = idx_j + 1
                     break
                 else:
+                    idx_j += 1
                     continue
         return unique_subtitle_list
 
@@ -932,9 +920,9 @@ class SubtitleExtractor:
         则认为这两个坐标点相似
         """
         return abs(coordinate1[0] - coordinate2[0]) < config.PIXEL_TOLERANCE_X and \
-               abs(coordinate1[1] - coordinate2[1]) < config.PIXEL_TOLERANCE_X and \
-               abs(coordinate1[2] - coordinate2[2]) < config.PIXEL_TOLERANCE_Y and \
-               abs(coordinate1[3] - coordinate2[3]) < config.PIXEL_TOLERANCE_Y
+            abs(coordinate1[1] - coordinate2[1]) < config.PIXEL_TOLERANCE_X and \
+            abs(coordinate1[2] - coordinate2[2]) < config.PIXEL_TOLERANCE_Y and \
+            abs(coordinate1[3] - coordinate2[3]) < config.PIXEL_TOLERANCE_Y
 
     @staticmethod
     def __get_thum(image, size=(64, 64), greyscale=False):
@@ -988,7 +976,8 @@ class SubtitleExtractor:
                 if notify:
                     print(config.interface_config['Main']['StartFindSub'])
                     notify = False
-                self.update_progress(ocr=100 if current_frame_no == -1 else (current_frame_no / total_frame_count * 100))
+                self.update_progress(
+                    ocr=100 if current_frame_no == -1 else (current_frame_no / total_frame_count * 100))
                 # print(f'recv total_ms:{total_ms}')
                 if current_frame_no == -1:
                     return
