@@ -770,10 +770,7 @@ class SubtitleExtractor:
                         # 针对只有一帧的情况，以下一帧的开始时间为准(除非是最后一帧)
                         end_frame = content_list[idx_j + 1][0]
                     # 添加进列表
-                    if len(i[1].replace(' ', '')) >= len(content_list[idx_j + 1][1].replace(' ', '')): 
-                        unique_subtitle_list.append((start_frame, end_frame, i[1]))
-                    else:
-                        unique_subtitle_list.append((start_frame, end_frame, content_list[idx_j + 1][1]))
+                    unique_subtitle_list.append((start_frame, end_frame, i[1]))
                     idx_i = idx_j + 1
                     break
                 else:
