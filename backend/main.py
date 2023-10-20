@@ -9,7 +9,7 @@ import re
 import os
 import random
 import shutil
-from collections import Counter
+from collections import Counter, namedtuple
 import unicodedata
 from threading import Thread
 from pathlib import Path
@@ -34,6 +34,7 @@ import threading
 import platform
 import multiprocessing
 import time
+import pysrt
 
 
 class SubtitleDetect:
@@ -543,45 +544,37 @@ class SubtitleExtractor:
             return post_process_subtitle
 
     def generate_subtitle_file_vsf(self):
-        if self.use_vsf:
-            # 从vsf生成的srt文件读取时间轴
-            subtitle_timestamp = []
-            with open(self.vsf_subtitle, mode='r', encoding='utf-8') as f:
-                lines = f.readlines()
-                timestamp_list = []
-                frame_no_list = []
-                for line in lines:
-                    # 找到时间戳
-                    if re.match(r'^\d{2,}:\d{2,}:\d{2,},\d{1,3}.*', line):
-                        timestamp = line.replace('\n', '').replace('\r', '')
-                        # 计算帧号
-                        frame_no = self._timestamp_to_frameno(timestamp)
-                        timestamp_list.append(timestamp)
-                        frame_no_list.append(frame_no)
-                for i in zip(frame_no_list, timestamp_list):
-                    subtitle_timestamp.append(i)
-            subtitle_content = self._remove_duplicate_subtitle()
-            final_subtitle = []
-            for st in subtitle_timestamp:
-                # st: (frame_no, timestamp)
-                found = False
-                for sc in subtitle_content:
-                    # sc: (frame_no, text_area, content)
-                    # 比较帧号是否一致，如果一致添加字幕内容
-                    if int(sc[0]) - int(st[0]) == 0:
-                        final_subtitle.append((st[1], sc[2]))
-                        found = True
-                        break
-                if not found and not config.DELETE_EMPTY_TIMESTAMP:
-                    # 保留时间轴
-                    final_subtitle.append((timestamp_list, ""))
-            srt_filename = os.path.join(os.path.splitext(self.video_path)[0] + '.srt')
-            with open(srt_filename, mode='w', encoding='utf-8') as f:
-                for i, subtitle_line in enumerate(final_subtitle):
-                    f.write(f'{i + 1}\n')
-                    f.write(f'{subtitle_line[0]}\n')
-                    f.write(f'{subtitle_line[1]}\n')
-            print(f"[VSF]{config.interface_config['Main']['SubLocation']} {srt_filename}")
+        if not self.use_vsf:
+            return
+        subs = pysrt.open(self.vsf_subtitle)
+        sub_no_map = {}
+        for sub in subs:
+            sub.start.no = self._timestamp_to_frameno(sub.start.ordinal)
+            sub_no_map[sub.start.no] = sub
+
+        subtitle_content = self._remove_duplicate_subtitle()
+        subtitle_content_start_map = {int(a[0]): a for a in subtitle_content}
+        final_subtitles = []
+        for sub in subs:
+            found = sub.start.no in subtitle_content_start_map
+            if found:
+                subtitle_content_line = subtitle_content_start_map[sub.start.no]
+                sub.text = subtitle_content_line[2]
+                end_no = int(subtitle_content_line[1])
+                sub.end = sub_no_map[end_no].end if end_no in sub_no_map else sub.end
+                sub.index = len(final_subtitles) + 1
+                final_subtitles.append(sub)
+
+            if not found and not config.DELETE_EMPTY_TIMESTAMP:
+                # 保留时间轴
+                sub.text = ""
+                sub.index = len(final_subtitles) + 1
+                final_subtitles.append(sub)
+                continue
+
+        srt_filename = os.path.join(os.path.splitext(self.video_path)[0] + '.srt')
+        pysrt.SubRipFile(final_subtitles).save(srt_filename, encoding='utf-8')
+        print(f"[VSF]{config.interface_config['Main']['SubLocation']} {srt_filename}")
 
     def _analyse_subtitle_frame(self):
         """
@@ -729,13 +722,8 @@ class SubtitleExtractor:
                                                             int(frame_no / self.fps % 60),
                                                             int(frame_no % self.fps))
 
-    def _timestamp_to_frameno(self, timestamp):
-        """
-        接受一个'00:00:03,567 --> 00:00:05,866'类型的时间戳，将其转化为帧号
-        """
-        h, m, s, ms = timestamp.split('-->')[0].strip().replace(',', ':').split(':')
-        total_ms = int(ms) + int(s) * 1000 + int(m) * 60 * 1000 + int(h) * 60 * 60 * 1000
-        return int(total_ms / self.fps)
+    def _timestamp_to_frameno(self, time_ms):
+        return int(time_ms / self.fps)
 
     def _frameno_to_milliseconds(self, frame_no):
         return float(int(frame_no / self.fps * 1000))
@@ -747,30 +735,35 @@ class SubtitleExtractor:
         self._concat_content_with_same_frameno()
         with open(self.raw_subtitle_path, mode='r', encoding='utf-8') as r:
             lines = r.readlines()
+        RawInfo = namedtuple('RawInfo', 'no content')
         content_list = []
         for line in lines:
             frame_no = line.split('\t')[0]
             content = line.split('\t')[2]
-            content_list.append((frame_no, content))
+            content_list.append(RawInfo(frame_no, content))
         # 去重后的字幕列表
         unique_subtitle_list = []
         idx_i = 0
+        content_list_len = len(content_list)
         # 循环遍历每行字幕，记录开始时间与结束时间
-        while idx_i < len(content_list):
+        while idx_i < content_list_len:
             i = content_list[idx_i]
-            start_frame = i[0]
+            start_frame = i.no
             idx_j = idx_i
-            while idx_j < len(content_list):
+            while idx_j < content_list_len:
                 # 计算当前行与下一行的Levenshtein距离
                 # 判决idx_j的下一帧是否与idx_i不同，若不同（或者是最后一帧）则找到结束帧
-                if idx_j + 1 == len(content_list) or ratio(i[1].replace(' ', ''), content_list[idx_j + 1][1].replace(' ', '')) < config.THRESHOLD_TEXT_SIMILARITY:
+                if idx_j + 1 == content_list_len or ratio(i.content, content_list[idx_j + 1].content) < config.THRESHOLD_TEXT_SIMILARITY:
                     # 若找到终点帧,定义字幕结束帧帧号
-                    end_frame = content_list[idx_j][0]
-                    if end_frame == start_frame and idx_j + 1 < len(content_list):
-                        # 针对只有一帧的情况，以下一帧的开始时间为准(除非是最后一帧)
-                        end_frame = content_list[idx_j + 1][0]
+                    end_frame = content_list[idx_j].no
+
+                    # 寻找最长字幕
+                    similar_list = content_list[idx_i:idx_j + 1]
+                    similar_content_strip_list = [item.content.replace(' ', '') for item in similar_list]
+                    index, _ = max(enumerate(similar_content_strip_list), key=lambda x: len(x[1]))
+
                     # 添加进列表
-                    unique_subtitle_list.append((start_frame, end_frame, i[1]))
+                    unique_subtitle_list.append((start_frame, end_frame, similar_list[index].content))
                     idx_i = idx_j + 1
                     break
                 else:
