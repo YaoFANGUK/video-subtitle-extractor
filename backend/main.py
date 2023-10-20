@@ -753,10 +753,13 @@ class SubtitleExtractor:
             while idx_j < content_list_len:
                 # 计算当前行与下一行的Levenshtein距离
                 # 判决idx_j的下一帧是否与idx_i不同，若不同（或者是最后一帧）则找到结束帧
-                if idx_j + 1 == content_list_len or ratio(i.content, content_list[idx_j + 1].content) < config.THRESHOLD_TEXT_SIMILARITY:
+                if idx_j + 1 == content_list_len or ratio(i.content.replace(' ', ''), content_list[idx_j + 1].content.replace(' ', '')) < config.THRESHOLD_TEXT_SIMILARITY:
                     # 若找到终点帧,定义字幕结束帧帧号
                     end_frame = content_list[idx_j].no
-
+                    if not self.use_vsf:
+                        if end_frame == start_frame and idx_j + 1 < len(content_list):
+                            # 针对只有一帧的情况，以下一帧的开始时间为准(除非是最后一帧)
+                            end_frame = content_list[idx_j + 1][0]
                     # 寻找最长字幕
                     similar_list = content_list[idx_i:idx_j + 1]
                     similar_content_strip_list = [item.content.replace(' ', '') for item in similar_list]

@@ -184,6 +184,9 @@ __pycache__/
 # C extensions
 *.so
 
+# srt file
+*.srt
+
 # Distribution / packaging
 .Python
 build/
