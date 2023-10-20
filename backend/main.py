@@ -757,7 +757,7 @@ class SubtitleExtractor:
                     # 若找到终点帧,定义字幕结束帧帧号
                     end_frame = content_list[idx_j].no
                     if not self.use_vsf:
-                        if end_frame == start_frame and idx_j + 1 < len(content_list):
+                        if end_frame == start_frame and idx_j + 1 < content_list_len:
                             # 针对只有一帧的情况，以下一帧的开始时间为准(除非是最后一帧)
                             end_frame = content_list[idx_j + 1][0]
                     # 寻找最长字幕
