@@ -5,7 +5,6 @@
 @FileName: main.py
 @desc: 主程序入口文件
 """
-import re
 import os
 import random
 import shutil
@@ -246,12 +245,15 @@ class SubtitleExtractor:
             has_subtitle = False
             if self.sub_area is not None:
                 s_ymin, s_ymax, s_xmin, s_xmax = self.sub_area
-                for box in dt_boxes:
-                    xmin, xmax, ymin, ymax = box[0], box[1], box[2], box[3]
-                    if (s_xmin <= xmin).any() and (xmax <= s_xmax).any() and (s_ymin <= ymin).any() and (
-                            ymax <= s_ymax).any():
-                        has_subtitle = True
-                        break
+                coordinate_list = get_coordinates(dt_boxes.tolist())
+                if coordinate_list:
+                    for coordinate in coordinate_list:
+                        xmin, xmax, ymin, ymax = coordinate
+                        if (s_xmin <= xmin and xmax <= s_xmax
+                                and s_ymin <= ymin
+                                and ymax <= s_ymax):
+                            has_subtitle = True
+                            break
             else:
                 has_subtitle = len(dt_boxes) > 0
             if has_subtitle:
