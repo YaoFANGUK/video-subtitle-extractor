@@ -188,7 +188,7 @@ class SubtitleExtractor:
         self.update_progress(ocr=100, frame_extract=100)
         self.isFinished = True
         # 删除缓存文件
-        # self.empty_cache()
+        self.empty_cache()
         self.lock.release()
 
     def extract_frame_by_fps(self):
