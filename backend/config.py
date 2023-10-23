@@ -207,9 +207,6 @@ EXTRACT_FREQUENCY = 3
 # 每几帧抽取一帧进行OCR识别
 EXTRACT_INTERVAL = 8
 
-# 欧式距离相似值
-EUCLIDEAN_SIMILARITY_THRESHOLD = 0.9
-
 # 容忍的像素点偏差
 PIXEL_TOLERANCE_Y = 50  # 允许检测框纵向偏差50个像素点
 PIXEL_TOLERANCE_X = 100  # 允许检测框横向偏差100个像素点

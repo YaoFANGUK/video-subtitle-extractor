@@ -227,7 +227,6 @@ def subtitle_extract_handler(task_queue, progress_queue, video_path, raw_subtitl
     ocr_event_consumer_thread.join()
 
 
-
 def async_start(video_path, raw_subtitle_path, sub_area, options):
     """
     开始进程处理异步任务
