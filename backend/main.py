@@ -235,10 +235,11 @@ class SubtitleExtractor:
         compare_ocr_result_cache = {}
         tbar = tqdm(total=int(self.frame_count), unit='f', position=0, file=sys.__stdout__)
         first_flag = True
-        is_start_frame_no = False
-        is_end_frame_no = False
+        is_finding_start_frame_no = False
+        is_finding_end_frame_no = False
         start_frame_no = 0
         start_end_frame_no = []
+        start_frame = None
         if self.ocr is None:
             self.ocr = OcrRecogniser()
         while self.video_cap.isOpened():
@@ -263,7 +264,7 @@ class SubtitleExtractor:
                             has_subtitle = True
                             # 检测到字幕时，如果列表为空，则为字幕头
                             if first_flag:
-                                is_start_frame_no = True
+                                is_finding_start_frame_no = True
                                 first_flag = False
                             break
             else:
@@ -271,44 +272,54 @@ class SubtitleExtractor:
             # 检测到包含字幕帧的起始帧号与结束帧号
             if has_subtitle:
                 # 判断是字幕头还是尾
-                if is_start_frame_no:
+                if is_finding_start_frame_no:
                     start_frame_no = current_frame_no
                     dt_box, rec_res = self.ocr.predict(frame)
                     area_text1 = "".join(self.__get_area_text((dt_box, rec_res)))
-                    compare_ocr_result_cache[current_frame_no] = {'text': area_text1, 'dt_box': dt_box, 'rec_res': rec_res}
-                    frame_lru_list.append((frame, current_frame_no))
-                    ocr_args_list.append((self.frame_count, current_frame_no))
+                    if start_frame_no not in compare_ocr_result_cache.keys():
+                        compare_ocr_result_cache[current_frame_no] = {'text': area_text1, 'dt_box': dt_box, 'rec_res': rec_res}
+                        frame_lru_list.append((frame, current_frame_no))
+                        ocr_args_list.append((self.frame_count, current_frame_no))
+                        # 缓存头帧
+                        start_frame = frame
                     # 开始找尾
-                    is_start_frame_no = False
-                    is_end_frame_no = True
-                if is_end_frame_no and current_frame_no == self.frame_count:
-                    is_end_frame_no = False
-                    is_start_frame_no = False
+                    is_finding_start_frame_no = False
+                    is_finding_end_frame_no = True
+                # 判断是否为最后一帧
+                if is_finding_end_frame_no and current_frame_no == self.frame_count:
+                    is_finding_end_frame_no = False
+                    is_finding_start_frame_no = False
                     end_frame_no = current_frame_no
                     frame_lru_list.append((frame, current_frame_no))
                     ocr_args_list.append((self.frame_count, current_frame_no))
-                    start_end_frame_no.append((start_frame_no - 1, end_frame_no))
-                # 如果在找结束帧的时候，发现该帧与头帧ocr内容不一致
-                if is_end_frame_no and not self._compare_ocr_result(compare_ocr_result_cache, frame_lru_list[-1][0], frame_lru_list[-1][-1], frame, current_frame_no):
-                    is_end_frame_no = False
-                    is_start_frame_no = True
-                    end_frame_no = current_frame_no
-                    frame_lru_list.append((frame, current_frame_no))
-                    ocr_args_list.append((self.frame_count, current_frame_no))
-                    start_end_frame_no.append((start_frame_no - 1, end_frame_no))
+                    start_end_frame_no.append((start_frame_no, end_frame_no))
+                # 如果在找结束帧的时候
+                if is_finding_end_frame_no:
+                    # 判断该帧与头帧ocr内容是否一致,若不一致则找到尾，尾巴为前一帧
+                    if not self._compare_ocr_result(compare_ocr_result_cache, None, start_frame_no, frame, current_frame_no):
+                        is_finding_end_frame_no = False
+                        is_finding_start_frame_no = True
+                        end_frame_no = current_frame_no - 1
+                        frame_lru_list.append((start_frame, end_frame_no))
+                        ocr_args_list.append((self.frame_count, end_frame_no))
+                        start_end_frame_no.append((start_frame_no, end_frame_no))
 
             else:
-                # 如果检测到字幕开
-                if is_end_frame_no:
-                    end_frame_no = current_frame_no
-                    is_end_frame_no = False
-                    is_start_frame_no = True
-                    frame_lru_list.append((frame, current_frame_no))
-                    ocr_args_list.append((self.frame_count, current_frame_no))
-                    start_end_frame_no.append((start_frame_no - 1, end_frame_no))
+                # 如果检测到字幕头后有没有字幕，则找到结尾，尾巴为前一帧
+                if is_finding_end_frame_no:
+                    end_frame_no = current_frame_no - 1
+                    is_finding_end_frame_no = False
+                    is_finding_start_frame_no = True
+                    frame_lru_list.append((start_frame, end_frame_no))
+                    ocr_args_list.append((self.frame_count, end_frame_no))
+                    start_end_frame_no.append((start_frame_no, end_frame_no))
 
             while len(frame_lru_list) > frame_lru_list_max_size:
                 frame_lru_list.pop(0)
+
+            # if len(start_end_frame_no) > 0:
+                # print(start_end_frame_no)
+
             while len(ocr_args_list) > 1:
                 total_frame_count, ocr_info_frame_no = ocr_args_list.pop(0)
                 if current_frame_no in compare_ocr_result_cache:
@@ -321,6 +332,7 @@ class SubtitleExtractor:
                 # 添加任务
                 self.subtitle_ocr_task_queue.put(task)
                 self.update_progress(frame_extract=(current_frame_no / self.frame_count) * 100)
+
         while len(ocr_args_list) > 0:
             total_frame_count, ocr_info_frame_no = ocr_args_list.pop(0)
             if current_frame_no in compare_ocr_result_cache:

@@ -180,9 +180,11 @@ def ocr_task_producer(ocr_queue, task_queue, progress_queue, video_path, raw_sub
             if total_ms is not None:
                 cap.set(cv2.CAP_PROP_POS_MSEC, total_ms)
             else:
-                cap.set(cv2.CAP_PROP_POS_FRAMES, current_frame_no)
+                cap.set(cv2.CAP_PROP_POS_FRAMES, current_frame_no - 1)
             # 读取视频帧
             ret, frame = cap.read()
+            ocr = OcrRecogniser()
+            dt_box, rec_res = ocr.predict(frame)
             # 如果读取成功
             if ret:
                 # 根据默认字幕位置，则对视频帧进行裁剪，裁剪后处理
