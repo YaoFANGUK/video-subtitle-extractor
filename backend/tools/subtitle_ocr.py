@@ -158,9 +158,6 @@ def ocr_task_producer(ocr_queue, task_queue, progress_queue, video_path, raw_sub
     :param video_path
     :param raw_subtitle_path
     """
-    # 删除缓存
-    if os.path.exists(raw_subtitle_path):
-        os.remove(raw_subtitle_path)
     cap = cv2.VideoCapture(video_path)
     tbar = None
     while True:
@@ -183,9 +180,11 @@ def ocr_task_producer(ocr_queue, task_queue, progress_queue, video_path, raw_sub
             if total_ms is not None:
                 cap.set(cv2.CAP_PROP_POS_MSEC, total_ms)
             else:
-                cap.set(cv2.CAP_PROP_POS_FRAMES, current_frame_no)
+                cap.set(cv2.CAP_PROP_POS_FRAMES, current_frame_no - 1)
             # 读取视频帧
             ret, frame = cap.read()
+            ocr = OcrRecogniser()
+            dt_box, rec_res = ocr.predict(frame)
             # 如果读取成功
             if ret:
                 # 根据默认字幕位置，则对视频帧进行裁剪，裁剪后处理
@@ -208,6 +207,9 @@ def subtitle_extract_handler(task_queue, progress_queue, video_path, raw_subtitl
     :param sub_area 字幕区域
     :param options 选项
     """
+    # 删除缓存
+    if os.path.exists(raw_subtitle_path):
+        os.remove(raw_subtitle_path)
     # 创建一个OCR队列，大小建议值8-20
     ocr_queue = queue.Queue(20)
     # 创建一个OCR事件生产者线程
@@ -225,7 +227,6 @@ def subtitle_extract_handler(task_queue, progress_queue, video_path, raw_subtitl
     # join方法让主线程任务结束之后，进入阻塞状态，一直等待其他的子线程执行结束之后，主线程再终止
     ocr_event_producer_thread.join()
     ocr_event_consumer_thread.join()
-
 
 
 def async_start(video_path, raw_subtitle_path, sub_area, options):

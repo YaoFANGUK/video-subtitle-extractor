@@ -12,14 +12,15 @@ Video-subtitle-extractor (vse) 是一款将视频中的硬字幕提取为外挂�
 - 提取视频中的关键帧
 - 检测视频帧中文本的所在位置
 - 识别视频帧中文本的内容
-- 过滤非字幕区域的文本，去除水印（台标）文本
+- 过滤非字幕区域的文本
+- [去除水印、台标文本、原视频硬字幕，可配合：video-subtitle-remover (vsr) ](https://github.com/YaoFANGUK/video-subtitle-remover/tree/main)
 - 去除重复字幕行，生成srt字幕文件
 - 支持视频字幕**批量提取**（打开文件的时候选择多个视频）
-- 多语言：支持**中文/英文**、**日语**、**韩语**、**阿拉伯语**、**繁体中文**、**法语**、**德语**、**俄语**、**西班牙语**、**葡萄牙语**、**意大利语**字幕的提取
+- 多语言：支持**简体中文（中英双语）**、**繁体中文**、**英文**、**日语**、**韩语**、**越南语**、**阿拉伯语**、**法语**、**德语**、**俄语**、**西班牙语**、**葡萄牙语**、**意大利语**等**87种**语言的字幕提取
 - 多模式：
-  - **快速** - 快速提取字幕但可能丢字幕（推荐）
-  - **精准** - 不丢字幕但速度较慢
-
+  - **快速**：使用轻量模型，快速提取字幕，但可能丢字幕（推荐）
+  - **自动**：自动判断模型，CPU下使用轻量模型；GPU下使用精准模型，提取字幕速度较慢，几乎不丢字幕
+  - **精准**：使用精准模型，GPU下逐帧检测，不丢字幕，但速度**非常慢**（非常不推荐）
 
 **使用说明**：
 
@@ -37,15 +38,19 @@ Video-subtitle-extractor (vse) 是一款将视频中的硬字幕提取为外挂�
 
 **下载地址**：
 
-- Windows 单文件版本： <a href=https://www.aliyundrive.com/s/7mdRDJHVRiu target=_blank>vse.exe</a> 提取码：**17uj**
+- Windows 绿色版本v2.0.0（CPU）： <a href="https://pan.baidu.com/s/1aUtZqGix1J0aqwGX4VRCWA?pwd=vse2" target=_blank>vse_windows_cpu_v2.0.0.zip</a> 提取码：**vse2** 
 
-> (双击直接运行，每次打开时会有一点慢，**推荐小白使用**)
+> **推荐使用，启动速度较快**
 
-- Windows GPU版本： <a href="https://pan.baidu.com/s/1L-cdVHnBGva2bGrsStYnnQ">vse_windows_GPU.7z</a> 提取码：**r911**
+- Windows 单文件版本v2.0.0（CPU）： <a href=https://www.aliyundrive.com/s/uD5ZfoAbDcf target=_blank>vse.exe</a> 提取码：**rl02** 
 
-- Windows CPU版本： <a href="https://pan.baidu.com/s/1oPyJowF0XgHtgg2g9EA-nw">vse_windows_CPU.zip</a> 提取码：**1vi6** 
+> 双击直接运行，每次打开时会有一点慢，**若出现误报毒，使用绿色版**
 
-- MacOS CPU版本： <a href="https://pan.baidu.com/s/1WgZpr_8I3Dv7A8ThwcIPng">vse_macOS_CPU.dmg</a> 提取码：**7gbo** 
+- Windows GPU版本v2.0.0（GPU）： <a href="https://pan.baidu.com/s/1w8vJnqF91RlJB39LMbZmDg?pwd=vse2">vse_windows_gpu_v2.0.0.7z</a> 提取码：**vse2**
+
+> **仅供具有Nvidia显卡的用户使用(AMD的显卡不行)，提取速度非常快**
+
+- MacOS 版本v0.1.0（CPU）： <a href="https://pan.baidu.com/s/1WgZpr_8I3Dv7A8ThwcIPng">vse_macOS_CPU.dmg</a> 提取码：**7gbo** 
 
 > PS: 若无法下载，请前往<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases"> Release </a>下载
 
@@ -57,7 +62,8 @@ Video-subtitle-extractor (vse) 是一款将视频中的硬字幕提取为外挂�
 - (CLI版本) 无需用户手动设置字幕区域，项目通过文本检测模型自动检测字幕区域
 - (GUI版本) 图形化界面
 
-<img src="https://z3.ax1x.com/2021/04/09/cNrA1A.png" alt="demo">
+<p style="text-align:center;"><img src="https://github.com/YaoFANGUK/video-subtitle-extractor/raw/main/design/demo.png" alt="demo.png"/></p>
+
 
 点击【打开】后选择视频文件，调整字幕区域，点击【运行】
 
@@ -225,7 +231,7 @@ python ./backend/main.py
 
 将项目中的.condarc放在用户目录下(C:\Users\\<你的用户名>)，如果用户目录已经存在该文件则覆盖
 
-解决方案：<a href="https://zhuanlan.zhihu.com/p/260034241">https://zhuanlan.zhihu.com/p/260034241</a>
+解决方案：<a href="https://zhuanlan.zhihu.com/p/260034241">https://zhuanlan.zhihu.com/p/260034241 </a>
 
 #### 3. Windows下出现geos_c.dll错误
 
@@ -238,20 +244,23 @@ OSError: [WinError 126] 找不到指定的模块。
 
 解决方案：
 
-1) 卸载Shapely
+(1) 卸载Shapely
 
 ```shell
 pip uninstall Shapely -y
 ```
 
-2) 使用conda重新安装Shapely
+(2) 使用conda重新安装Shapely
 
 ```shell
 conda install Shapely             
 ```
 
+#### 4. 7z文件解压错误
 
-#### 4. Nuitka打包代码闪退
+解决方案：升级7-zip解压程序到最新版本
+
+#### 5. Nuitka打包代码闪退
 
 使用Nuitka版本```0.6.19```，将conda虚拟环境Lib文件夹下site-packages的所有文件复制到dependencies文件夹中，把paddle库dataset下image.py的有关subprocess代码全部注释了，使用以下打包命令：
 
@@ -261,10 +270,8 @@ conda install Shapely
 
 编译成单个文件（pip安装zstandard可以减小体积）
 ```shell
- python -m nuitka --standalone --windows-disable-console --mingw64 --lto no --include-data-dir=D:\vse\backend=backend --include-data-dir=D:\vse\dependencies=dependencies  --nofollow-imports --windows-icon-from-ico=D:\vse\design\vse.ico --plugin-enable=tk-inter,multiprocessing --output-dir=out --onefile .\gui.py
+python -m nuitka --standalone --windows-disable-console --mingw64 --lto no --include-data-dir=C:\Users\Yao\Downloads\vse\backend=backend --include-data-dir=C:\Users\Yao\Downloads\vse\design=design --include-data-dir=C:\Users\Yao\Downloads\vse\dependencies=dependencies  --nofollow-imports --windows-icon-from-ico=C:\Users\Yao\Downloads\vse\design\vse.ico --plugin-enable=tk-inter,multiprocessing --output-dir=C:\Users\Yao\Downloads\out --onefile .\gui.py
 ```
-
-
 
 ## 社区支持
 
@@ -274,3 +281,12 @@ conda install Shapely
   <a href="https://jb.gg/OpenSourceSupport"><img src="https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.png" alt="JetBrains Logo (Main) logo." width="80"></a>
 </div>
 
+## 赞助
+<img src="https://i.imgur.com/THE81jM.jpg" width="300">
+
+| 捐赠者 | 累计捐赠金额 | 赞助席位 |
+| --- | --- | --- |
+| 爱东| 100.00 RMB | 金牌赞助席位 |
+| [neoyxm](https://github.com/neoyxm) | 50.00 RMB | 银牌赞助席位 |
+| [AcelXiao](https://github.com/acelxiao) | 20.00 RMB | 银牌赞助席位 |
+| sky | 5.00 RMB | 铜牌赞助席位 |

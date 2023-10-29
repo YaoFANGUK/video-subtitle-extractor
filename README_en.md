@@ -12,22 +12,24 @@
 - Detect subtitle areas (i.e., coordinates) (as well as scene text if you want) (using deep learning algorithms)
 - Converting graphic text into plain-text (using deep learning algorithms)
 - Filter non-subtitle text (e.g., Logo and watermark etc.)
+- Remove watermark, logo text and original video hard subtitles, see: [video-subtitle-remover (VSR)](https://github.com/YaoFANGUK/video-subtitle-remover/tree/main).
 - Remove duplicated subtitle line and **generate srt file** (by calculating text similarity)
 - Batch extraction. You can select multiple video files at one time and this tool can generate subtitles for each video.
-- Multiple language support, you can extract the following subtitle languages: **Simplified Chinese**, **English**, 
+- Multiple language support. You can extract subtitles in 87 languages such as: **Simplified Chinese**, **English**, 
   **Japanese**, **Korean**, **Arabic**, **Traditional Chinese**, **French**, **German**, **Russian**, **Spanish**, 
   **Portuguese**, **Italian**
 - Multiple mode:
-  - **fast**: high extraction speed while few subtitle missing (**Recommended**)
-  - **accurate**: no subtitle missing while low extraction speed
+  - **fast**: use a lightweight model to extract subtitles quickly, but you may lose subtitles (**Recommended**).
+  - **auto**: automatically judge the model, and use the lightweight model under CPU; Using accurate model under GPU, the speed of subtitle extraction is slow and almost no subtitles are lost.
+  - **accurate**: use accurate model, detect subtitles frame by frame under GPU, and do not lose subtitles, but the speed is very slow (not recommended).
 
 **Download**：
 
-- Windows executable (might be slow when initial start): <a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/vse.exe">vse.exe</a> 
+- Windows executable (might be slow when initial start): <a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/2.0.0/vse.exe">vse.exe</a> 
 
-- Windows GPU version：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/vse_windows_GPU.7z">vse_windows_GPU.7z</a>
+- Windows GPU version：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/2.0.0/vse_windows_gpu_v2.0.0.7z">vse_windows_gpu_v2.0.0.7z</a>
 
-- Windows CPU version：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/vse_windows_CPU.zip">vse_windows_CPU.zip</a>
+- Windows CPU version：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/2.0.0/vse_windows_cpu_v2.0.0.zip">vse_windows_cpu_v2.0.0.zip</a>
 
 - MacOS：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/vse_macOS_CPU.dmg">vse_macOS_CPU.dmg</a>
 
@@ -38,7 +40,7 @@
 - For Command Line Interface(CLI) version, you can escape the subtitle area setting. This program will automatically detect the subtitle area for you.
 - GPU support is available. You can install CUDA and cuDNN to speed up the detection and recognition process and even get more accurate results.
 
-<img src="https://z3.ax1x.com/2021/04/09/cNrA1A.png" alt="demo">
+<p style="text-align:center;"><img src="https://github.com/YaoFANGUK/video-subtitle-extractor/raw/main/design/demo.png" alt="demo.png"/></p>
 
 > **Provide your suggestions to improve this project in ISSUES**
 

@@ -459,6 +459,7 @@ class LanguageModeGUI:
         self.LANGUAGE_KEY_NAME_MAP = {v: k for k, v in self.LANGUAGE_NAME_KEY_MAP.items()}
         self.MODE_DEF = config_language_mode_gui['ModeFast']
         self.MODE_NAME_KEY_MAP = {
+            config_language_mode_gui['ModeAuto']: 'auto',
             config_language_mode_gui['ModeFast']: 'fast',
             config_language_mode_gui['ModeAccurate']: 'accurate',
         }
