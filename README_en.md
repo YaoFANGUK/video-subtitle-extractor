@@ -6,7 +6,7 @@
 ![python version](https://img.shields.io/badge/Python-3.8+-blue.svg)
 ![support os](https://img.shields.io/badge/OS-Windows/macOS/Linux-green.svg)
 
-**Video-subtitle-extractor** (vse) is a free, open-source tool which can help you rip the hard-coded subtitles from videos and automatically generate corresponding **srt** files for each video.  It includes the following implementations:
+**Video-subtitle-extractor** (VSE) is a free, open-source tool which can help you rip the hard-coded subtitles from videos and automatically generate corresponding **srt** files for each video.  It includes the following implementations:
 
 - Detect and extract subtitle frames (using traditional graphic method)
 - Detect subtitle areas (i.e., coordinates) (as well as scene text if you want) (using deep learning algorithms)
