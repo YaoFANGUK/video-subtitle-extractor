@@ -23,6 +23,21 @@
   - **auto**: automatically judge the model, and use the lightweight model under CPU; Using accurate model under GPU, the speed of subtitle extraction is slow and almost no subtitles are lost.
   - **accurate**: use accurate model, detect subtitles frame by frame under GPU, and do not lose subtitles, but the speed is very slow (not recommended).
 
+<p style="text-align:center;"><img src="https://github.com/YaoFANGUK/video-subtitle-extractor/raw/main/design/demo.png" alt="demo.png"/></p>
+
+**Features**：
+
+- You don't need to do any preprocessing (e.g., binarization) and don't need to consider all aspects like subtitle fonts and size etc..
+- This is an offline project. There is no online API call and you dont need to connect to the Internet service provider in order to get results.
+
+**Usage**：
+
+- After clicking "Open", select video file(s), adjust the subtitle area, and then click "Run".
+  - Single file extraction: When opening a file, choose a single video.
+  - Batch extraction: When opening files, choose multiple videos, ensure that every video's resolution and subtitle area remain consistent.
+
+- Directly download the compressed package, unzip it and run it. If it cannot run, follow the tutorial below and try to install the Conda environment and run it using the source code.
+
 **Download**：
 
 - Windows executable (might be slow when initial start): <a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/2.0.0/vse.exe">vse.exe</a> 
@@ -33,16 +48,8 @@
 
 - MacOS：<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/0.1.0/vse_macOS_CPU.dmg">vse_macOS_CPU.dmg</a>
 
-## Features
 
-- You don't need to do any preprocessing (e.g., binarization) and don't need to consider all aspects like subtitle fonts and size etc..
-- This is an offline project. There is no online API call and you dont need to connect to the Internet service provider in order to get results. 
-- For Command Line Interface(CLI) version, you can escape the subtitle area setting. This program will automatically detect the subtitle area for you.
-- GPU support is available. You can install CUDA and cuDNN to speed up the detection and recognition process and even get more accurate results.
-
-<p style="text-align:center;"><img src="https://github.com/YaoFANGUK/video-subtitle-extractor/raw/main/design/demo.png" alt="demo.png"/></p>
-
-> **Provide your suggestions to improve this project in ISSUES**
+> **Provide your suggestions to improve this project in ISSUES & DISCUSSION**
 
 
 ## Demo

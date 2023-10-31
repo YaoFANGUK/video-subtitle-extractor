@@ -6,7 +6,7 @@
 ![python version](https://img.shields.io/badge/Python-3.8+-blue.svg)
 ![support os](https://img.shields.io/badge/OS-Windows/macOS/Linux-green.svg)  
 
-Video-subtitle-extractor (vse) 是一款将视频中的硬字幕提取为外挂字幕文件(srt格式)的软件。
+Video-subtitle-extractor (VSE) 是一款将视频中的硬字幕提取为外挂字幕文件(srt格式)的软件。
 主要实现了以下功能：
 
 - 提取视频中的关键帧
@@ -15,16 +15,28 @@ Video-subtitle-extractor (vse) 是一款将视频中的硬字幕提取为外挂�
 - 过滤非字幕区域的文本
 - [去除水印、台标文本、原视频硬字幕，可配合：video-subtitle-remover (vsr) ](https://github.com/YaoFANGUK/video-subtitle-remover/tree/main)
 - 去除重复字幕行，生成srt字幕文件
-- 支持视频字幕**批量提取**（打开文件的时候选择多个视频）
+- 支持视频字幕**批量提取**
 - 多语言：支持**简体中文（中英双语）**、**繁体中文**、**英文**、**日语**、**韩语**、**越南语**、**阿拉伯语**、**法语**、**德语**、**俄语**、**西班牙语**、**葡萄牙语**、**意大利语**等**87种**语言的字幕提取
 - 多模式：
   - **快速**：使用轻量模型，快速提取字幕，但可能丢字幕（推荐）
   - **自动**：自动判断模型，CPU下使用轻量模型；GPU下使用精准模型，提取字幕速度较慢，几乎不丢字幕
   - **精准**：使用精准模型，GPU下逐帧检测，不丢字幕，但速度**非常慢**（非常不推荐）
+ 
+<p style="text-align:center;"><img src="https://github.com/YaoFANGUK/video-subtitle-extractor/raw/main/design/demo.png" alt="demo.png"/></p>
+
+**项目特色**：
+
+- 采用本地进行OCR识别，无需设置调用任何API，不需要接入百度、阿里等在线OCR服务即可本地完成文本识别
+- 支持GPU加速，GPU加速后可以获得更高的准确率与更快的提取速度
 
 **使用说明**：
 
 - 有使用问题请加群讨论，QQ群：210150985
+
+- 点击【打开】后选择视频文件，调整字幕区域，点击【运行】
+  - 单文件提取：打开文件的时候选择**单个**视频
+  - **批量提取**：打开文件的时候选择**多个**视频，确保每个视频的分辨率、字幕区域保持一致
+
 
 - 视频以及程序路径请**不要带中文和空格**，否则可能出现未知错误！！！
 
@@ -54,21 +66,7 @@ Video-subtitle-extractor (vse) 是一款将视频中的硬字幕提取为外挂�
 
 > PS: 若无法下载，请前往<a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases"> Release </a>下载
 
-
-## 项目特色
-
-- 采用本地进行OCR识别，无需设置调用任何API，不需要接入百度、阿里等在线OCR服务即可本地完成文本识别
-- 支持GPU加速，GPU加速后可以获得更高的准确率与更快的提取速度
-- (CLI版本) 无需用户手动设置字幕区域，项目通过文本检测模型自动检测字幕区域
-- (GUI版本) 图形化界面
-
-<p style="text-align:center;"><img src="https://github.com/YaoFANGUK/video-subtitle-extractor/raw/main/design/demo.png" alt="demo.png"/></p>
-
-
-点击【打开】后选择视频文件，调整字幕区域，点击【运行】
-
-> **有任何改进意见请在ISSUES中提出**
-
+> **有任何改进意见请在ISSUES和DISCUSSION中提出**
 
 
 ## 演示
