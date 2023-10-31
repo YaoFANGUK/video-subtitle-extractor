@@ -30,6 +30,7 @@ class SubtitleExtractorGUI:
             '한국어': 'ko',
             '日本語': 'japan',
             'Tiếng Việt': 'vi',
+            'Español': 'es'
         }
         self.config.read(self.config_file, encoding='utf-8')
         self.interface_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backend', 'interface',
@@ -411,6 +412,7 @@ class LanguageModeGUI:
             '한국어': 'ko',
             '日本語': 'japan',
             'Tiếng Việt': 'vi',
+            'Español': 'es'
         }
         # 设置语言
         self.LANGUAGE_DEF = 'ch'

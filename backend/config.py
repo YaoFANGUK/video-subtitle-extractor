@@ -42,6 +42,7 @@ INTERFACE_KEY_NAME_MAP = {
     '한국어': 'ko',
     '日本語': 'japan',
     'Tiếng Việt': 'vi',
+    'Español': 'es'
 }
 interface_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'interface',
                               f"{INTERFACE_KEY_NAME_MAP[settings_config['DEFAULT']['Interface']]}.ini")
