@@ -16,7 +16,6 @@ import cv2
 from Levenshtein import ratio
 from PIL import Image
 from numpy import average, dot, linalg
-import numpy as np
 from tqdm import tqdm
 import sys
 
@@ -28,7 +27,6 @@ from tools.infer import utility
 from tools.infer.predict_det import TextDetector
 from tools.ocr import OcrRecogniser, get_coordinates
 from tools import subtitle_ocr
-from tools.constant import BackgroundColor
 import threading
 import platform
 import multiprocessing
@@ -623,55 +621,6 @@ class SubtitleExtractor:
         srt_filename = os.path.join(os.path.splitext(self.video_path)[0] + '.srt')
         pysrt.SubRipFile(final_subtitles).save(srt_filename, encoding='utf-8')
         print(f"[VSF]{config.interface_config['Main']['SubLocation']} {srt_filename}")
-
-    def _analyse_subtitle_frame(self):
-        """
-        使用简单的图像算法找出包含字幕的视频帧
-        : 参考 https://github.com/BruceHan98/OCR-Extract-Subtitles/blob/main/analyze_key_frame.py
-        """
-        if self.sub_area is None:
-            return None
-        else:
-            subtitle_frame_index_list = []
-            index = 0
-            s_ymin = self.sub_area[0]
-            s_ymax = self.sub_area[1]
-            s_xmin = self.sub_area[2]
-            s_xmax = self.sub_area[3]
-            cap = cv2.VideoCapture(self.video_path)
-            success, frame = cap.read()
-            if success:
-                # 截取字幕部分
-                frame = frame[s_ymin:s_ymax, s_xmin:s_xmax]
-            h, w = frame.shape[0:2]
-            if config.BG_MOD == BackgroundColor.DARK:  # 深色背景
-                minuend = np.full(h * w, config.BG_VALUE_DARK)  # 被减矩阵
-            else:
-                minuend = np.full(h * w, config.BG_VALUE_OTHER)  # 被减矩阵
-
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            flatten_gray = gray.flatten()
-            last_roi = flatten_gray - minuend
-            last_roi = np.where(last_roi > 0, 1, 0)
-            while cap.isOpened():
-                ret, frame = cap.read()
-                if not ret:
-                    break
-                frame = frame[s_ymin:s_ymax, s_xmin:s_xmax]
-                if index % config.EXTRACT_INTERVAL == 0:
-                    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-                    flatten_gray = gray.flatten()
-                    roi = flatten_gray - minuend
-                    roi = np.where(roi > 0, 1, 0)
-                    change = roi - last_roi
-                    addi = np.where(change > 0, 1, 0).sum()
-                    if addi > roi.sum() * config.ROI_RATE:  # 字幕增加
-                        subtitle_frame_index_list.append(index)
-                    last_roi = roi
-                index += 1
-
-            cap.release()
-            return subtitle_frame_index_list
 
     def _detect_watermark_area(self):
         """

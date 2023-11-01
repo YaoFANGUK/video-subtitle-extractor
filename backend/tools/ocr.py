@@ -93,6 +93,9 @@ class OcrRecogniser:
         self.args.rec_image_shape = config.REC_IMAGE_SHAPE
         # 设置识别文本的类型
         self.args.rec_char_type = config.REC_CHAR_TYPE
+        # 设置每张图文本框批处理数量
+        self.args.rec_batch_num = config.REC_BATCH_NUM
+        self.args.max_batch_size = config.MAX_BATCH_SIZE
         return TextSystem(self.args)
 
 

@@ -347,6 +347,7 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+*.srt
 
 # End of https://www.toptal.com/developers/gitignore/api/intellij+all,python,pycharm+all,macos,windows
 /backend/models/V2/ch_det/inference.pdiparams

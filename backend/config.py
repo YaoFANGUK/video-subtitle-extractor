@@ -203,28 +203,16 @@ if REC_CHAR_TYPE in MULTI_LANG:
 
 
 # --------------------- 请根据自己的实际情况改 start-----------------
-# 使用快速字幕检测算法(_analyse_subtitle_frame)时，背景颜色
-BG_MOD = BackgroundColor.DARK
-# 黑色背景被减矩阵阈值
-BG_VALUE_DARK = 200
-# 其他背景颜色被减矩阵阈值
-BG_VALUE_OTHER = 63
-# ROI比例
-ROI_RATE = 0.4
+# 每张图中同时识别6个文本框中的文本，GPU显存越大，该数值可以设置越大
+REC_BATCH_NUM = 6
+# DB算法每个batch识别多少张，默认为10
+MAX_BATCH_SIZE = 10
 
 # 默认字幕出现区域为下方
 DEFAULT_SUBTITLE_AREA = SubtitleArea.UNKNOWN
 
-# 余弦相似度阈值
-# 数值越小生成的视频帧越少，相对提取速度更快但生成的字幕越不精准
-# 1表示最精准，每一帧视频帧都进行字幕检测与提取，生成的字幕最精准
-# 0.925表示，当视频帧1与视频帧2相似度高达92.5%时，视频帧2将直接pass，不检测与提取视频帧2的字幕
-COSINE_SIMILARITY_THRESHOLD = 0.95 if DEFAULT_SUBTITLE_AREA == SubtitleArea.UNKNOWN else 0.9
-
 # 每一秒抓取多少帧进行OCR识别
 EXTRACT_FREQUENCY = 3
-# 每几帧抽取一帧进行OCR识别
-EXTRACT_INTERVAL = 8
 
 # 容忍的像素点偏差
 PIXEL_TOLERANCE_Y = 50  # 允许检测框纵向偏差50个像素点

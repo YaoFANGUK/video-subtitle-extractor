@@ -133,7 +133,7 @@ def init_args():
     parser.add_argument("--benchmark", type=str2bool, default=False)
     parser.add_argument("--save_log_path", type=str, default="./log_output/")
 
-    parser.add_argument("--show_log", type=str2bool, default=True)
+    parser.add_argument("--show_log", type=str2bool, default=False)
     parser.add_argument("--use_onnx", type=str2bool, default=False)
     return parser
 
