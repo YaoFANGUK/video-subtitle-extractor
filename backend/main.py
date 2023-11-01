@@ -133,10 +133,11 @@ class SubtitleExtractor:
         # 打印视频帧数与帧率
         print(f"{config.interface_config['Main']['FrameCount']}：{self.frame_count}"
               f"，{config.interface_config['Main']['FrameRate']}：{self.fps}")
+        # 打印加载模型信息
+        print(f'{os.path.basename(os.path.dirname(config.DET_MODEL_PATH))}-{os.path.basename(config.DET_MODEL_PATH)}')
+        print(f'{os.path.basename(os.path.dirname(config.REC_MODEL_PATH))}-{os.path.basename(config.REC_MODEL_PATH)}')
         # 打印视频帧提取开始提示
         print(config.interface_config['Main']['StartProcessFrame'])
-        print(os.path.realpath(config.DET_MODEL_PATH))
-        print(os.path.realpath(config.REC_MODEL_PATH))
         # 创建一个字幕OCR识别进程
         subtitle_ocr_process = self.start_subtitle_ocr_async()
         if self.sub_area is not None:

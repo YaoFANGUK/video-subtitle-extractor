@@ -138,22 +138,27 @@ DET_MODEL_FAST_PATH = os.path.join(DET_MODEL_BASE, MODEL_VERSION, 'ch_det_fast')
 
 # 如果设置了识别文本语言类型，则设置为对应的语言
 if REC_CHAR_TYPE in MULTI_LANG:
-    # 定义文本检测模型
-    if MODE_TYPE == 'auto':
-        # 如果使用GPU，则快速模型使用大模型
+    # 定义文本检测与识别模型
+    # 使用快速模式时，调用轻量级模型
+    if MODE_TYPE == 'fast':
+        DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, MODEL_VERSION, 'ch_det_fast')
+        REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'{REC_CHAR_TYPE}_rec_fast')
+    # 使用自动模式时，检测有没有使用GPU，根据GPU判断模型
+    elif MODE_TYPE == 'auto':
+        # 如果使用GPU，则使用大模型
         if USE_GPU:
             DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, MODEL_VERSION, 'ch_det')
+            # 英文模式的ch模型识别效果好于fast
+            if REC_CHAR_TYPE == 'en':
+                REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'ch_rec')
+                DICT_PATH = os.path.join(DICT_BASE, f'ch_dict.txt')
+            else:
+                REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'{REC_CHAR_TYPE}_rec')
         else:
             DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, MODEL_VERSION, 'ch_det_fast')
-    elif MODE_TYPE == 'fast':
-        DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, MODEL_VERSION, 'ch_det_fast')
+            REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'{REC_CHAR_TYPE}_rec_fast')
     else:
         DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, MODEL_VERSION, 'ch_det')
-    # 定义文本识别模型
-    # 不管有无GPU和是否开启精准模式，默认使用V4版本的大模型
-    if MODE_TYPE == 'fast':
-        REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'{REC_CHAR_TYPE}_rec_fast')
-    else:
         REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'{REC_CHAR_TYPE}_rec')
     # 如果默认版本(V4)没有大模型，则切换为默认版本(V4)的fast模型
     if not os.path.exists(REC_MODEL_PATH):
