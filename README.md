@@ -18,9 +18,11 @@ Video-subtitle-extractor (VSE) 是一款将视频中的硬字幕提取为外挂�
 - 支持视频字幕**批量提取**
 - 多语言：支持**简体中文（中英双语）**、**繁体中文**、**英文**、**日语**、**韩语**、**越南语**、**阿拉伯语**、**法语**、**德语**、**俄语**、**西班牙语**、**葡萄牙语**、**意大利语**等**87种**语言的字幕提取
 - 多模式：
-  - **快速**：使用轻量模型，快速提取字幕，但可能丢字幕（推荐）
-  - **自动**：自动判断模型，CPU下使用轻量模型；GPU下使用精准模型，提取字幕速度较慢，几乎不丢字幕
-  - **精准**：使用精准模型，GPU下逐帧检测，不丢字幕，但速度**非常慢**（非常不推荐）
+  - **快速**：（推荐）使用轻量模型，快速提取字幕，可能丢少量字幕、存在少量错别字
+  - **自动**：（推荐）自动判断模型，CPU下使用轻量模型；GPU下使用精准模型，提取字幕速度较慢，可能丢少量字幕、几乎不存在错别字
+  - **精准**：（不推荐）使用精准模型，GPU下逐帧检测，不丢字幕，几乎不存在错别字，但速度**非常慢**
+
+> 请优先使用快速/自动模式，如果前两种模式存在较多丢字幕轴情况时，再使用精准模式
  
 <p style="text-align:center;"><img src="https://github.com/YaoFANGUK/video-subtitle-extractor/raw/main/design/demo.png" alt="demo.png"/></p>
 
@@ -58,7 +60,7 @@ Video-subtitle-extractor (VSE) 是一款将视频中的硬字幕提取为外挂�
 
 > 双击直接运行，每次打开时会有一点慢，**若出现误报毒，使用绿色版**
 
-- Windows GPU版本v2.0.0（GPU）： <a href="https://pan.baidu.com/s/1w8vJnqF91RlJB39LMbZmDg?pwd=vse2">vse_windows_gpu_v2.0.0.7z</a> 提取码：**vse2**
+- Windows GPU版本v2.0.0（GPU）： <a href="https://pan.baidu.com/s/1f07Yxi6nyM8RGY3FvQSFnQ?pwd=vse2">vse_windows_gpu_v2.0.0.7z</a> 提取码：**vse2**
 
 > **仅供具有Nvidia显卡的用户使用(AMD的显卡不行)，提取速度非常快**
 

@@ -18,10 +18,10 @@
 - Multiple language support. You can extract subtitles in 87 languages such as: **Simplified Chinese**, **English**, 
   **Japanese**, **Korean**, **Arabic**, **Traditional Chinese**, **French**, **German**, **Russian**, **Spanish**, 
   **Portuguese**, **Italian**
-- Multiple mode:
-  - **fast**: use a lightweight model to extract subtitles quickly, but you may lose subtitles (**Recommended**).
-  - **auto**: automatically judge the model, and use the lightweight model under CPU; Using accurate model under GPU, the speed of subtitle extraction is slow and almost no subtitles are lost.
-  - **accurate**: use accurate model, detect subtitles frame by frame under GPU, and do not lose subtitles, but the speed is very slow (not recommended).
+- Multi-mode:
+  - **Fast**: (Recommended) Uses a lightweight model for quick subtitle extraction, though it might miss a small amount of subtitles and contains a few typos.
+  - **Automatic**: (Recommended) Automatically selects the model. It uses the lightweight model under the CPU, and the precise model under the GPU. While subtitle extraction speed is slower and might miss a minor amount of subtitles, there are almost no typos.
+  - **Precise**: (Not Recommended) Uses the precise model with frame-by-frame detection under the GPU, ensuring no missed subtitles and almost non-existent typos, but the speed is **very slow**.
 
 <p style="text-align:center;"><img src="https://github.com/YaoFANGUK/video-subtitle-extractor/raw/main/design/demo.png" alt="demo.png"/></p>
 

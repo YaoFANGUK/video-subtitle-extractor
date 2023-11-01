@@ -135,6 +135,8 @@ class SubtitleExtractor:
               f"，{config.interface_config['Main']['FrameRate']}：{self.fps}")
         # 打印视频帧提取开始提示
         print(config.interface_config['Main']['StartProcessFrame'])
+        print(os.path.realpath(config.DET_MODEL_PATH))
+        print(os.path.realpath(config.REC_MODEL_PATH))
         # 创建一个字幕OCR识别进程
         subtitle_ocr_process = self.start_subtitle_ocr_async()
         if self.sub_area is not None:

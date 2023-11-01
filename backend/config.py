@@ -133,12 +133,28 @@ MULTI_LANG = LATIN_LANG + ARABIC_LANG + CYRILLIC_LANG + DEVANAGARI_LANG + \
 
 # 定义字典路径
 DICT_PATH = os.path.join(DICT_BASE, f'{REC_CHAR_TYPE}_dict.txt')
-DET_MODEL_FAST_PATH = os.path.join(DET_MODEL_BASE, 'V4', 'ch_det_fast')
+DET_MODEL_FAST_PATH = os.path.join(DET_MODEL_BASE, MODEL_VERSION, 'ch_det_fast')
+
+
 # 如果设置了识别文本语言类型，则设置为对应的语言
 if REC_CHAR_TYPE in MULTI_LANG:
+    # 定义文本检测模型
+    if MODE_TYPE == 'auto':
+        # 如果使用GPU，则快速模型使用大模型
+        if USE_GPU:
+            DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, MODEL_VERSION, 'ch_det')
+        else:
+            DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, MODEL_VERSION, 'ch_det_fast')
+    elif MODE_TYPE == 'fast':
+        DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, MODEL_VERSION, 'ch_det_fast')
+    else:
+        DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, MODEL_VERSION, 'ch_det')
     # 定义文本识别模型
     # 不管有无GPU和是否开启精准模式，默认使用V4版本的大模型
-    REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'{REC_CHAR_TYPE}_rec')
+    if MODE_TYPE == 'fast':
+        REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'{REC_CHAR_TYPE}_rec_fast')
+    else:
+        REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'{REC_CHAR_TYPE}_rec')
     # 如果默认版本(V4)没有大模型，则切换为默认版本(V4)的fast模型
     if not os.path.exists(REC_MODEL_PATH):
         REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'{REC_CHAR_TYPE}_rec_fast')
@@ -163,18 +179,6 @@ if REC_CHAR_TYPE in MULTI_LANG:
     elif REC_CHAR_TYPE in DEVANAGARI_LANG:
         REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'devanagari_rec_fast')
         DICT_PATH = os.path.join(DICT_BASE, f'devanagari_dict.txt')
-
-    # 定义文本检测模型
-    if MODE_TYPE == 'auto':
-        # 如果使用GPU，则快速模型使用大模型
-        if USE_GPU:
-            DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, 'V4', 'ch_det')
-        else:
-            DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, 'V4', 'ch_det_fast')    
-    elif MODE_TYPE == 'fast':
-        DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, 'V4', 'ch_det_fast')
-    else:
-        DET_MODEL_PATH = os.path.join(DET_MODEL_BASE, 'V4', 'ch_det')
 
     # 定义图像识别shape
     if MODEL_VERSION == 'V2':
