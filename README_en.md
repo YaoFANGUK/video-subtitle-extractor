@@ -36,6 +36,23 @@
   - Single file extraction: When opening a file, choose a single video.
   - Batch extraction: When opening files, choose multiple videos, ensure that every video's resolution and subtitle area remain consistent.
 
+- Remove watermark text/replace specific text:
+> If specific text needs to be deleted from generated .srt file, or specific text needs to be replaced, you can edit the ``backend/configs/typoMap.json`` file and add the content you want to replace or remove.
+
+```json
+{
+    "l'm": "I'm",
+    "l just": "I just",
+    "Let'sqo": "Let's go",
+    "Iife": "life",
+    "威筋": "threat",
+    "性感荷官在线发牌": ""
+}
+```
+
+> In this way, you can replace all occurrences of "威筋" in the text with "threat" and delete all instances of the text "性感荷官在线发牌".
+
+
 - Directly download the compressed package, unzip it and run it. If it cannot run, follow the tutorial below and try to install the Conda environment and run it using the source code.
 
 **Download**：
