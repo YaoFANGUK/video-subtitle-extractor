@@ -253,6 +253,7 @@ WORD_SEGMENTATION = True
 IGNORE_VERTICAL_LINE = False
 if settings_config['DEFAULT']['IgnoreVertical'] == 'true':
     IGNORE_VERTICAL_LINE = True
+    IGNORE_VERTICAL_TEXT_LEN_THRESHOLD = 2
 
 # --------------------- 请根据自己的实际情况改 end-----------------------------
 
