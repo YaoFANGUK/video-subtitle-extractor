@@ -15,11 +15,14 @@ import shutil
 import numpy as np
 from collections import namedtuple
 
-def is_vertical_line(coordinate):
+def is_vertical_line(coordinate, text):
     x_len = coordinate[1] - coordinate[0]
     y_len = coordinate[3] - coordinate[2]
-    if x_len > 0 and y_len > 0 and x_len < y_len:
-        return True
+    
+    if (x_len > 0 and y_len > 0) and x_len < y_len:
+        # 只有这行文字长度超过阀值，才判定为竖排文字，避免单个字符被误判
+        if text != None and len(text) >= config.IGNORE_VERTICAL_TEXT_LEN_THRESHOLD:
+            return True
     return False
 
 def extract_subtitles(data, text_recogniser, img, raw_subtitle_file,
@@ -47,7 +50,7 @@ def extract_subtitles(data, text_recogniser, img, raw_subtitle_file,
     for content, coordinate in zip(text_res, coordinates):
         text = content[0]
         prob = content[1]
-        if is_vertical_line(coordinate) and config.IGNORE_VERTICAL_LINE:
+        if config.IGNORE_VERTICAL_LINE and is_vertical_line(coordinate,text):
             continue      
         if sub_area is not None:
             selected = False
