@@ -15,6 +15,12 @@ import shutil
 import numpy as np
 from collections import namedtuple
 
+def is_vertical_line(coordinate):
+    x_len = coordinate[1] - coordinate[0]
+    y_len = coordinate[3] - coordinate[2]
+    if x_len > 0 and y_len > 0 and x_len < y_len:
+        return True
+    return False
 
 def extract_subtitles(data, text_recogniser, img, raw_subtitle_file,
                       sub_area, options, dt_box_arg, rec_res_arg, ocr_loss_debug_path):
@@ -41,6 +47,8 @@ def extract_subtitles(data, text_recogniser, img, raw_subtitle_file,
     for content, coordinate in zip(text_res, coordinates):
         text = content[0]
         prob = content[1]
+        if is_vertical_line(coordinate) and config.IGNORE_VERTICAL_LINE:
+            continue      
         if sub_area is not None:
             selected = False
             # 初始化超界偏差为0
