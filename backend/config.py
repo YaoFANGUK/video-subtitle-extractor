@@ -30,7 +30,8 @@ if not os.path.exists(os.path.join(os.path.dirname(os.path.dirname(__file__)), '
         f.write('[DEFAULT]\n')
         f.write('Interface = 简体中文\n')
         f.write('Language = ch\n')
-        f.write('Mode = fast')
+        f.write('Mode = fast\n')
+        f.write('IgnoreVertical = false')
 settings_config.read(MODE_CONFIG_PATH, encoding='utf-8')
 
 # 读取interface下的语言配置,e.g. ch.ini
@@ -247,6 +248,11 @@ DELETE_EMPTY_TIMESTAMP = True
 
 # 是否重新分词, 用于解决没有语句没有空格
 WORD_SEGMENTATION = True
+
+# 是否忽略竖排字幕
+IGNORE_VERTICAL_LINE = False
+if settings_config['DEFAULT']['IgnoreVertical'] == 'true':
+    IGNORE_VERTICAL_LINE = True
 
 # --------------------- 请根据自己的实际情况改 end-----------------------------
 
