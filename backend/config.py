@@ -251,7 +251,7 @@ WORD_SEGMENTATION = True
 
 # 是否忽略竖排字幕
 IGNORE_VERTICAL_LINE = False
-if 'IgnoreVertical' in settings_config['DEFAULT'].keys() and 
+if 'IgnoreVertical' in settings_config['DEFAULT'].keys() and \
     settings_config['DEFAULT']['IgnoreVertical'] == 'true':
     IGNORE_VERTICAL_LINE = True
     IGNORE_VERTICAL_TEXT_LEN_THRESHOLD = 2
