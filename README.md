@@ -307,6 +307,7 @@ python -m nuitka --standalone --windows-disable-console --mingw64 --lto no --inc
 | ysjm                                   | 100.00 RMB | 金牌赞助席位 |
 | [neoyxm](https://github.com/neoyxm)    | 50.00 RMB | 银牌赞助席位 |
 | 亦                                   | 50.00 RMB | 银牌赞助席位 |
+| 周昊                                   | 50.00 RMB | 银牌赞助席位 |
 | 玛卡巴卡                                   | 35.00 RMB | 银牌赞助席位 |
 | 净心                                   | 30.00 RMB | 银牌赞助席位 |
 | [AcelXiao](https://github.com/acelxiao) | 20.00 RMB | 银牌赞助席位 |
