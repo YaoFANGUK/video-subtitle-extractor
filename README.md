@@ -14,7 +14,8 @@ Video-subtitle-extractor (VSE) 是一款将视频中的硬字幕提取为外挂�
 - 识别视频帧中文本的内容
 - 过滤非字幕区域的文本
 - [去除水印、台标文本、原视频硬字幕，可配合：video-subtitle-remover (VSR) ](https://github.com/YaoFANGUK/video-subtitle-remover/tree/main)
-- 去除重复字幕行，生成srt字幕文件
+- 去除重复字幕行，生成srt字幕文件/txt文本文件
+> 若需要生成txt文本，可以在backend/config.py中设置```GENERATE_TXT=True```
 - 支持视频字幕**批量提取**
 - 多语言：支持**简体中文（中英双语）**、**繁体中文**、**英文**、**日语**、**韩语**、**越南语**、**阿拉伯语**、**法语**、**德语**、**俄语**、**西班牙语**、**葡萄牙语**、**意大利语**等**87种**语言的字幕提取
 - 多模式：

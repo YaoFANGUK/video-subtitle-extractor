@@ -203,6 +203,9 @@ if REC_CHAR_TYPE in MULTI_LANG:
 
 
 # --------------------- 请根据自己的实际情况改 start-----------------
+# 是否生成TXT文本字幕
+GENERATE_TXT = True
+
 # 每张图中同时识别6个文本框中的文本，GPU显存越大，该数值可以设置越大
 REC_BATCH_NUM = 6
 # DB算法每个batch识别多少张，默认为10

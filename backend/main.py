@@ -191,6 +191,8 @@ class SubtitleExtractor:
         # 删除缓存文件
         self.empty_cache()
         self.lock.release()
+        if config.GENERATE_TXT:
+            self.srt2txt(os.path.join(os.path.splitext(self.video_path)[0] + '.srt'))
 
     def extract_frame_by_fps(self):
         """
@@ -991,6 +993,15 @@ class SubtitleExtractor:
         # 开启线程负责更新OCR进度
         Thread(target=get_ocr_progress, daemon=True).start()
         return process
+
+    @staticmethod
+    def srt2txt(srt_file):
+        subs = pysrt.open(srt_file, encoding='utf-8')
+        output_path = os.path.join(os.path.dirname(srt_file), Path(srt_file).stem + '.txt')
+        print(output_path)
+        with open(output_path, 'w') as f:
+            for sub in subs:
+                f.write(f'{sub.text}\n')
 
 
 if __name__ == '__main__':
