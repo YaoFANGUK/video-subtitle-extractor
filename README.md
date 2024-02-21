@@ -316,5 +316,6 @@ python -m nuitka --standalone --windows-disable-console --mingw64 --lto no --inc
 | [AcelXiao](https://github.com/acelxiao) | 20.00 RMB | 银牌赞助席位 |
 | 又是李啊    | 10.00 RMB | 铜牌赞助席位 |
 | 匿名    | 8.80 RMB | 铜牌赞助席位 |
+| 落墨                                   | 6.00 RMB | 铜牌赞助席位 |
 | 未闻花名                                   | 5.00 RMB | 铜牌赞助席位 |
 | sky                                    | 5.00 RMB | 铜牌赞助席位 |
