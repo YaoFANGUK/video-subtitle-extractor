@@ -140,13 +140,15 @@ conda activate videoEnv
 
 请确保你已经安装 python 3.12+，使用conda创建项目虚拟环境并激活环境 (建议创建虚拟环境运行，以免后续出现问题)
  
-- 安装其他依赖:
+- 安装依赖:
 
   ```shell
   pip install -r requirements.txt
   ```
 
 - 安装CUDA和cuDNN
+
+> 请确保有拥有Nvidia的显卡
 
   <details>
       <summary>Linux用户</summary>
