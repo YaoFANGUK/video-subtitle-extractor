@@ -3,7 +3,7 @@
 ## Introduction
 
 ![License](https://img.shields.io/badge/License-Apache%202-red.svg)
-![python version](https://img.shields.io/badge/Python-3.8+-blue.svg)
+![python version](https://img.shields.io/badge/Python-3.12+-blue.svg)
 ![support os](https://img.shields.io/badge/OS-Windows/macOS/Linux-green.svg)
 
 **Video-subtitle-extractor** (VSE) is a free, open-source tool which can help you rip the hard-coded subtitles from videos and automatically generate corresponding **srt** files for each video.  It includes the following implementations:
@@ -92,11 +92,14 @@
 
 #### 1. Download and Install Miniconda 
 
-- Windows: <a href="https://repo.anaconda.com/miniconda/Miniconda3-py38_4.11.0-Windows-x86_64.exe">Miniconda3-py38_4.11.0-Windows-x86_64.exe</a>
 
-- MacOS：<a href="https://repo.anaconda.com/miniconda/Miniconda3-py38_4.11.0-MacOSX-x86_64.pkg">Miniconda3-py38_4.11.0-MacOSX-x86_64.pkg</a>
+- Windows: <a href="https://repo.anaconda.com/miniconda/Miniconda3-py312_24.7.1-0-Windows-x86_64.exe">Miniconda3-py312_24.7.1-0-Windows-x86_64.exe</a>
 
-- Linux: <a href="https://repo.anaconda.com/miniconda/Miniconda3-py38_4.11.0-Linux-x86_64.sh">Miniconda3-py38_4.11.0-Linux-x86_64.sh</a>
+
+- MacOS：<a href="https://repo.anaconda.com/miniconda/Miniconda3-py312_24.7.1-0-MacOSX-x86_64.pkg">Miniconda3-py312_24.7.1-0-MacOSX-x86_64.pkg</a>
+
+
+- Linux: <a href="https://repo.anaconda.com/miniconda/Miniconda3-py312_24.7.1-0-Linux-x86_64.sh">Miniconda3-py312_24.7.1-0-Linux-x86_64.sh</a>
 
 
 #### 2. Activate Vitrual Environment
@@ -108,7 +111,7 @@ cd <your source code path>
 
 (2) create and activate conda environment
 ```shell
-conda create -n videoEnv python=3.8 pip
+conda create -n videoEnv python=3.12 pip
 ```
 
 ```shell
@@ -120,86 +123,75 @@ conda activate videoEnv
 
 Before you install dependencies, make sure your python 3.8+ has installed as well as conda virtual environment has created and activated.
 
-- For users who have CPU only (including Mac users): 
+- Install dependencies：
 
-  - Install dependencies：
+  ```shell
+  pip install -r requirements.txt
+  ```
 
-    ```shell
-    pip install -r requirements.txt
-    ```
+- Install **CUDA** and **cuDNN**
+  > make sure that you have **NVIDIA** graphic card before doing this step
 
+    <details>
+        <summary>Linux</summary>
+        <h5>(1) Download CUDA 11.7</h5>
+        <pre><code>wget https://developer.download.nvidia.com/compute/cuda/11.7.0/local_installers/cuda_11.7.0_515.43.04_linux.run</code></pre>
+        <h5>(2) Install CUDA 11.7</h5>
+        <pre><code>sudo sh cuda_11.7.0_515.43.04_linux.run</code></pre>
+        <p>1. Input accept</p>
+        <img src="https://i.328888.xyz/2023/03/31/iwVoeH.png" width="500" alt="">
+        <p>2. make sure CUDA Toolkit 11.7 is chosen (If you have already installed driver, do not select Driver)</p>
+        <img src="https://i.328888.xyz/2023/03/31/iwVThJ.png" width="500" alt="">
+        <p>3. Add environment variables</p>
+        <p>add the following content in  <strong>~/.bashrc</strong></p>
+        <pre><code># CUDA
+    export PATH=/usr/local/cuda-11.7/bin${PATH:+:${PATH}}
+    export LD_LIBRARY_PATH=/usr/local/cuda-11.7/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}</code></pre>
+        <p>Make sure it works</p>
+        <pre><code>source ~/.bashrc</code></pre>
+        <h5>(3) Download cuDNN 8.4.1</h5>
+        <p><a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/cudnn-linux-x86_64-8.4.1.50_cuda11.6-archive.tar.xz">cudnn-linux-x86_64-8.4.1.50_cuda11.6-archive.tar.xz</a></p>
+        <h5>(4) Install cuDNN 8.4.1</h5>
+        <pre><code> tar -xf cudnn-linux-x86_64-8.4.1.50_cuda11.6-archive.tar.xz
+   mv cudnn-linux-x86_64-8.4.1.50_cuda11.6-archive cuda
+   sudo cp ./cuda/include/* /usr/local/cuda-11.7/include/
+   sudo cp ./cuda/lib/* /usr/local/cuda-11.7/lib64/
+   sudo chmod a+r /usr/local/cuda-11.7/lib64/*
+   sudo chmod a+r /usr/local/cuda-11.7/include/*</code></pre>
+    </details>
 
-- For users who have **NVIDIA** graphic card： **GPU version can achieve better accuracy**
-
-  - Install **CUDA** and **cuDNN**
-
-      <details>
-          <summary>Linux</summary>
-          <h5>(1) Download CUDA 11.7</h5>
-          <pre><code>wget https://developer.download.nvidia.com/compute/cuda/11.7.0/local_installers/cuda_11.7.0_515.43.04_linux.run</code></pre>
-          <h5>(2) Install CUDA 11.7</h5>
-          <pre><code>sudo sh cuda_11.7.0_515.43.04_linux.run</code></pre>
-          <p>1. Input accept</p>
-          <img src="https://i.328888.xyz/2023/03/31/iwVoeH.png" width="500" alt="">
-          <p>2. make sure CUDA Toolkit 11.7 is chosen (If you have already installed driver, do not select Driver)</p>
-          <img src="https://i.328888.xyz/2023/03/31/iwVThJ.png" width="500" alt="">
-          <p>3. Add environment variables</p>
-          <p>add the following content in  <strong>~/.bashrc</strong></p>
-          <pre><code># CUDA
-      export PATH=/usr/local/cuda-11.7/bin${PATH:+:${PATH}}
-      export LD_LIBRARY_PATH=/usr/local/cuda-11.7/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}</code></pre>
-          <p>Make sure it works</p>
-          <pre><code>source ~/.bashrc</code></pre>
-          <h5>(3) Download cuDNN 8.4.1</h5>
-          <p><a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/cudnn-linux-x86_64-8.4.1.50_cuda11.6-archive.tar.xz">cudnn-linux-x86_64-8.4.1.50_cuda11.6-archive.tar.xz</a></p>
-          <h5>(4) Install cuDNN 8.4.1</h5>
-          <pre><code> tar -xf cudnn-linux-x86_64-8.4.1.50_cuda11.6-archive.tar.xz
-     mv cudnn-linux-x86_64-8.4.1.50_cuda11.6-archive cuda
-     sudo cp ./cuda/include/* /usr/local/cuda-11.7/include/
-     sudo cp ./cuda/lib/* /usr/local/cuda-11.7/lib64/
-     sudo chmod a+r /usr/local/cuda-11.7/lib64/*
-     sudo chmod a+r /usr/local/cuda-11.7/include/*</code></pre>
-      </details>
-
-      <details>
-          <summary>Windows</summary>
-          <h5>(1) Download CUDA 11.7</h5>
-          <a href="https://developer.download.nvidia.com/compute/cuda/11.7.0/local_installers/cuda_11.7.0_516.01_windows.exe">cuda_11.7.0_516.01_windows.exe</a>
-          <h5>(2) Install CUDA 11.7</h5>
-          <h5>(3) Download cuDNN 8.2.4</h5>
-          <p><a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/cudnn-windows-x64-v8.2.4.15.zip">cudnn-windows-x64-v8.2.4.15.zip</a></p>
-          <h5>(4) Install cuDNN 8.2.4</h5>
-          <p>
-             unzip "cudnn-windows-x64-v8.2.4.15.zip", then move all files in "bin, include, lib" in cuda 
-      directory to C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.7\
-          </p>
-      </details>
+    <details>
+        <summary>Windows</summary>
+        <h5>(1) Download CUDA 11.7</h5>
+        <a href="https://developer.download.nvidia.com/compute/cuda/11.7.0/local_installers/cuda_11.7.0_516.01_windows.exe">cuda_11.7.0_516.01_windows.exe</a>
+        <h5>(2) Install CUDA 11.7</h5>
+        <h5>(3) Download cuDNN 8.2.4</h5>
+        <p><a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/cudnn-windows-x64-v8.2.4.15.zip">cudnn-windows-x64-v8.2.4.15.zip</a></p>
+        <h5>(4) Install cuDNN 8.2.4</h5>
+        <p>
+           unzip "cudnn-windows-x64-v8.2.4.15.zip", then move all files in "bin, include, lib" in cuda 
+    directory to C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.7\
+        </p>
+    </details>
 
 
   - Install paddlepaddle:
     - windows:
 
       ```shell
-        python -m pip install paddlepaddle-gpu==2.4.2.post117 -f https://www.paddlepaddle.org.cn/whl/windows/mkl/avx/stable.html
+        python -m pip install paddlepaddle-gpu==2.6.1.post117 -f https://www.paddlepaddle.org.cn/whl/windows/mkl/avx/stable.html
       ```
 
     - Linux:
 
       ```shell
-        python -m pip install paddlepaddle-gpu==2.4.2.post117 -f https://www.paddlepaddle.org.cn/whl/linux/mkl/avx/stable.html
+        python -m pip install paddlepaddle-gpu==2.6.1.post117 -f https://www.paddlepaddle.org.cn/whl/linux/mkl/avx/stable.html
       ```
 
     > If you installed cuda 10.2，please install cuDNN 7.6.5 instead of cuDNN v8.x
 
     > If you installed cuda 11.2, please install cuDNN 8.1.1. However, RTX 30xx might be incompatible with cuda 11.2
-
-  - Install other dependencies:
-
-    ```shell
-    pip install -r requirements_gpu.txt
-    ```
-
-
+    
 
 #### 3. Running the program
 

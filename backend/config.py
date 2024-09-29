@@ -13,7 +13,7 @@ import re
 import time
 from pathlib import Path
 from fsplit.filesplit import Filesplit
-from paddle import fluid
+import paddle
 from tools.constant import *
 
 
@@ -71,9 +71,9 @@ while not IS_LEGAL_PATH:
 # 是否使用GPU
 USE_GPU = False
 # 如果paddlepaddle编译了gpu的版本
-if fluid.is_compiled_with_cuda():
+if paddle.is_compiled_with_cuda():
     # 查看是否有可用的gpu
-    if len(fluid.cuda_places()) > 0:
+    if len(paddle.static.cuda_places()) > 0:
         # 如果有GPU则使用GPU
         USE_GPU = True
 # ×××××××××××××××××××× [不要改]判断是否使用GPU start ××××××××××××××××××××

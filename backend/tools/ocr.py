@@ -85,6 +85,9 @@ class OcrRecogniser:
 
     def init_model(self):
         self.args.use_gpu = config.USE_GPU
+        if not config.USE_GPU:
+            import paddle
+            paddle.set_device('cpu')
         # 设置文本检测模型路径
         self.args.det_model_dir = config.DET_MODEL_PATH
         # 设置文本识别模型路径
