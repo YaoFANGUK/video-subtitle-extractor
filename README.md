@@ -148,7 +148,21 @@ conda activate videoEnv
 
 - 安装CUDA和cuDNN
 
-> 请确保有拥有Nvidia的显卡
+> 请确保有拥有Nvidia的显卡，**30系列以上的显卡驱动可能不支持 cuda 11.2及以下版本的安装**
+>
+> 如果安装cuda 10.2，请对应安装7.6.5的cuDNN，并使用对应cuda版本的paddlepaddle，**请不要使用cuDNN v8.x 和 cuda 10.2的组合** 
+>
+> 如果安装cuda 11.2，请对应安装8.1.1的cuDNN，并使用对应cuda版本的paddlepaddle
+>
+> 如果安装cuda 11.6，请对应安装8.4.0的cuDNN，并使用对应cuda版本的paddlepaddle
+> 
+> 如果安装cuda 11.8，请对应安装8.6.0的cuDNN，并使用对应cuda版本的paddlepaddle
+> 
+> 如果安装cuda 12.0，请对应安装8.9.1的cuDNN，并使用对应cuda版本的paddlepaddle  
+
+
+
+
 
   <details>
       <summary>Linux用户</summary>
@@ -206,14 +220,7 @@ conda activate videoEnv
       ```shell
       python -m pip install paddlepaddle-gpu==2.6.1.post117 -f https://www.paddlepaddle.org.cn/whl/linux/mkl/avx/stable.html
       ```
-
-        > 如果安装cuda 10.2，请对应安装7.6.5的cuDNN，并使用对应cuda版本的paddlepaddle，**请不要使用cuDNN v8.x 和 cuda 10.2的组合**
- 
-        > 如果安装cuda 11.2，请对应安装8.1.1的cuDNN，并使用对应cuda版本的paddlepaddle，**30系列以上的显卡驱动可能不支持 cuda 11.2及以下版本的安装**  
-
   
-  
-
 #### 4. 运行程序
 
 - 运行图形化界面版本(GUI)
