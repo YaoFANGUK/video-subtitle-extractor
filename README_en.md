@@ -169,7 +169,7 @@ Before you install dependencies, make sure your python 3.8+ has installed as wel
         <p><a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/cudnn-windows-x86_64-8.4.0.27_cuda11.6-archive.zip">cudnn-windows-x86_64-8.4.0.27_cuda11.6-archive.zip</a></p>
         <h5>(4) Install cuDNN 8.4.0</h5>
         <p>
-           unzip "cudnn-windows-x64-v8.2.4.15.zip", then move all files in "bin, include, lib" in cuda 
+           unzip "cudnn-windows-x86_64-8.4.0.27_cuda11.6-archive.zip", then move all files in "bin, include, lib" in cuda 
     directory to C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.7\
         </p>
     </details>
