@@ -185,6 +185,10 @@ class SubtitleExtractor:
             self.generate_subtitle_file()
         if config.WORD_SEGMENTATION:
             reformat.execute(os.path.join(os.path.splitext(self.video_path)[0] + '.srt'), config.REC_CHAR_TYPE)
+            # 去除空字幕的时间轴
+            if config.DELETE_EMPTY_TIMESTAMP:
+                reformat.remove_empty_timestamp(os.path.join(os.path.splitext(self.video_path)[0] + '.srt'))
+
         print(config.interface_config['Main']['FinishGenerateSub'], f"{round(time.time() - start_time, 2)}s")
         self.update_progress(ocr=100, frame_extract=100)
         self.isFinished = True
