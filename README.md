@@ -299,7 +299,7 @@ python -m nuitka --standalone --windows-disable-console --mingw64 --lto no --inc
 </div>
 
 ## 赞助
-<img src="https://i.imgur.com/EMCP5Lv.jpeg" width="600">
+<img src="https://github.com/YaoFANGUK/video-subtitle-extractor/raw/main/design/sponsor.png" width="600">
 
 | 捐赠者                                    | 累计捐赠金额 | 赞助席位 |
 |----------------------------------------| --- | --- |
