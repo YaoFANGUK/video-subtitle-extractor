@@ -456,6 +456,8 @@ class SubtitleExtractor:
             Thread(target=vsf_output, daemon=True, args=(p.stderr,)).start()
             p.wait()
             self.vsf_running = False
+        # 释放资源
+        self.video_cap.release()
 
     def filter_watermark(self):
         """
