@@ -1,15 +1,12 @@
-from tools.infer import utility
-from tools.infer.predict_system import TextSystem
 import config
 import importlib
-
+from paddleocr import PaddleOCR
 
 # 加载文本检测+识别模型
 class OcrRecogniser:
     def __init__(self):
         # 获取参数对象
         importlib.reload(config)
-        self.args = utility.parse_args()
         self.recogniser = self.init_model()
 
     @staticmethod
@@ -22,7 +19,7 @@ class OcrRecogniser:
             return y_max
 
     def predict(self, image):
-        detection_box, recognise_result = self.recogniser(image)
+        detection_box, recognise_result, _ = self.recogniser(image, cls=False)
         if len(detection_box) > 0:
             coordinate_list = list()
             if isinstance(detection_box, list):
@@ -84,22 +81,24 @@ class OcrRecogniser:
             return detection_box, recognise_result
 
     def init_model(self):
-        self.args.use_gpu = config.USE_GPU
-        if not config.USE_GPU:
-            import paddle
-            paddle.set_device('cpu')
-        # 设置文本检测模型路径
-        self.args.det_model_dir = config.DET_MODEL_PATH
-        # 设置文本识别模型路径
-        self.args.rec_model_dir = config.REC_MODEL_PATH
-        self.args.rec_char_dict_path = config.DICT_PATH
-        self.args.rec_image_shape = config.REC_IMAGE_SHAPE
-        # 设置识别文本的类型
-        self.args.rec_char_type = config.REC_CHAR_TYPE
-        # 设置每张图文本框批处理数量
-        self.args.rec_batch_num = config.REC_BATCH_NUM
-        self.args.max_batch_size = config.MAX_BATCH_SIZE
-        return TextSystem(self.args)
+        return PaddleOCR(use_gpu=config.USE_GPU,
+                         gpu_mem=500,
+                         det_algorithm='DB',
+                         # 设置文本检测模型路径
+                         det_model_dir=config.DET_MODEL_PATH,
+                         rec_algorithm='CRNN',
+                         # 设置每张图文本框批处理数量
+                         rec_batch_num=config.REC_BATCH_NUM,
+                         # 设置文本识别模型路径
+                         rec_model_dir=config.REC_MODEL_PATH,
+                         max_batch_size=config.MAX_BATCH_SIZE,
+                         det=True,
+                         use_angle_cls=False,
+                         drop_score=0,
+                         lang=config.REC_CHAR_TYPE,
+                         ocr_version=f'PP-OCR{config.MODEL_VERSION.lower()}',
+                         rec_image_shape=config.REC_IMAGE_SHAPE,
+                         debug=False, show_log=False)
 
 
 def get_coordinates(dt_box):

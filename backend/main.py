@@ -23,10 +23,9 @@ sys.path.insert(0, os.path.dirname(__file__))
 import importlib
 import config
 from tools import reformat
-from tools.infer import utility
-from tools.infer.predict_det import TextDetector
-from tools.ocr import OcrRecogniser, get_coordinates
-from tools import subtitle_ocr
+
+from backend.tools.ocr import OcrRecogniser, get_coordinates
+from backend.tools import subtitle_ocr
 import threading
 import platform
 import multiprocessing
@@ -40,6 +39,8 @@ class SubtitleDetect:
     """
 
     def __init__(self):
+        from paddleocr.tools.infer import utility
+        from paddleocr.tools.infer.predict_det import TextDetector
         # 获取参数对象
         importlib.reload(config)
         args = utility.parse_args()
