@@ -21,15 +21,13 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import numpy as np
-import imgaug
-import imgaug.augmenters as iaa
-
 
 class AugmenterBuilder(object):
     def __init__(self):
         pass
 
     def build(self, args, root=True):
+        import imgaug.augmenters as iaa
         if args is None or len(args) == 0:
             return None
         elif isinstance(args, list):
@@ -97,6 +95,7 @@ class IaaAugment():
         return data
 
     def may_augment_poly(self, aug, img_shape, poly):
+        import imgaug
         keypoints = [imgaug.Keypoint(p[0], p[1]) for p in poly]
         keypoints = aug.augment_keypoints(
             [imgaug.KeypointsOnImage(
