@@ -359,3 +359,4 @@ $RECYCLE.BIN/
 /test.py
 /test2.py
 /subtitle.ini
+/backend/models/**/*.onnx

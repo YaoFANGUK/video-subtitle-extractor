@@ -70,7 +70,7 @@ while not IS_LEGAL_PATH:
 
 
 # ×××××××××××××××××××× [不要改]判断是否使用GPU start ××××××××××××××××××××
-# 是否使用GPU
+# 是否使用GPU(Nvidia)
 USE_GPU = False
 # 如果paddlepaddle编译了gpu的版本
 if paddle.is_compiled_with_cuda():
@@ -78,7 +78,37 @@ if paddle.is_compiled_with_cuda():
     if len(paddle.static.cuda_places()) > 0:
         # 如果有GPU则使用GPU
         USE_GPU = True
-# ×××××××××××××××××××× [不要改]判断是否使用GPU start ××××××××××××××××××××
+
+# 是否使用ONNX(DirectML/AMD/Intel)
+ONNX_PROVIDERS = []
+if USE_GPU == False:
+    try:
+        import onnxruntime as ort
+        available_providers = ort.get_available_providers()
+        for provider in available_providers:
+            if provider in [
+                "CPUExecutionProvider"
+            ]:
+                continue
+            if provider not in [
+                "DmlExecutionProvider",         # DirectML，适用于 Windows GPU
+                "ROCMExecutionProvider",        # AMD ROCm
+                "MIGraphXExecutionProvider",    # AMD MIGraphX
+                "VitisAIExecutionProvider",     # AMD VitisAI，适用于 RyzenAI & Windows, 实测和DirectML性能似乎差不多
+                "OpenVINOExecutionProvider",    # Intel GPU
+                "MetalExecutionProvider",       # Apple macOS
+                "CoreMLExecutionProvider",      # Apple macOS
+                "CUDAExecutionProvider",        # Nvidia GPU
+            ]:
+                print(interface_config['Main']['OnnxExectionProviderNotSupportedSkipped'].format(provider))
+                continue
+            print(interface_config['Main']['OnnxExecutionProviderDetected'].format(provider))
+            ONNX_PROVIDERS.append(provider)
+    except ModuleNotFoundError as e:
+        print(interface_config['Main']['OnnxRuntimeNotInstall'])
+if len(ONNX_PROVIDERS) > 0:
+    USE_GPU = True
+# ×××××××××××××××××××× [不要改]判断是否使用GPU end ××××××××××××××××××××
 
 
 # ×××××××××××××××××××× [不要改]读取语言、模型路径、字典路径 start ××××××××××××××××××××
