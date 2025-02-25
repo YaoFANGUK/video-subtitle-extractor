@@ -16,6 +16,8 @@ from fsplit.filesplit import Filesplit
 import paddle
 from tools.constant import *
 
+# 项目版本号
+VERSION = "2.0.1"
 
 # 项目的base目录
 BASE_DIR = str(Path(os.path.abspath(__file__)).parent)
