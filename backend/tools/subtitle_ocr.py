@@ -160,6 +160,8 @@ def ocr_task_producer(ocr_queue, task_queue, progress_queue, video_path, raw_sub
     """
     cap = cv2.VideoCapture(video_path)
     tbar = None
+    
+    ocr = OcrRecogniser() #move this line out of the while loop to accelerate the process
     while True:
         try:
             # 从任务队列中提取任务信息
@@ -183,7 +185,7 @@ def ocr_task_producer(ocr_queue, task_queue, progress_queue, video_path, raw_sub
                 cap.set(cv2.CAP_PROP_POS_FRAMES, current_frame_no - 1)
             # 读取视频帧
             ret, frame = cap.read()
-            ocr = OcrRecogniser()
+            
             dt_box, rec_res = ocr.predict(frame)
             # 如果读取成功
             if ret:
