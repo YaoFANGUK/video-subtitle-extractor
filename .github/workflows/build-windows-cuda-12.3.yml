@@ -62,7 +62,9 @@ jobs:
         pip download -d ./vse_out/Debug/opt/packages/ paddlepaddle-gpu==3.0.0rc1 -i https://www.paddlepaddle.org.cn/packages/stable/cu123/ && \
         pip download -d ./vse_out/Debug/opt/packages/ -r requirements.txt && \
         cp -rfv ./vse_out/Debug/opt/packages/* ./vse_out/Release/opt/packages/ && \
-        rm -fv ./vse_out/*/opt/packages/numpy-2*
+        rm -fv ./vse_out/*/opt/packages/numpy-2* && \
+        rm -fv ./vse_out/*/opt/packages/paddlepaddle-* && \
+        rm -fv ./vse_out/*/opt/PaddlePaddlePackage/001-* 
       env:
         QPT_Action: "True"
       shell: bash

@@ -87,6 +87,7 @@ class SubtitleExtractorGUI:
         self.se = None
 
     def run(self):
+        print(self.interface_config['Main']['GPUWarning'])
         # 创建布局
         self._create_layout()
         # 创建窗口

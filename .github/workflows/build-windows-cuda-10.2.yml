@@ -73,7 +73,9 @@ jobs:
         pip download -d ./vse_out/Debug/opt/packages/ paddlepaddle-gpu==2.5.2.post102 -f https://www.paddlepaddle.org.cn/whl/windows/mkl/avx/stable.html && \
         pip download -d ./vse_out/Debug/opt/packages/ -r requirements.txt && \
         cp -rfv ./vse_out/Debug/opt/packages/* ./vse_out/Release/opt/packages/ && \
-        rm -fv ./vse_out/*/opt/packages/numpy-2*
+        rm -fv ./vse_out/*/opt/packages/numpy-2* && \
+        rm -fv ./vse_out/*/opt/packages/paddlepaddle-* && \
+        rm -fv ./vse_out/*/opt/PaddlePaddlePackage/001-* 
       env:
         QPT_Action: "True"
         CUDA_PATH_V10_2: "${{steps.cuda-toolkit.outputs.CUDA_PATH}}"
