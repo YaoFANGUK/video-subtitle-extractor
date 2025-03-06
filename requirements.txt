@@ -13,4 +13,4 @@ numpy==1.26.4
 shapely==2.0.7
 six==1.17.0
 setuptools==75.8.0
-paddleocr==2.9.1
+je-paddleocr==2.9.1

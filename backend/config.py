@@ -17,7 +17,7 @@ import paddle
 from tools.constant import *
 
 # 项目版本号
-VERSION = "2.0.2"
+VERSION = "2.0.3"
 
 # 项目的base目录
 BASE_DIR = str(Path(os.path.abspath(__file__)).parent)
@@ -94,7 +94,7 @@ if USE_GPU == False:
                 "DmlExecutionProvider",         # DirectML，适用于 Windows GPU
                 "ROCMExecutionProvider",        # AMD ROCm
                 "MIGraphXExecutionProvider",    # AMD MIGraphX
-                "VitisAIExecutionProvider",     # AMD VitisAI，适用于 RyzenAI & Windows, 实测和DirectML性能似乎差不多
+                # "VitisAIExecutionProvider",   # AMD VitisAI，适用于 RyzenAI & Windows
                 "OpenVINOExecutionProvider",    # Intel GPU
                 "MetalExecutionProvider",       # Apple macOS
                 "CoreMLExecutionProvider",      # Apple macOS
