@@ -23,10 +23,9 @@ sys.path.insert(0, os.path.dirname(__file__))
 import importlib
 import config
 from tools import reformat
-from tools.infer import utility
-from tools.infer.predict_det import TextDetector
-from tools.ocr import OcrRecogniser, get_coordinates
-from tools import subtitle_ocr
+
+from backend.tools.ocr import OcrRecogniser, get_coordinates
+from backend.tools import subtitle_ocr
 import threading
 import platform
 import multiprocessing
@@ -40,6 +39,8 @@ class SubtitleDetect:
     """
 
     def __init__(self):
+        from paddleocr.tools.infer import utility
+        from paddleocr.tools.infer.predict_det import TextDetector
         # 获取参数对象
         importlib.reload(config)
         args = utility.parse_args()
@@ -430,9 +431,12 @@ class SubtitleExtractor:
         left_end = self.sub_area[2] / self.frame_width
         # re：图像右半部分所占百分比，取值【0-1】
         right_end = self.sub_area[3] / self.frame_width
-        cpu_count = max(int(multiprocessing.cpu_count() * 2 / 3), 1)
-        if cpu_count < 4:
-            cpu_count = max(multiprocessing.cpu_count() - 1, 1)
+        if config.USE_GPU and len(config.ONNX_PROVIDERS) > 0:
+            cpu_count = multiprocessing.cpu_count()
+        else:
+            cpu_count = max(int(multiprocessing.cpu_count() * 2 / 3), 1)
+            if cpu_count < 4:
+                cpu_count = max(multiprocessing.cpu_count() - 1, 1)
         if platform.system() == 'Windows':
             # 定义执行命令
             cmd = f"{path_vsf} --use_cuda -c -r -i \"{self.video_path}\" -o \"{self.temp_output_dir}\" -ces \"{self.vsf_subtitle}\" "

@@ -87,10 +87,11 @@ class SubtitleExtractorGUI:
         self.se = None
 
     def run(self):
+        print(self.interface_config['Main']['GPUWarning'])
         # 创建布局
         self._create_layout()
         # 创建窗口
-        self.window = sg.Window(title=self.interface_config['SubtitleExtractorGUI']['Title'], layout=self.layout,
+        self.window = sg.Window(title=self.interface_config['SubtitleExtractorGUI']['Title'] + " v" + backend.main.config.VERSION, layout=self.layout,
                                 icon=self.icon)
         while True:
             # 循环读取事件
@@ -135,7 +136,7 @@ class SubtitleExtractorGUI:
 
     def update_interface_text(self):
         self._load_config()
-        self.window.set_title(self.interface_config['SubtitleExtractorGUI']['Title'])
+        self.window.set_title(self.interface_config['SubtitleExtractorGUI']['Title'] + " v" + backend.main.config.VERSION)
         self.window['-FILE_BTN-'].Update(self.interface_config['SubtitleExtractorGUI']['Open'])
         self.window['-FRAME1-'].Update(self.interface_config['SubtitleExtractorGUI']['Vertical'])
         self.window['-FRAME2-'].Update(self.interface_config['SubtitleExtractorGUI']['Horizontal'])

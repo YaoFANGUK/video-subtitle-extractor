@@ -68,6 +68,28 @@
 
 > **Provide your suggestions to improve this project in ISSUES & DISCUSSION**
 
+**Pre-built Package Comparison**:
+
+| Pre-built Package Name          | Python | Paddle | Environment                       | Supported Compute Capability Range |
+|----------------------------------|--------|--------|-----------------------------------|------------------------------------|
+| `vse-windows-cpu.7z`             | 3.12   | 3.0rc1 | No GPU, CPU only                  | Universal                         |
+| `vse-windows-directml.7z`        | 3.12   | 3.0rc1 | Windows without Nvidia GPU         | Universal                         |
+| `vse-windows-nvidia-cuda-10.2.7z`| 3.11   | 2.5.2  | CUDA 10.2                         | 3.0 – 7.5                          |
+| `vse-windows-nvidia-cuda-11.8.7z`| 3.12   | 3.0rc1 | CUDA 11.8                         | 3.5 – 8.9                          |
+| `vse-windows-nvidia-cuda-12.3.7z`| 3.12   | 3.0rc1 | CUDA 12.3                         | 5.0 – 9.0                          |
+
+> NVIDIA provides a list of supported compute capabilities for each GPU model. You can refer to the following link: [CUDA GPUs](https://developer.nvidia.com/cuda-gpus) to check which CUDA version is compatible with your GPU.
+
+**Recognition Mode Selection**:
+
+| Mode Name     | GPU  | OCR Model Size | Subtitle Detection Engine | Notes            |
+|---------------|------|-----------------|---------------------------|------------------|
+| Fast          | Yes/No | Mini            | VideoSubFinder            |                  |
+| Auto          | Yes    | Large           | VideoSubFinder            | Recommended      |
+| Auto          | No     | Mini            | VideoSubFinder            | Recommended      |
+| Precise       | Yes/No | Large           | VSE                       | Very slow        |
+
+> The subtitle detection engine for both Windows/Linux environments is VideoSubFinder.
 
 ## Demo
 
@@ -90,120 +112,128 @@
 
 ## Getting Started with Source Code 
 
-#### 1. Download and Install Miniconda 
+#### 1. Install Python
 
+Please ensure that you have installed Python 3.12+.
 
-- Windows: <a href="https://repo.anaconda.com/miniconda/Miniconda3-py312_24.7.1-0-Windows-x86_64.exe">Miniconda3-py312_24.7.1-0-Windows-x86_64.exe</a>
-
-
-- MacOS：<a href="https://repo.anaconda.com/miniconda/Miniconda3-py312_24.7.1-0-MacOSX-x86_64.pkg">Miniconda3-py312_24.7.1-0-MacOSX-x86_64.pkg</a>
-
-
-- Linux: <a href="https://repo.anaconda.com/miniconda/Miniconda3-py312_24.7.1-0-Linux-x86_64.sh">Miniconda3-py312_24.7.1-0-Linux-x86_64.sh</a>
-
-
-#### 2. Activate Vitrual Environment
-
-(1) Switch to working directory
-```shell
-cd <your source code path>
-```
-
-(2) create and activate conda environment
-```shell
-conda create -n videoEnv python=3.12 pip
-```
-
-```shell
-conda activate videoEnv  
-```
-
-
-#### 3. Install Dependencies
-
-Before you install dependencies, make sure your python 3.8+ has installed as well as conda virtual environment has created and activated.
-
-- Install dependencies：
-
+- Windows users can go to the [Python official website](https://www.python.org/downloads/windows/) to download and install Python.
+- MacOS users can install using Homebrew:
   ```shell
+  brew install python@3.12
+  ```
+- Linux users can install via the package manager, such as on Ubuntu/Debian:
+  ```shell
+  sudo apt update && sudo apt install python3.12 python3.12-venv python3.12-dev
+  ```
+
+#### 2. Install Dependencies
+
+It is recommended to use a virtual environment to manage project dependencies to avoid conflicts with the system environment.
+
+(1) Create and activate the virtual environment:
+```shell
+python -m venv videoEnv
+```
+
+- Windows:
+```shell
+videoEnv\\Scripts\\activate
+```
+- MacOS/Linux:
+```shell
+source videoEnv/bin/activate
+```
+
+#### 3. Create and Activate Project Directory
+
+Change to the directory where your source code is located:
+```shell
+cd <source_code_directory>
+```
+> For example, if your source code is in the `tools` folder on the D drive and the folder name is `video-subtitle-extractor`, use:
+> ```shell
+> cd D:/tools/video-subtitle-extractor-main
+> ```
+
+#### 4. Install the Appropriate Runtime Environment
+
+This project supports four runtime modes: CUDA (NVIDIA GPU acceleration), CPU (no GPU), DirectML (AMD, Intel, and other GPUs/APUs), and ONNX.
+
+##### (1) CUDA (For NVIDIA GPU users)
+
+> Make sure your NVIDIA GPU driver supports the selected CUDA version.
+
+- Recommended CUDA 11.8, corresponding to cuDNN 8.6.0.
+
+- Install CUDA:
+  - Windows: [Download CUDA 11.8](https://developer.download.nvidia.com/compute/cuda/11.8.0/local_installers/cuda_11.8.0_522.06_windows.exe)
+  - Linux:
+    ```shell
+    wget https://developer.download.nvidia.com/compute/cuda/11.8.0/local_installers/cuda_11.8.0_520.61.05_linux.run
+    sudo sh cuda_11.8.0_520.61.05_linux.run
+    ```
+  - CUDA is not supported on MacOS.
+
+- Install cuDNN (CUDA 11.8 corresponds to cuDNN 8.6.0):
+  - [Windows cuDNN 8.6.0 Download](https://developer.download.nvidia.cn/compute/redist/cudnn/v8.6.0/local_installers/11.8/cudnn-windows-x86_64-8.6.0.163_cuda11-archive.zip)
+  - [Linux cuDNN 8.6.0 Download](https://developer.download.nvidia.cn/compute/redist/cudnn/v8.6.0/local_installers/11.8/cudnn-linux-x86_64-8.6.0.163_cuda11-archive.tar.xz)
+  - Follow the installation guide in the NVIDIA official documentation.
+
+- Install PaddlePaddle GPU version (CUDA 11.8):
+  ```shell
+  pip install paddlepaddle-gpu==3.0.0rc1 -i https://www.paddlepaddle.org.cn/packages/stable/cu118/
   pip install -r requirements.txt
   ```
 
-- Install **CUDA** and **cuDNN**
-  > make sure that you have **NVIDIA** graphic card before doing this step
+##### (2) DirectML (For AMD, Intel, and other GPU/APU users)
 
-    <details>
-        <summary>Linux</summary>
-        <h5>(1) Download CUDA 11.7</h5>
-        <pre><code>wget https://developer.download.nvidia.com/compute/cuda/11.7.0/local_installers/cuda_11.7.0_515.43.04_linux.run</code></pre>
-        <h5>(2) Install CUDA 11.7</h5>
-        <pre><code>sudo sh cuda_11.7.0_515.43.04_linux.run</code></pre>
-        <p>1. Input accept</p>
-        <img src="https://i.328888.xyz/2023/03/31/iwVoeH.png" width="500" alt="">
-        <p>2. make sure CUDA Toolkit 11.7 is chosen (If you have already installed driver, do not select Driver)</p>
-        <img src="https://i.328888.xyz/2023/03/31/iwVThJ.png" width="500" alt="">
-        <p>3. Add environment variables</p>
-        <p>add the following content in  <strong>~/.bashrc</strong></p>
-        <pre><code># CUDA
-    export PATH=/usr/local/cuda-11.7/bin${PATH:+:${PATH}}
-    export LD_LIBRARY_PATH=/usr/local/cuda-11.7/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}</code></pre>
-        <p>Make sure it works</p>
-        <pre><code>source ~/.bashrc</code></pre>
-        <h5>(3) Download cuDNN 8.4.1</h5>
-        <p><a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/cudnn-linux-x86_64-8.4.1.50_cuda11.6-archive.tar.xz">cudnn-linux-x86_64-8.4.1.50_cuda11.6-archive.tar.xz</a></p>
-        <h5>(4) Install cuDNN 8.4.1</h5>
-        <pre><code> tar -xf cudnn-linux-x86_64-8.4.1.50_cuda11.6-archive.tar.xz
-   mv cudnn-linux-x86_64-8.4.1.50_cuda11.6-archive cuda
-   sudo cp ./cuda/include/* /usr/local/cuda-11.7/include/
-   sudo cp ./cuda/lib/* /usr/local/cuda-11.7/lib64/
-   sudo chmod a+r /usr/local/cuda-11.7/lib64/*
-   sudo chmod a+r /usr/local/cuda-11.7/include/*</code></pre>
-    </details>
+- Suitable for Windows devices with AMD/NVIDIA/Intel GPUs.
+- Install ONNX Runtime DirectML version:
+  ```shell
+  pip install paddlepaddle==3.0.0rc1 -i https://www.paddlepaddle.org.cn/packages/stable/cpu/
+  pip install -r requirements.txt
+  pip install -r requirements_directml.txt
+  ```
 
-    <details>
-        <summary>Windows</summary>
-        <h5>(1) Download CUDA 11.7</h5>
-        <a href="https://developer.download.nvidia.com/compute/cuda/11.7.0/local_installers/cuda_11.7.0_516.01_windows.exe">cuda_11.7.0_516.01_windows.exe</a>
-        <h5>(2) Install CUDA 11.7</h5>
-        <h5>(3) Download cuDNN 8.4.0</h5>
-        <p><a href="https://github.com/YaoFANGUK/video-subtitle-extractor/releases/download/1.0.0/cudnn-windows-x86_64-8.4.0.27_cuda11.6-archive.zip">cudnn-windows-x86_64-8.4.0.27_cuda11.6-archive.zip</a></p>
-        <h5>(4) Install cuDNN 8.4.0</h5>
-        <p>
-           unzip "cudnn-windows-x86_64-8.4.0.27_cuda11.6-archive.zip", then move all files in "bin, include, lib" in cuda 
-    directory to C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.7\
-        </p>
-    </details>
+##### (3) ONNX (For macOS, AMD ROCm, and other GPU acceleration environments, not tested!)
 
+- If using this method, DO NOT REPORT ISSUES.
+- Suitable for Linux or macOS devices with AMD/Metal GPUs/Apple Silicon GPUs.
+- Install ONNX Runtime DirectML version:
+  ```shell
+  pip install paddlepaddle==3.0.0rc1 -i https://www.paddlepaddle.org.cn/packages/stable/cpu/
+  pip install -r requirements.txt
 
-  - Install paddlepaddle:
-    - windows:
+  # Read documentation https://onnxruntime.ai/docs/execution-providers/
+  # Choose the appropriate execution backend based on your device, modify the dependencies in requirements_directml.txt accordingly.
 
-      ```shell
-        python -m pip install paddlepaddle-gpu==2.6.1.post117 -f https://www.paddlepaddle.org.cn/whl/windows/mkl/avx/stable.html
-      ```
+  # Example:
+  # requirements_coreml.txt
+  #   paddle2onnx==1.3.1
+  #   onnxruntime-gpu==1.20.1
+  #   onnxruntime-coreml==1.13.1
 
-    - Linux:
+  pip install -r requirements_coreml.txt
+  ```
 
-      ```shell
-        python -m pip install paddlepaddle-gpu==2.6.1.post117 -f https://www.paddlepaddle.org.cn/whl/linux/mkl/avx/stable.html
-      ```
+##### (4) CPU Only (For systems without GPU or those not wanting to use GPU acceleration)
 
-    > If you installed cuda 10.2，please install cuDNN 7.6.5 instead of cuDNN v8.x
+- Suitable for systems without GPU or those that do not wish to use GPU.
+- Install the CPU version of PaddlePaddle:
+  ```shell
+  pip install paddlepaddle==3.0.0rc1 -i https://www.paddlepaddle.org.cn/packages/stable/cpu/
+  pip install -r requirements.txt
+  ```
 
-    > If you installed cuda 11.2, please install cuDNN 8.1.1. However, RTX 30xx might be incompatible with cuda 11.2
-    
+#### 5. Run the Program
 
-#### 3. Running the program
-
-- Run GUI version
-
+- Run the graphical user interface version (GUI):
 ```shell
 python gui.py
 ```
 
-- Run CLI version
-
-```shell    
+- Run the command-line interface version (CLI):
+```shell
 python ./backend/main.py
 ```
 

@@ -16,6 +16,8 @@ from fsplit.filesplit import Filesplit
 import paddle
 from tools.constant import *
 
+# 项目版本号
+VERSION = "2.0.3"
 
 # 项目的base目录
 BASE_DIR = str(Path(os.path.abspath(__file__)).parent)
@@ -68,7 +70,7 @@ while not IS_LEGAL_PATH:
 
 
 # ×××××××××××××××××××× [不要改]判断是否使用GPU start ××××××××××××××××××××
-# 是否使用GPU
+# 是否使用GPU(Nvidia)
 USE_GPU = False
 # 如果paddlepaddle编译了gpu的版本
 if paddle.is_compiled_with_cuda():
@@ -76,7 +78,37 @@ if paddle.is_compiled_with_cuda():
     if len(paddle.static.cuda_places()) > 0:
         # 如果有GPU则使用GPU
         USE_GPU = True
-# ×××××××××××××××××××× [不要改]判断是否使用GPU start ××××××××××××××××××××
+
+# 是否使用ONNX(DirectML/AMD/Intel)
+ONNX_PROVIDERS = []
+if USE_GPU == False:
+    try:
+        import onnxruntime as ort
+        available_providers = ort.get_available_providers()
+        for provider in available_providers:
+            if provider in [
+                "CPUExecutionProvider"
+            ]:
+                continue
+            if provider not in [
+                "DmlExecutionProvider",         # DirectML，适用于 Windows GPU
+                "ROCMExecutionProvider",        # AMD ROCm
+                "MIGraphXExecutionProvider",    # AMD MIGraphX
+                # "VitisAIExecutionProvider",   # AMD VitisAI，适用于 RyzenAI & Windows
+                "OpenVINOExecutionProvider",    # Intel GPU
+                "MetalExecutionProvider",       # Apple macOS
+                "CoreMLExecutionProvider",      # Apple macOS
+                "CUDAExecutionProvider",        # Nvidia GPU
+            ]:
+                print(interface_config['Main']['OnnxExectionProviderNotSupportedSkipped'].format(provider))
+                continue
+            print(interface_config['Main']['OnnxExecutionProviderDetected'].format(provider))
+            ONNX_PROVIDERS.append(provider)
+    except ModuleNotFoundError as e:
+        print(interface_config['Main']['OnnxRuntimeNotInstall'])
+if len(ONNX_PROVIDERS) > 0:
+    USE_GPU = True
+# ×××××××××××××××××××× [不要改]判断是否使用GPU end ××××××××××××××××××××
 
 
 # ×××××××××××××××××××× [不要改]读取语言、模型路径、字典路径 start ××××××××××××××××××××
@@ -102,8 +134,6 @@ MODEL_VERSION = 'V4'
 DET_MODEL_BASE = os.path.join(BASE_DIR, 'models')
 # 设置文本识别模型 + 字典
 REC_MODEL_BASE = os.path.join(BASE_DIR, 'models')
-# 默认字典路径为中文
-DICT_BASE = os.path.join(BASE_DIR, 'ppocr', 'utils', 'dict')
 # V3, V4模型默认图形识别的shape为3, 48, 320
 REC_IMAGE_SHAPE = '3,48,320'
 REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'{REC_CHAR_TYPE}_rec')
@@ -131,8 +161,6 @@ OTHER_LANG = [
 MULTI_LANG = LATIN_LANG + ARABIC_LANG + CYRILLIC_LANG + DEVANAGARI_LANG + \
              OTHER_LANG
 
-# 定义字典路径
-DICT_PATH = os.path.join(DICT_BASE, f'{REC_CHAR_TYPE}_dict.txt')
 DET_MODEL_FAST_PATH = os.path.join(DET_MODEL_BASE, MODEL_VERSION, 'ch_det_fast')
 
 
@@ -151,7 +179,6 @@ if REC_CHAR_TYPE in MULTI_LANG:
             # 英文模式的ch模型识别效果好于fast
             if REC_CHAR_TYPE == 'en':
                 REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'ch_rec')
-                DICT_PATH = os.path.join(DICT_BASE, f'ch_dict.txt')
             else:
                 REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'{REC_CHAR_TYPE}_rec')
         else:
@@ -174,16 +201,12 @@ if REC_CHAR_TYPE in MULTI_LANG:
 
     if REC_CHAR_TYPE in LATIN_LANG:
         REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'latin_rec_fast')
-        DICT_PATH = os.path.join(DICT_BASE, f'latin_dict.txt')
     elif REC_CHAR_TYPE in ARABIC_LANG:
         REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'arabic_rec_fast')
-        DICT_PATH = os.path.join(DICT_BASE, f'arabic_dict.txt')
     elif REC_CHAR_TYPE in CYRILLIC_LANG:
         REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'cyrillic_rec_fast')
-        DICT_PATH = os.path.join(DICT_BASE, f'cyrillic_dict.txt')
     elif REC_CHAR_TYPE in DEVANAGARI_LANG:
         REC_MODEL_PATH = os.path.join(REC_MODEL_BASE, MODEL_VERSION, f'devanagari_rec_fast')
-        DICT_PATH = os.path.join(DICT_BASE, f'devanagari_dict.txt')
 
     # 定义图像识别shape
     if MODEL_VERSION == 'V2':
