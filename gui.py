@@ -303,7 +303,6 @@ class SubtitleExtractorGUI:
                 if self.xmax > self.frame_width:
                     self.xmax = self.frame_width
                 print(f"{self.interface_config['SubtitleExtractorGUI']['SubtitleArea']}：({self.ymin},{self.ymax},{self.xmin},{self.xmax})")
-                subtitle_area = (self.ymin, self.ymax, self.xmin, self.xmax)
                 y_p = self.ymin / self.frame_height
                 h_p = (self.ymax - self.ymin) / self.frame_height
                 x_p = self.xmin / self.frame_width
@@ -313,6 +312,18 @@ class SubtitleExtractorGUI:
                 def task():
                     while self.video_paths:
                         video_path = self.video_paths.pop()
+                        # 获取当前视频的帧尺寸
+                        video_cap = cv2.VideoCapture(video_path)
+                        frame_width = int(video_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+                        frame_height = int(video_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                        video_cap.release()
+                        # 根据当前视频的尺寸重新计算字幕区域
+                        subtitle_area = (
+                            int(y_p * frame_height),
+                            int((y_p + h_p) * frame_height),
+                            int(x_p * frame_width),
+                            int((x_p + w_p) * frame_width)
+                        )
                         self.se = backend.main.SubtitleExtractor(video_path, subtitle_area)
                         self.se.run()
                 Thread(target=task, daemon=True).start()
