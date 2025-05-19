@@ -12,7 +12,9 @@ import PySimpleGUI as sg
 import cv2
 from threading import Thread
 import multiprocessing
+import queue
 
+area_queue = queue.Queue()
 
 class SubtitleExtractorGUI:
     def _load_config(self):
@@ -104,6 +106,8 @@ class SubtitleExtractorGUI:
             self._language_mode_event_handler(event)
             # 处理【运行】事件
             self._run_event_handler(event, values)
+            # 处理【更新视频】事件
+            self._video_update_handler(event,values)
             # 如果关闭软件，退出
             if event == sg.WIN_CLOSED:
                 break
@@ -133,6 +137,12 @@ class SubtitleExtractorGUI:
                     self.window['-FILE-'].update(disabled=True)
                     self.window['-FILE_BTN-'].update(disabled=True)
                     self.window['-LANGUAGE-MODE-'].update(disabled=True)
+
+    def _video_update_handler(self,event,values):
+        if event == '-VIDEO-UPDATE-':
+            video_path = values['-VIDEO-UPDATE-']
+            self._update_frame_by_video_path(video_path)
+            area_queue.put((self.ymin, self.ymax, self.xmin, self.xmax))
 
     def update_interface_text(self):
         self._load_config()
@@ -206,6 +216,63 @@ class SubtitleExtractorGUI:
              ],
         ]
 
+    def _update_frame_by_video_path(self,video_path):
+        """
+        根据视频路径完成更新当前显示的帧以及字幕的区域
+        """
+        if video_path != '':
+            self.video_cap = cv2.VideoCapture(video_path)
+        if self.video_cap is None:
+            return
+        if self.video_cap.isOpened():
+            ret, frame = self.video_cap.read()
+            if ret:
+                # 获取视频的帧数
+                self.frame_count = self.video_cap.get(cv2.CAP_PROP_FRAME_COUNT)
+                # 获取视频的高度
+                self.frame_height = self.video_cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+                # 获取视频的宽度
+                self.frame_width = self.video_cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+                # 获取视频的帧率
+                self.fps = self.video_cap.get(cv2.CAP_PROP_FPS)
+                # 调整视频帧大小，使播放器能够显示
+                resized_frame = self._img_resize(frame)
+                # resized_frame = cv2.resize(src=frame, dsize=(self.video_preview_width, self.video_preview_height))
+                # 显示视频帧
+                self.window['-DISPLAY-'].update(data=cv2.imencode('.png', resized_frame)[1].tobytes())
+                # 更新视频进度条滑块range
+                self.window['-SLIDER-'].update(range=(1, self.frame_count))
+                self.window['-SLIDER-'].update(1)
+                # 预设字幕区域位置
+                y_p, h_p, x_p, w_p = self.parse_subtitle_config()
+                y = self.frame_height * y_p
+                h = self.frame_height * h_p
+                x = self.frame_width * x_p
+                w = self.frame_width * w_p
+
+                self.xmin=x
+                self.xmax=x+w
+                self.ymin=y
+                self.ymax=y+h
+                # 更新视频字幕位置滑块range
+                # 更新Y-SLIDER范围
+                self.window['-Y-SLIDER-'].update(range=(0, self.frame_height), disabled=False)
+                # 更新Y-SLIDER默认值
+                self.window['-Y-SLIDER-'].update(y)
+                # 更新X-SLIDER范围
+                self.window['-X-SLIDER-'].update(range=(0, self.frame_width), disabled=False)
+                # 更新X-SLIDER默认值
+                self.window['-X-SLIDER-'].update(x)
+                # 更新Y-SLIDER-H范围
+                self.window['-Y-SLIDER-H-'].update(range=(0, self.frame_height - y))
+                # 更新Y-SLIDER-H默认值
+                self.window['-Y-SLIDER-H-'].update(h)
+                # 更新X-SLIDER-W范围
+                self.window['-X-SLIDER-W-'].update(range=(0, self.frame_width - x))
+                # 更新X-SLIDER-W默认值
+                self.window['-X-SLIDER-W-'].update(w)
+                self._update_preview(frame, (y, h, x, w))
+
     def _file_event_handler(self, event, values):
         """
         当点击打开按钮时：
@@ -215,55 +282,9 @@ class SubtitleExtractorGUI:
         if event == '-FILE-':
             self.video_paths = values['-FILE-'].split(';')
             self.video_path = self.video_paths[0]
-            if self.video_path != '':
-                self.video_cap = cv2.VideoCapture(self.video_path)
-            if self.video_cap is None:
-                return
-            if self.video_cap.isOpened():
-                ret, frame = self.video_cap.read()
-                if ret:
-                    for video in self.video_paths:
-                        print(f"{self.interface_config['SubtitleExtractorGUI']['OpenVideoSuccess']}：{video}")
-                    # 获取视频的帧数
-                    self.frame_count = self.video_cap.get(cv2.CAP_PROP_FRAME_COUNT)
-                    # 获取视频的高度
-                    self.frame_height = self.video_cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-                    # 获取视频的宽度
-                    self.frame_width = self.video_cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-                    # 获取视频的帧率
-                    self.fps = self.video_cap.get(cv2.CAP_PROP_FPS)
-                    # 调整视频帧大小，使播放器能够显示
-                    resized_frame = self._img_resize(frame)
-                    # resized_frame = cv2.resize(src=frame, dsize=(self.video_preview_width, self.video_preview_height))
-                    # 显示视频帧
-                    self.window['-DISPLAY-'].update(data=cv2.imencode('.png', resized_frame)[1].tobytes())
-                    # 更新视频进度条滑块range
-                    self.window['-SLIDER-'].update(range=(1, self.frame_count))
-                    self.window['-SLIDER-'].update(1)
-                    # 预设字幕区域位置
-                    y_p, h_p, x_p, w_p = self.parse_subtitle_config()
-                    y = self.frame_height * y_p
-                    h = self.frame_height * h_p
-                    x = self.frame_width * x_p
-                    w = self.frame_width * w_p
-                    # 更新视频字幕位置滑块range
-                    # 更新Y-SLIDER范围
-                    self.window['-Y-SLIDER-'].update(range=(0, self.frame_height), disabled=False)
-                    # 更新Y-SLIDER默认值
-                    self.window['-Y-SLIDER-'].update(y)
-                    # 更新X-SLIDER范围
-                    self.window['-X-SLIDER-'].update(range=(0, self.frame_width), disabled=False)
-                    # 更新X-SLIDER默认值
-                    self.window['-X-SLIDER-'].update(x)
-                    # 更新Y-SLIDER-H范围
-                    self.window['-Y-SLIDER-H-'].update(range=(0, self.frame_height - y))
-                    # 更新Y-SLIDER-H默认值
-                    self.window['-Y-SLIDER-H-'].update(h)
-                    # 更新X-SLIDER-W范围
-                    self.window['-X-SLIDER-W-'].update(range=(0, self.frame_width - x))
-                    # 更新X-SLIDER-W默认值
-                    self.window['-X-SLIDER-W-'].update(w)
-                    self._update_preview(frame, (y, h, x, w))
+            for video in self.video_paths:
+                print(f"{self.interface_config['SubtitleExtractorGUI']['OpenVideoSuccess']}：{video}")
+            self._update_frame_by_video_path(self.video_path)
 
     def _language_mode_event_handler(self, event):
         if event != '-LANGUAGE-MODE-':
@@ -303,7 +324,6 @@ class SubtitleExtractorGUI:
                 if self.xmax > self.frame_width:
                     self.xmax = self.frame_width
                 print(f"{self.interface_config['SubtitleExtractorGUI']['SubtitleArea']}：({self.ymin},{self.ymax},{self.xmin},{self.xmax})")
-                subtitle_area = (self.ymin, self.ymax, self.xmin, self.xmax)
                 y_p = self.ymin / self.frame_height
                 h_p = (self.ymax - self.ymin) / self.frame_height
                 x_p = self.xmin / self.frame_width
@@ -313,6 +333,8 @@ class SubtitleExtractorGUI:
                 def task():
                     while self.video_paths:
                         video_path = self.video_paths.pop()
+                        self.window.write_event_value('-VIDEO-UPDATE-', video_path)
+                        subtitle_area = area_queue.get()
                         self.se = backend.main.SubtitleExtractor(video_path, subtitle_area)
                         self.se.run()
                 Thread(target=task, daemon=True).start()
@@ -451,6 +473,8 @@ class LanguageModeGUI:
                     break
                 else:
                     exit(0)
+
+
 
     def _load_interface_text(self):
         self.interface_config.read(self.interface_file, encoding='utf-8')
