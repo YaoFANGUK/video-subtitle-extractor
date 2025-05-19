@@ -12,7 +12,9 @@ import PySimpleGUI as sg
 import cv2
 from threading import Thread
 import multiprocessing
+import queue
 
+area_queue = queue.Queue()
 
 class SubtitleExtractorGUI:
     def _load_config(self):
@@ -104,6 +106,8 @@ class SubtitleExtractorGUI:
             self._language_mode_event_handler(event)
             # 处理【运行】事件
             self._run_event_handler(event, values)
+            # 处理【更新视频】事件
+            self._video_update_handler(event,values)
             # 如果关闭软件，退出
             if event == sg.WIN_CLOSED:
                 break
@@ -133,6 +137,12 @@ class SubtitleExtractorGUI:
                     self.window['-FILE-'].update(disabled=True)
                     self.window['-FILE_BTN-'].update(disabled=True)
                     self.window['-LANGUAGE-MODE-'].update(disabled=True)
+
+    def _video_update_handler(self,event,values):
+        if event == '-VIDEO-UPDATE-':
+            video_path = values['-VIDEO-UPDATE-']
+            self._update_frame_by_video_path(video_path)
+            area_queue.put((self.ymin, self.ymax, self.xmin, self.xmax))
 
     def update_interface_text(self):
         self._load_config()
@@ -323,8 +333,8 @@ class SubtitleExtractorGUI:
                 def task():
                     while self.video_paths:
                         video_path = self.video_paths.pop()
-                        self._update_frame_by_video_path(video_path)
-                        subtitle_area = (self.ymin, self.ymax, self.xmin, self.xmax)
+                        self.window.write_event_value('-VIDEO-UPDATE-', video_path)
+                        subtitle_area = area_queue.get()
                         self.se = backend.main.SubtitleExtractor(video_path, subtitle_area)
                         self.se.run()
                 Thread(target=task, daemon=True).start()
