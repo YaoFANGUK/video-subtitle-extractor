@@ -1003,7 +1003,7 @@ class SubtitleExtractor:
         subs = pysrt.open(srt_file, encoding='utf-8')
         output_path = os.path.join(os.path.dirname(srt_file), Path(srt_file).stem + '.txt')
         print(output_path)
-        with open(output_path, 'w') as f:
+        with open(output_path, 'w', encoding='utf-8') as f:
             for sub in subs:
                 f.write(f'{sub.text}\n')
 
