@@ -582,9 +582,9 @@ class SubtitleExtractor:
                 for index, content in enumerate(subtitle_content):
                     line_code = index + 1
                     frame_start = self._frame_to_timecode(int(content[0]))
-                    # 比较起始帧号与结束帧号， 如果字幕持续时间不足1秒，则将显示时间设为1s
+                    # 改，这边不足一秒也不会补全一秒
                     if abs(int(content[1]) - int(content[0])) < self.fps:
-                        frame_end = self._frame_to_timecode(int(int(content[0]) + self.fps))
+                        frame_end = self._frame_to_timecode(int(content[1]))
                         post_process_subtitle.append(line_code)
                     else:
                         frame_end = self._frame_to_timecode(int(content[1]))
