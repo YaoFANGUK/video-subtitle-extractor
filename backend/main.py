@@ -326,8 +326,8 @@ class SubtitleExtractor:
 
             while len(ocr_args_list) > 1:
                 total_frame_count, ocr_info_frame_no = ocr_args_list.pop(0)
-                if current_frame_no in compare_ocr_result_cache:
-                    predict_result = compare_ocr_result_cache[current_frame_no]
+                if ocr_info_frame_no in compare_ocr_result_cache:
+                    predict_result = compare_ocr_result_cache[ocr_info_frame_no]
                     dt_box, rec_res = predict_result['dt_box'], predict_result['rec_res']
                 else:
                     dt_box, rec_res = None, None
@@ -339,8 +339,8 @@ class SubtitleExtractor:
 
         while len(ocr_args_list) > 0:
             total_frame_count, ocr_info_frame_no = ocr_args_list.pop(0)
-            if current_frame_no in compare_ocr_result_cache:
-                predict_result = compare_ocr_result_cache[current_frame_no]
+            if ocr_info_frame_no in compare_ocr_result_cache:
+                predict_result = compare_ocr_result_cache[ocr_info_frame_no]
                 dt_box, rec_res = predict_result['dt_box'], predict_result['rec_res']
             else:
                 dt_box, rec_res = None, None
