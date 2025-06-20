@@ -7,7 +7,7 @@ from backend.tools.constant import SubtitleArea, VideoSubFinderDecoder
 import configparser
 
 # 项目版本号
-VERSION = "2.1.1"
+VERSION = "2.2.0"
 PROJECT_HOME_URL = "https://github.com/YaoFANGUK/video-subtitle-extractor"
 PROJECT_ISSUES_URL = PROJECT_HOME_URL + "/issues"
 PROJECT_RELEASES_URL = PROJECT_HOME_URL + "/releases"
@@ -96,7 +96,7 @@ class Config(QConfig):
     videoSubFinderCpuCores = RangeConfigItem("Main", "VideoSubFinderCpuCores", 0, RangeValidator(0, os.cpu_count()))
     # VideoSubFinder 视频解码组件
     videoSubFinderDecoder = OptionsConfigItem("Main", "VideoSubFinderDecoder", VideoSubFinderDecoder.OPENCV, OptionsValidator(VideoSubFinderDecoder), EnumSerializer(VideoSubFinderDecoder))
-    
+
 CONFIG_FILE = 'config/config.json'
 config = Config()
 qconfig.load(CONFIG_FILE, config)
