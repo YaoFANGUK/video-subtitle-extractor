@@ -55,7 +55,7 @@ class TimelineSyncInterface(QWidget):
             content=tr["TimelineSync"]["SourceSubtitleDesc"] if not self.option.source_subtitle.value else self.option.source_subtitle.value,
             parent=self.advanced_group
         )
-        self.source_subtitle.clicked.connect(lambda: self.choose_path(self.source_subtitle, tr["TimelineSync"]["SourceSubtitleTitle"], self.option.source_subtitle, tr["TimelineSync"]["SourceSubtitleDesc"]))
+        self.source_subtitle.clicked.connect(lambda: self.choose_path(self.source_subtitle, tr["TimelineSync"]["SourceSubtitleTitle"], self.option.source_subtitle, tr["TimelineSync"]["SourceSubtitleDesc"], "Subtitle File(*.srt, *.ass);;SRT File (*.srt);;ASS File (*.ass)"))
         self.advanced_group.addSettingCard(self.source_subtitle)
         
         self.destination_video = PushSettingCard(
@@ -114,11 +114,11 @@ class TimelineSyncInterface(QWidget):
 
         self.append_log_signal.connect(self.append_output)
         
-    def choose_path(self, target, name, option, placeholder):
+    def choose_path(self, target, name, option, placeholder, filters=None):
         """选择保存目录"""
         last_source_video = "./" if not option.value else option.value
         selected = QFileDialog.getOpenFileName(
-            self, name, last_source_video)
+            self, name, last_source_video, filters)
         if len(selected) >= 1 and selected[0] == "":
             return
         path, _ = selected 
