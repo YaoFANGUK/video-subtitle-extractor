@@ -314,11 +314,8 @@ python -m nuitka --standalone --windows-disable-console --mingw64 --lto no --inc
 
 ## 社区支持
 
-#### Jetbrains 全家桶支持
-本项目开发所使用的IDE由Jetbrains支持。
-<div align=center>
-  <a href="https://jb.gg/OpenSourceSupport"><img src="https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.png" alt="JetBrains Logo (Main) logo." width="80"></a>
-</div>
+[![Powered by DartNode](https://dartnode.com/branding/DN-Open-Source-sm.png)](https://dartnode.com "Powered by DartNode - Free VPS for Open Source")
+
 
 ## 赞助
 <img src="https://github.com/YaoFANGUK/video-subtitle-extractor/raw/main/design/sponsor.png" width="600">
