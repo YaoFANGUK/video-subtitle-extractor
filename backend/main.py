@@ -326,8 +326,8 @@ class SubtitleExtractor:
 
             while len(ocr_args_list) > 1:
                 total_frame_count, ocr_info_frame_no = ocr_args_list.pop(0)
-                if current_frame_no in compare_ocr_result_cache:
-                    predict_result = compare_ocr_result_cache[current_frame_no]
+                if ocr_info_frame_no in compare_ocr_result_cache:
+                    predict_result = compare_ocr_result_cache[ocr_info_frame_no]
                     dt_box, rec_res = predict_result['dt_box'], predict_result['rec_res']
                 else:
                     dt_box, rec_res = None, None
@@ -339,8 +339,8 @@ class SubtitleExtractor:
 
         while len(ocr_args_list) > 0:
             total_frame_count, ocr_info_frame_no = ocr_args_list.pop(0)
-            if current_frame_no in compare_ocr_result_cache:
-                predict_result = compare_ocr_result_cache[current_frame_no]
+            if ocr_info_frame_no in compare_ocr_result_cache:
+                predict_result = compare_ocr_result_cache[ocr_info_frame_no]
                 dt_box, rec_res = predict_result['dt_box'], predict_result['rec_res']
             else:
                 dt_box, rec_res = None, None
@@ -582,9 +582,9 @@ class SubtitleExtractor:
                 for index, content in enumerate(subtitle_content):
                     line_code = index + 1
                     frame_start = self._frame_to_timecode(int(content[0]))
-                    # 比较起始帧号与结束帧号， 如果字幕持续时间不足1秒，则将显示时间设为1s
+                    # 改，这边不足一秒也不会补全一秒
                     if abs(int(content[1]) - int(content[0])) < self.fps:
-                        frame_end = self._frame_to_timecode(int(int(content[0]) + self.fps))
+                        frame_end = self._frame_to_timecode(int(content[1]))
                         post_process_subtitle.append(line_code)
                     else:
                         frame_end = self._frame_to_timecode(int(content[1]))
@@ -1003,7 +1003,7 @@ class SubtitleExtractor:
         subs = pysrt.open(srt_file, encoding='utf-8')
         output_path = os.path.join(os.path.dirname(srt_file), Path(srt_file).stem + '.txt')
         print(output_path)
-        with open(output_path, 'w') as f:
+        with open(output_path, 'w', encoding='utf-8') as f:
             for sub in subs:
                 f.write(f'{sub.text}\n')
 
