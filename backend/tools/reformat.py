@@ -146,6 +146,19 @@ def execute(path, lang='en'):
         sub.text = ss.strip()
     subs.save(path, encoding='utf-8')
 
+# remove_empty_timestamp 去除空字幕的时间轴
+def remove_empty_timestamp(path):
+    subs = pysrt.open(path)
+    # 过滤掉空字幕
+    non_empty_subs = [sub for sub in subs if sub.text.strip()]
+
+    # 重新编号
+    for i, sub in enumerate(non_empty_subs, start=1):
+        sub.index = i
+
+    # 保存更新后的字幕文件
+    pysrt.SubRipFile(items=non_empty_subs).save(path, encoding='utf-8')
+
 
 if __name__ == '__main__':
     path = "/home/yao/Videos/null.srt"
