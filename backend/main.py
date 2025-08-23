@@ -439,7 +439,7 @@ class SubtitleExtractor:
                 cpu_count = max(multiprocessing.cpu_count() - 1, 1)
         if platform.system() == 'Windows':
             # 定义执行命令
-            cmd = f"{path_vsf} --use_cuda -c -r -i \"{self.video_path}\" -o \"{self.temp_output_dir}\" -ces \"{self.vsf_subtitle}\" "
+            cmd = f"{path_vsf} -ovffmpeg --use_cuda -c -r -i \"{self.video_path}\" -o \"{self.temp_output_dir}\" -ces \"{self.vsf_subtitle}\" "
             cmd += f"-te {top_end} -be {bottom_end} -le {left_end} -re {right_end} -nthr {cpu_count} -nocrthr {cpu_count}"
             self.vsf_running = True
             # 计算进度
@@ -449,7 +449,7 @@ class SubtitleExtractor:
             self.vsf_running = False
         else:
             # 定义执行命令
-            cmd = f"{path_vsf} -c -r -i \"{self.video_path}\" -o \"{self.temp_output_dir}\" -ces \"{self.vsf_subtitle}\" "
+            cmd = f"{path_vsf} -ovffmpeg -c -r -i \"{self.video_path}\" -o \"{self.temp_output_dir}\" -ces \"{self.vsf_subtitle}\" "
             if config.USE_GPU:
                 cmd += "--use_cuda "
             cmd += f"-te {top_end} -be {bottom_end} -le {left_end} -re {right_end} -nthr {cpu_count} -dsi"
