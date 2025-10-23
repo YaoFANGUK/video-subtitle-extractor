@@ -378,7 +378,9 @@ class SubtitleExtractor:
                         total_ms = int(ms) + int(s) * 1000 + int(m) * 60 * 1000 + int(h) * 60 * 60 * 1000
                         if total_ms > last_total_ms:
                             frame_no = int(total_ms / self.fps)
-                            task = (self.frame_count, frame_no, None, None, total_ms, self.default_subtitle_area)
+                            # 增加1帧时间，避免cv2截图时可能获取到没字幕的关键帧
+                            frame_time = total_ms + (1000 / self.fps)
+                            task = (self.frame_count, frame_no, None, None, frame_time, self.default_subtitle_area)
                             self.subtitle_ocr_task_queue.put(task)
                         last_total_ms = total_ms
                         if total_ms / duration_ms >= 1:
@@ -403,7 +405,9 @@ class SubtitleExtractor:
                     total_ms = int(ms) + int(s) * 1000 + int(m) * 60 * 1000 + int(h) * 60 * 60 * 1000
                     if total_ms > last_total_ms:
                         frame_no = int(total_ms / self.fps)
-                        task = (self.frame_count, frame_no, None, None, total_ms, self.default_subtitle_area)
+                        # 增加1帧时间，避免cv2截图时可能获取到没字幕的关键帧
+                        frame_time = total_ms + (1000 / self.fps)
+                        task = (self.frame_count, frame_no, None, None, frame_time, self.default_subtitle_area)
                         self.subtitle_ocr_task_queue.put(task)
                     last_total_ms = total_ms
                     if total_ms / duration_ms >= 1:
