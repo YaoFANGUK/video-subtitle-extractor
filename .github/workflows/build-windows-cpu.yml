@@ -36,7 +36,7 @@ jobs:
       with:
         python-version: '3.12'
         cache: 'pip' # caching pip dependencies
-    - run: pip install paddlepaddle==3.0.0rc1
+    - run: pip install paddlepaddle==3.0.0
     - run: pip install -r requirements.txt
     - run: pip freeze > requirements.txt
     - run: pip install QPT==1.0b8 setuptools
@@ -58,7 +58,7 @@ jobs:
     - run: |
         python backend/tools/makedist.py && \
         mv ../vse_out ./vse_out && \
-        rm -fv ./vse_out/*/opt/packages/numpy-2*
+        cp ./vse_out/Debug/Debug-进入虚拟环境.cmd ./vse_out/Release/
       env:
         QPT_Action: "True"
       shell: bash

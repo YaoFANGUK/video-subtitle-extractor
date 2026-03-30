@@ -36,7 +36,7 @@ jobs:
       with:
         python-version: '3.12'
         cache: 'pip' # caching pip dependencies
-    - run: pip install paddlepaddle-gpu==3.0.0rc1 -i https://www.paddlepaddle.org.cn/packages/stable/cu118/
+    - run: pip install paddlepaddle-gpu==3.0.0 -i https://www.paddlepaddle.org.cn/packages/stable/cu118/
     - run: pip install -r requirements.txt
     - run: pip freeze > requirements.txt
     - run: pip install QPT==1.0b8 setuptools
@@ -56,13 +56,12 @@ jobs:
       if: (github.event.inputs.ssh == 'true' && github.event.inputs.ssh  != 'false') || contains(github.event.action, 'ssh')
       uses: mxschmitt/action-tmate@v3
     - run: |
-        python backend/tools/makedist.py && \
+        python backend/tools/makedist.py --cuda=11.8 && \
         mv ../vse_out ./vse_out && \
+        cp ./vse_out/Debug/Debug-进入虚拟环境.cmd ./vse_out/Release/
         git checkout requirements.txt && \
-        pip download -d ./vse_out/Debug/opt/packages/ paddlepaddle-gpu==3.0.0rc1 -i https://www.paddlepaddle.org.cn/packages/stable/cu118/ && \
         pip download -d ./vse_out/Debug/opt/packages/ -r requirements.txt && \
         cp -rfv ./vse_out/Debug/opt/packages/* ./vse_out/Release/opt/packages/ && \
-        rm -fv ./vse_out/*/opt/packages/numpy-2* && \
         rm -fv ./vse_out/*/opt/packages/paddlepaddle-* && \
         rm -fv ./vse_out/*/opt/PaddlePaddlePackage/001-* 
       env:
@@ -92,6 +91,6 @@ jobs:
         prerelease: true
         tag_name: ${{ env.VERSION }}
         target_commitish: ${{ github.sha }}
-        name: 硬字幕提取器 ${{ env.VERSION }}
+        name: 硬字幕提取器 v${{ env.VERSION }}
         files: |
           vse_out/Release/vse-v${{ env.VERSION }}-windows-nvidia-cuda-11.8.7z*

@@ -1,14 +1,16 @@
 import os
-import config
+from backend.config import *
 import importlib
 from paddleocr import PaddleOCR
+from backend.tools.hardware_accelerator import HardwareAccelerator
+from backend.tools.paddle_model_config import PaddleModelConfig
 
 # 加载文本检测+识别模型
 class OcrRecogniser:
     def __init__(self):
-        # 获取参数对象
-        importlib.reload(config)
-        self.recogniser = self.init_model()
+        self.recogniser = None
+        # 占位，应该由main.py初始化
+        self.hardware_accelerator = HardwareAccelerator()
 
     @staticmethod
     def y_round(y):
@@ -20,6 +22,8 @@ class OcrRecogniser:
             return y_max
 
     def predict(self, image):
+        if not self.recogniser:
+            self.recogniser = self.init_model()
         detection_box, recognise_result, _ = self.recogniser(image, cls=False)
         if len(detection_box) > 0:
             coordinate_list = list()
@@ -82,74 +86,32 @@ class OcrRecogniser:
             return detection_box, recognise_result
 
     def init_model(self):
-        return PaddleOCR(use_gpu=config.USE_GPU,
-                         gpu_mem=500,
-                         det_algorithm='DB',
-                         # 设置文本检测模型路径
-                         det_model_dir=self.convertToOnnxModelIfNeeded(config.DET_MODEL_PATH),
-                         rec_algorithm='CRNN',
-                         # 设置每张图文本框批处理数量
-                         rec_batch_num=config.REC_BATCH_NUM,
-                         # 设置文本识别模型路径
-                         rec_model_dir=self.convertToOnnxModelIfNeeded(config.REC_MODEL_PATH),
-                         max_batch_size=config.MAX_BATCH_SIZE,
-                         det=True,
-                         use_angle_cls=False,
-                         drop_score=0,
-                         lang=config.REC_CHAR_TYPE,
-                         ocr_version=f'PP-OCR{config.MODEL_VERSION.lower()}',
-                         rec_image_shape=config.REC_IMAGE_SHAPE,
-                         use_onnx=len(config.ONNX_PROVIDERS) > 0,
-                         onnx_providers=config.ONNX_PROVIDERS,
-                         debug=False, show_log=False)
+        model_config = PaddleModelConfig(self.hardware_accelerator)
+        onnx_providers = self.hardware_accelerator.onnx_providers
+        return PaddleOCR(
+            use_gpu=self.hardware_accelerator.has_cuda(),
+            gpu_mem=500,
+            det_algorithm='DB',
+            # 设置文本检测模型路径
+            det_model_dir=model_config.convertToOnnxModelIfNeeded(model_config.DET_MODEL_PATH),
+            rec_algorithm='CRNN',
+            # 设置每张图文本框批处理数量
+            rec_batch_num=config.recBatchNumber.value,
+            # 设置文本识别模型路径
+            rec_model_dir=model_config.convertToOnnxModelIfNeeded(model_config.REC_MODEL_PATH),
+            max_batch_size=config.maxBatchSize.value,
+            det=True,
+            use_angle_cls=False,
+            drop_score=0,
+            lang=model_config.REC_CHAR_TYPE,
+            ocr_version=f'PP-OCR{model_config.MODEL_VERSION.lower()}',
+            rec_image_shape=model_config.REC_IMAGE_SHAPE,
+            use_onnx=len(onnx_providers) > 0,
+            onnx_providers=onnx_providers,
+            debug=False, 
+            show_log=False,
+        )
     
-
-    def convertToOnnxModelIfNeeded(self, model_dir, model_filename="inference.pdmodel", params_filename="inference.pdiparams", opset_version=14):
-        """Converts a Paddle model to ONNX if ONNX providers are available and the model does not already exist."""
-        
-        if not config.ONNX_PROVIDERS:
-            return model_dir
-        
-        onnx_model_path = os.path.join(model_dir, "model.onnx")
-
-        if os.path.exists(onnx_model_path):
-            print(f"ONNX model already exists: {onnx_model_path}. Skipping conversion.")
-            return onnx_model_path
-        
-        print(f"Converting Paddle model {model_dir} to ONNX...")
-        model_file = os.path.join(model_dir, model_filename)
-        params_file = os.path.join(model_dir, params_filename) if params_filename else ""
-
-        try:
-            import paddle2onnx
-            # Ensure the target directory exists
-            os.makedirs(os.path.dirname(onnx_model_path), exist_ok=True)
-
-            # Convert and save the model
-            onnx_model = paddle2onnx.export(
-                model_filename=model_file,
-                params_filename=params_file,
-                save_file=onnx_model_path,
-                opset_version=opset_version,
-                auto_upgrade_opset=True,
-                verbose=True,
-                enable_onnx_checker=True,
-                enable_experimental_op=True,
-                enable_optimize=True,
-                custom_op_info={},
-                deploy_backend="onnxruntime",
-                calibration_file="calibration.cache",
-                external_file=os.path.join(model_dir, "external_data"),
-                export_fp16_model=False,
-            )
-
-            print(f"Conversion successful. ONNX model saved to: {onnx_model_path}")
-            return onnx_model_path
-        except Exception as e:
-            print(f"Error during conversion: {e}")
-            return model_dir
-
-
 def get_coordinates(dt_box):
     """
     从返回的检测框中获取坐标

@@ -23,7 +23,7 @@
   - **auto**: (Recommended) Automatically selects the model. It uses the lightweight model under the CPU, and the precise model under the GPU. While subtitle extraction speed is slower and might miss a minor amount of subtitles, there are almost no typos.
   - **accurate**: (Not Recommended) Uses the precise model with frame-by-frame detection under the GPU, ensuring no missed subtitles and almost non-existent typos, but the speed is **very slow**.
 
-<p style="text-align:center;"><img src="https://github.com/YaoFANGUK/video-subtitle-extractor/raw/main/design/demo.png" alt="demo.png"/></p>
+<p style="text-align:center;"><img src="design/demo.png" alt="demo.png"/></p>
 
 **Features**：
 
@@ -72,13 +72,15 @@
 
 | Pre-built Package Name          | Python | Paddle | Environment                       | Supported Compute Capability Range |
 |----------------------------------|--------|--------|-----------------------------------|------------------------------------|
-| `vse-windows-cpu.7z`             | 3.12   | 3.0rc1 | No GPU, CPU only                  | Universal                         |
-| `vse-windows-directml.7z`        | 3.12   | 3.0rc1 | Windows without Nvidia GPU         | Universal                         |
+| `vse-windows-cpu.7z`             | 3.12   | 3.0.0 | No GPU, CPU only                  | Universal                         |
+| `vse-windows-directml.7z`        | 3.12   | 3.0.0 | Windows without Nvidia GPU         | Universal                         |
 | `vse-windows-nvidia-cuda-10.2.7z`| 3.11   | 2.5.2  | CUDA 10.2                         | 3.0 – 7.5                          |
-| `vse-windows-nvidia-cuda-11.8.7z`| 3.12   | 3.0rc1 | CUDA 11.8                         | 3.5 – 8.9                          |
-| `vse-windows-nvidia-cuda-12.3.7z`| 3.12   | 3.0rc1 | CUDA 12.3                         | 5.0 – 9.0                          |
+| `vse-windows-nvidia-cuda-11.8.7z`| 3.12   | 3.0.0 | CUDA 11.8                         | 3.5 – 8.9                          |
+| `vse-windows-nvidia-cuda-12.6.7z`| 3.12   | 3.0.0 | CUDA 12.6                         | 5.0 – 9.0                          |
 
 > NVIDIA provides a list of supported compute capabilities for each GPU model. You can refer to the following link: [CUDA GPUs](https://developer.nvidia.com/cuda-gpus) to check which CUDA version is compatible with your GPU.
+
+> NVIDIA 50 series graphics cards require CUDA 12.8.0 or above, but Paddle 3.0.0 does not support it yet, so it is recommended to use the DirectML universal version.
 
 **Recognition Mode Selection**:
 
@@ -181,7 +183,7 @@ This project supports four runtime modes: CUDA (NVIDIA GPU acceleration), CPU (n
 
 - Install PaddlePaddle GPU version (CUDA 11.8):
   ```shell
-  pip install paddlepaddle-gpu==3.0.0rc1 -i https://www.paddlepaddle.org.cn/packages/stable/cu118/
+  pip install paddlepaddle-gpu==3.0.0 -i https://www.paddlepaddle.org.cn/packages/stable/cu118/
   pip install -r requirements.txt
   ```
 
@@ -190,18 +192,18 @@ This project supports four runtime modes: CUDA (NVIDIA GPU acceleration), CPU (n
 - Suitable for Windows devices with AMD/NVIDIA/Intel GPUs.
 - Install ONNX Runtime DirectML version:
   ```shell
-  pip install paddlepaddle==3.0.0rc1 -i https://www.paddlepaddle.org.cn/packages/stable/cpu/
+  pip install paddlepaddle==3.0.0 -i https://www.paddlepaddle.org.cn/packages/stable/cpu/
   pip install -r requirements.txt
   pip install -r requirements_directml.txt
   ```
 
-##### (3) ONNX (For macOS, AMD ROCm, and other GPU acceleration environments, not tested!)
+#### (3) ONNX (Suitable for macOS, AMD ROCm, and other hardware-accelerated environments; the basic setup is the same as DirectML, not tested!)
 
 - If using this method, DO NOT REPORT ISSUES.
 - Suitable for Linux or macOS devices with AMD/Metal GPUs/Apple Silicon GPUs.
 - Install ONNX Runtime DirectML version:
   ```shell
-  pip install paddlepaddle==3.0.0rc1 -i https://www.paddlepaddle.org.cn/packages/stable/cpu/
+  pip install paddlepaddle==3.0.0 -i https://www.paddlepaddle.org.cn/packages/stable/cpu/
   pip install -r requirements.txt
 
   # Read documentation https://onnxruntime.ai/docs/execution-providers/
@@ -210,7 +212,6 @@ This project supports four runtime modes: CUDA (NVIDIA GPU acceleration), CPU (n
   # Example:
   # requirements_coreml.txt
   #   paddle2onnx==1.3.1
-  #   onnxruntime-gpu==1.20.1
   #   onnxruntime-coreml==1.13.1
 
   pip install -r requirements_coreml.txt
@@ -221,7 +222,7 @@ This project supports four runtime modes: CUDA (NVIDIA GPU acceleration), CPU (n
 - Suitable for systems without GPU or those that do not wish to use GPU.
 - Install the CPU version of PaddlePaddle:
   ```shell
-  pip install paddlepaddle==3.0.0rc1 -i https://www.paddlepaddle.org.cn/packages/stable/cpu/
+  pip install paddlepaddle==3.0.0 -i https://www.paddlepaddle.org.cn/packages/stable/cpu/
   pip install -r requirements.txt
   ```
 

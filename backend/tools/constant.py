@@ -10,7 +10,7 @@ class SubtitleArea(Enum):
     # 不知道字幕区域可能出现的位置
     UNKNOWN = 2
     # 明确知道字幕区域出现的位置
-    CUSTOM = 3
+    # CUSTOM = 3
 
 
 class BackgroundColor(Enum):
@@ -19,6 +19,10 @@ class BackgroundColor(Enum):
     DARK = 1
     UNKNOWN = 2
 
+
+class VideoSubFinderDecoder(Enum):
+    OPENCV = "OpenCV"
+    FFMPEG = "FFmpeg"
 
 BGR_COLOR_GREEN = (0, 0xff, 0)
 BGR_COLOR_BLUE = (0xff, 0, 0)

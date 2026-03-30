@@ -48,8 +48,13 @@ jobs:
     # 最后一个支持10.2版本的Paddle
     # https://www.paddlepaddle.org.cn/documentation/docs/en/2.5/install/Tables_en.html
     - run: python -m pip install paddlepaddle-gpu==2.5.2.post102 -f https://www.paddlepaddle.org.cn/whl/windows/mkl/avx/stable.html
+    - run: sed -i 's/numpy==.*/numpy==1.26.4/g' requirements.txt
+      shell: bash
     - run: pip install -r requirements.txt
-    - run: pip freeze > requirements.txt
+    - run: |
+        mv -fv requirements.txt requirements.txt.bak && \
+        pip freeze > requirements.txt
+      shell: bash
     - run: pip install QPT==1.0b8 setuptools
     - name: 获取 site-packages 路径
       shell: bash
@@ -69,9 +74,11 @@ jobs:
     - run: |
         python backend/tools/makedist.py --cuda=10.2 && \
         mv ../vse_out ./vse_out && \
-        git checkout requirements.txt && \
-        pip download -d ./vse_out/Debug/opt/packages/ paddlepaddle-gpu==2.5.2.post102 -f https://www.paddlepaddle.org.cn/whl/windows/mkl/avx/stable.html && \
+        cp ./vse_out/Debug/Debug-进入虚拟环境.cmd ./vse_out/Release/
+        mv -fv requirements.txt.bak requirements.txt && \
         pip download -d ./vse_out/Debug/opt/packages/ -r requirements.txt && \
+        # for paddlepaddle-gpu < 3.0.0
+        pip download -d./vse_out/Release/opt/packages/ numpy==1.26.4 && \
         cp -rfv ./vse_out/Debug/opt/packages/* ./vse_out/Release/opt/packages/ && \
         rm -fv ./vse_out/*/opt/packages/numpy-2* && \
         rm -fv ./vse_out/*/opt/packages/paddlepaddle-* && \
@@ -111,6 +118,6 @@ jobs:
         prerelease: true
         tag_name: ${{ env.VERSION }}
         target_commitish: ${{ github.sha }}
-        name: 硬字幕提取器 ${{ env.VERSION }}
+        name: 硬字幕提取器 v${{ env.VERSION }}
         files: |
           vse_out/Release/vse-v${{ env.VERSION }}-windows-nvidia-cuda-10.2.7z*
