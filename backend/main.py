@@ -26,6 +26,7 @@ import subprocess
 from backend.config import *
 from backend.tools.hardware_accelerator import HardwareAccelerator
 from backend.tools import reformat
+
 from backend.tools.ocr import OcrRecogniser, get_coordinates
 from backend.tools import subtitle_ocr
 from backend.tools.paddle_model_config import PaddleModelConfig
@@ -37,6 +38,7 @@ import platform
 import multiprocessing
 import time
 import pysrt
+
 
 class SubtitleExtractor:
     """
@@ -110,16 +112,18 @@ class SubtitleExtractor:
         self.update_progress(ocr=0, frame_extract=0)
         self.append_output('-----------------------------')
         # 打印识别语言与识别模式
-        self.append_output(f"  {tr['Main']['RecSubLang']}：{config.language.value}  |  {tr['Main']['RecMode']}：{config.mode.value}")
+        self.append_output(
+            f"  {tr['Main']['RecSubLang']}：{config.language.value}  |  {tr['Main']['RecMode']}：{config.mode.value}")
         # 如果使用GPU加速，则打印GPU加速提示
         if self.hardware_accelerator.has_accelerator():
             self.append_output(f"  {tr['Main']['AcceleratorON'].format(self.hardware_accelerator.accelerator_name)}")
 
         # 打印视频帧数与帧率
         self.append_output(f"  {tr['Main']['FrameCount']}：{self.frame_count}"
-              f"  |  {tr['Main']['FrameRate']}：{self.fps}")
+                           f"  |  {tr['Main']['FrameRate']}：{self.fps}")
         # 打印加载模型信息
-        self.append_output(f"  DET: {os.path.basename(self.model_config.DET_MODEL_PATH)}  |  REC: {os.path.basename(self.model_config.REC_MODEL_PATH)}")
+        self.append_output(
+            f"  DET: {os.path.basename(self.model_config.DET_MODEL_PATH)}  |  REC: {os.path.basename(self.model_config.REC_MODEL_PATH)}")
         self.append_output('-----------------------------')
         # 打印视频帧提取开始提示
         self.append_output(tr['Main']['StartProcessFrame'])
@@ -197,17 +201,17 @@ class SubtitleExtractor:
         # 确保输出目录存在
         if not os.path.exists(self.temp_output_dir):
             os.makedirs(self.temp_output_dir)
-            
+
         # 确保视频已打开
         if not self.video_cap.isOpened():
             self.video_cap = cv2.VideoCapture(self.video_path)
-            
+
         # 将视频指针设置到第一帧
         # self.video_cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-        
+
         # 读取第一帧
         ret, frame = self.video_cap.read()
-        
+
         if ret:
             # 如果有字幕区域，绘制矩形
             sub_area = self.sub_area
@@ -215,13 +219,13 @@ class SubtitleExtractor:
                 # 绘制绿色矩形框
                 cv2.rectangle(frame, (sub_area.xmin, sub_area.ymin), (sub_area.xmax, sub_area.ymax), (0, 255, 0), 2)
                 # 添加文字标注
-                cv2.putText(frame, "Subtitle Area", (sub_area.xmin, sub_area.ymin - 10), 
-                           cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
-            
+                cv2.putText(frame, "Subtitle Area", (sub_area.xmin, sub_area.ymin - 10),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+
             # 保存图像
             output_path = os.path.join(self.temp_output_dir, 'sub_area.jpg')
             cv2.imwrite(output_path, frame)
-            
+
             # 重置视频指针到第一帧
             self.video_cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
@@ -308,7 +312,8 @@ class SubtitleExtractor:
                     dt_box, rec_res = self.ocr.predict(frame)
                     area_text1 = "".join(self.__get_area_text((dt_box, rec_res)))
                     if start_frame_no not in compare_ocr_result_cache.keys():
-                        compare_ocr_result_cache[current_frame_no] = {'text': area_text1, 'dt_box': dt_box, 'rec_res': rec_res}
+                        compare_ocr_result_cache[current_frame_no] = {'text': area_text1, 'dt_box': dt_box,
+                                                                      'rec_res': rec_res}
                         frame_lru_list.append((frame, current_frame_no))
                         ocr_args_list.append((self.frame_count, current_frame_no))
                         # 缓存头帧
@@ -327,7 +332,8 @@ class SubtitleExtractor:
                 # 如果在找结束帧的时候
                 if is_finding_end_frame_no:
                     # 判断该帧与头帧ocr内容是否一致,若不一致则找到尾，尾巴为前一帧
-                    if not self._compare_ocr_result(compare_ocr_result_cache, None, start_frame_no, frame, current_frame_no):
+                    if not self._compare_ocr_result(compare_ocr_result_cache, None, start_frame_no, frame,
+                                                    current_frame_no):
                         is_finding_end_frame_no = False
                         is_finding_start_frame_no = True
                         end_frame_no = current_frame_no - 1
@@ -349,7 +355,7 @@ class SubtitleExtractor:
                 frame_lru_list.pop(0)
 
             # if len(start_end_frame_no) > 0:
-                # self.append_output(start_end_frame_no)
+            # self.append_output(start_end_frame_no)
 
             while len(ocr_args_list) > 1:
                 total_frame_count, ocr_info_frame_no = ocr_args_list.pop(0)
@@ -384,6 +390,7 @@ class SubtitleExtractor:
         if self.video_cap:
             self.video_cap.release()
             self.video_cap = None
+
         def count_process():
             duration_ms = (self.frame_count / self.fps) * 1000
             last_total_ms = 0
@@ -481,10 +488,11 @@ class SubtitleExtractor:
             # 计算进度
             try:
                 self.vsf_running = True
-                Thread(target=count_process, daemon=True).start()       
+                Thread(target=count_process, daemon=True).start()
                 # 已知BUG: test_chinese_cht.flv在net drive上会导致无法停止, 但在本地不会, 可能是vsf的原因
                 p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=1,
-                                    close_fds='posix' in sys.builtin_module_names, shell=False, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
+                                     close_fds='posix' in sys.builtin_module_names, shell=False,
+                                     creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
                 ProcessManager.instance().add_process(p)
                 self.manage_process(p.pid)
                 p.wait()
@@ -500,14 +508,15 @@ class SubtitleExtractor:
             self.vsf_running = True
             try:
                 p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=1,
-                                    close_fds='posix' in sys.builtin_module_names, shell=True,
-                                    start_new_session=True)
+                                     close_fds='posix' in sys.builtin_module_names, shell=True,
+                                     start_new_session=True)
                 Thread(target=vsf_output, daemon=True, args=(p.stderr,)).start()
                 ProcessManager.instance().add_process(p)
                 self.manage_process(p.pid)
                 p.wait()
             finally:
                 self.vsf_running = False
+
     def filter_watermark(self):
         """
         去除原始字幕文本中的水印区域的文本
@@ -773,7 +782,9 @@ class SubtitleExtractor:
             while idx_j < content_list_len:
                 # 计算当前行与下一行的Levenshtein距离
                 # 判决idx_j的下一帧是否与idx_i不同，若不同（或者是最后一帧）则找到结束帧
-                if idx_j + 1 == content_list_len or ratio(i.content.replace(' ', ''), content_list[idx_j + 1].content.replace(' ', '')) < (config.thresholdTextSimilarity.value / 100.0):
+                if idx_j + 1 == content_list_len or ratio(i.content.replace(' ', ''),
+                                                          content_list[idx_j + 1].content.replace(' ', '')) < (
+                        config.thresholdTextSimilarity.value / 100.0):
                     # 若找到终点帧,定义字幕结束帧帧号
                     end_frame = content_list[idx_j].no
                     if not self.use_vsf:
@@ -836,11 +847,13 @@ class SubtitleExtractor:
         indexed = sorted(enumerate(coordinates_list), key=lambda x: x[1][0])
         # parent数组用于并查集
         parent = list(range(n))
+
         def find(i):
             while parent[i] != i:
                 parent[i] = parent[parent[i]]
                 i = parent[i]
             return i
+
         def union(i, j):
             ri, rj = find(i), find(j)
             if ri != rj:
@@ -848,6 +861,7 @@ class SubtitleExtractor:
                 if ri > rj:
                     ri, rj = rj, ri
                 parent[rj] = ri
+
         # 滑动窗口：xmin已排序，只要xmin差值超过容忍度就移动左边界
         left = 0
         for right in range(n):
@@ -1001,6 +1015,7 @@ class SubtitleExtractor:
                 # self.append_output(f'recv total_ms:{total_ms}')
                 if current_frame_no == -1:
                     return
+
         options = {
             'REC_CHAR_TYPE': config.language.value,
             'DROP_SCORE': config.dropScore.value / 100.0,
@@ -1008,9 +1023,10 @@ class SubtitleExtractor:
             'DEBUG_OCR_LOSS': config.debugOcrLoss.value,
             'HARDWARD_ACCELERATOR': self.hardware_accelerator,
         }
-        process, task_queue, progress_queue = subtitle_ocr.async_start(self.video_path, self.raw_subtitle_path, self.sub_area, options)
+        process, task_queue, progress_queue = subtitle_ocr.async_start(self.video_path, self.raw_subtitle_path,
+                                                                       self.sub_area, options)
         ProcessManager.instance().add_process(process)
-        self.manage_process(process.pid)
+        self.manage_process(getattr(process, 'pid', None))
         self.subtitle_ocr_task_queue = task_queue
         self.subtitle_ocr_progress_queue = progress_queue
         # 开启线程负责更新OCR进度
@@ -1035,23 +1051,23 @@ class SubtitleExtractor:
     def add_progress_listener(self, listener):
         """
         添加进度监听器
-        
+
         Args:
             listener: 一个回调函数，接收参数 (progress_ocr, progress_frame_extract, progress_total, isFinished)
         """
         if listener not in self.progress_listeners:
             self.progress_listeners.append(listener)
-    
+
     def remove_progress_listener(self, listener):
         """
         移除进度监听器
-        
+
         Args:
             listener: 要移除的监听器函数
         """
         if listener in self.progress_listeners:
             self.progress_listeners.remove(listener)
-            
+
     def notify_progress_listeners(self):
         """
         通知所有进度监听器当前进度
@@ -1064,6 +1080,7 @@ class SubtitleExtractor:
 
     def manage_process(pid):
         pass
+
 
 if __name__ == '__main__':
     multiprocessing.set_start_method("spawn")

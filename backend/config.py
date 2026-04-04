@@ -1,7 +1,8 @@
 
 import os
+import sys
 from pathlib import Path
-from qfluentwidgets import (qconfig, ConfigItem, QConfig, OptionsValidator, BoolValidator, OptionsConfigItem, 
+from qfluentwidgets import (qconfig, ConfigItem, QConfig, OptionsValidator, BoolValidator, OptionsConfigItem,
                             EnumSerializer, RangeValidator, RangeConfigItem, ConfigValidator)
 from backend.tools.constant import SubtitleArea, VideoSubFinderDecoder
 import configparser
@@ -14,14 +15,20 @@ PROJECT_RELEASES_URL = PROJECT_HOME_URL + "/releases"
 PROJECT_UPDATE_URLS = [
     "https://api.github.com/repos/YaoFANGUK/video-subtitle-extractor/releases/latest",
     "https://accelerate.xdow.net/api/repos/YaoFANGUK/video-subtitle-extractor/releases/latest",
-] 
+]
 # 硬件加速选项开关
 HARDWARD_ACCELERATION_OPTION = True
+
+# 项目的base目录（打包后资源在 sys._MEIPASS/backend 下）
+if getattr(sys, 'frozen', False):
+    BASE_DIR = os.path.join(sys._MEIPASS, 'backend')
+else:
+    BASE_DIR = str(Path(os.path.abspath(__file__)).parent)
 
 # 读取界面语言配置
 tr = configparser.ConfigParser()
 
-TRANSLATION_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'interface', f"en.ini")
+TRANSLATION_FILE = os.path.join(BASE_DIR, 'interface', f"en.ini")
 tr.read(TRANSLATION_FILE, encoding='utf-8')
 
 class Config(QConfig):
@@ -97,17 +104,20 @@ class Config(QConfig):
     # VideoSubFinder 视频解码组件
     videoSubFinderDecoder = OptionsConfigItem("Main", "VideoSubFinderDecoder", VideoSubFinderDecoder.OPENCV, OptionsValidator(VideoSubFinderDecoder), EnumSerializer(VideoSubFinderDecoder))
 
-CONFIG_FILE = 'config/config.json'
+# 打包后 app bundle 内为只读，配置文件需存到用户可写目录
+if getattr(sys, 'frozen', False):
+    _config_dir = os.path.join(os.path.expanduser('~'), 'Library', 'Application Support', 'VideoSubtitleExtractor')
+    os.makedirs(_config_dir, exist_ok=True)
+    CONFIG_FILE = os.path.join(_config_dir, 'config.json')
+else:
+    CONFIG_FILE = 'config/config.json'
 config = Config()
 qconfig.load(CONFIG_FILE, config)
 
 # 读取界面语言配置
 tr = configparser.ConfigParser()
 
-TRANSLATION_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'interface', f"{config.interface.value}.ini")
+TRANSLATION_FILE = os.path.join(BASE_DIR, 'interface', f"{config.interface.value}.ini")
 tr.read(TRANSLATION_FILE, encoding='utf-8')
-
-# 项目的base目录
-BASE_DIR = str(Path(os.path.abspath(__file__)).parent)
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'

@@ -1,9 +1,33 @@
 import os
+import traceback
 from backend.config import *
 import importlib
 from paddleocr import PaddleOCR
 from backend.tools.hardware_accelerator import HardwareAccelerator
 from backend.tools.paddle_model_config import PaddleModelConfig
+
+# PyInstaller compatibility: bypass paddlex dependency checks
+# importlib.metadata can't find dist-info dirs in the bundle, causing false alarms.
+# All deps are bundled, so the checks are safe to skip.
+try:
+    import paddlex.utils.deps as _pdeps
+    import importlib.util as _il_util
+
+    # Patch is_dep_available: use find_spec for special deps, True for everything else
+    def _patched_is_dep_available(dep, /, check_version=False):
+        _special = {"paddlepaddle": "paddle", "paddle-custom-device": "paddle_custom_device",
+                    "ultra-infer": "ultra_infer", "fastdeploy": "fastdeploy",
+                    "onnxruntime": "onnxruntime"}
+        if dep in _special:
+            return _il_util.find_spec(_special[dep]) is not None
+        return True
+
+    _pdeps.is_dep_available = _patched_is_dep_available
+    # Safety net: also bypass require_extra and require_deps
+    _pdeps.require_extra = lambda *a, **kw: None
+    _pdeps.require_deps = lambda *a, **kw: None
+except Exception as e:
+    print(f"Warning: failed to patch paddlex deps: {e}")
 
 # 加载文本检测+识别模型
 class OcrRecogniser:
@@ -105,7 +129,15 @@ class OcrRecogniser:
         if model_config.REC_MODEL_NAME:
             kwargs['text_recognition_model_name'] = model_config.REC_MODEL_NAME
 
-        return PaddleOCR(**kwargs)
+        try:
+            return PaddleOCR(**kwargs)
+        except Exception as e:
+            # Print full error chain for debugging
+            print(f"Error initializing PaddleOCR: {e}")
+            if e.__cause__:
+                print(f"  Caused by: {e.__cause__}")
+            traceback.print_exc()
+            raise
 
 
 def get_coordinates(dt_box):

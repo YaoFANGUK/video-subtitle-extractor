@@ -1,6 +1,8 @@
 import os
+import sys
 import re
-from multiprocessing import Queue, Process
+import multiprocessing
+import traceback
 import cv2
 from PIL import ImageFont, ImageDraw, Image
 from tqdm import tqdm
@@ -26,7 +28,26 @@ def extract_subtitles(data, text_recogniser, img, raw_subtitles,
     rec_res = rec_res_arg
     # 如果没有检测结果，则获取检测结果
     if dt_box is None or rec_res is None:
-        dt_box, rec_res = text_recogniser.predict(img)
+        # 用线程+超时包装 predict 调用，防止 PaddleOCR 在某些帧上死锁
+        _predict_result = [None, None]
+        _predict_error = [None]
+        def _do_predict():
+            try:
+                _predict_result[0], _predict_result[1] = text_recogniser.predict(img)
+            except Exception as e:
+                _predict_error[0] = e
+        _predict_thread = Thread(target=_do_predict, daemon=True)
+        _predict_thread.start()
+        _predict_thread.join(timeout=120)  # 单帧OCR最多等120秒
+        if _predict_thread.is_alive():
+            print(f"Warning: OCR predict timeout at frame {data.get('i', '?')}, skipping frame")
+            return
+        if _predict_error[0] is not None:
+            import traceback as _tb
+            print(f"Warning: OCR predict error at frame {data.get('i', '?')}: {_predict_error[0]}")
+            _tb.print_exc()
+            return
+        dt_box, rec_res = _predict_result[0], _predict_result[1]
         # rec_res格式为： ("hello", 0.997)
     # 获取文本坐标
     coordinates = get_coordinates(dt_box)
@@ -145,15 +166,19 @@ def ocr_task_consumer(ocr_queue, raw_subtitle_path, sub_area, video_path, option
     try:
         while True:
             try:
-                frame_no, frame, dt_box, rec_res = ocr_queue.get(block=True)
+                frame_no, frame, dt_box, rec_res = ocr_queue.get(block=True, timeout=300)
                 if frame_no == -1:
                     return
                 data['i'] = frame_no
                 extract_subtitles(data, text_recogniser, frame, raw_subtitles, sub_area, options, dt_box,
                                     rec_res, ocr_loss_debug_path)
-            except Exception as e:
-                print(e)
+            except queue.Empty:
+                print("OCR consumer timeout: no task received in 300 seconds, exiting.")
                 break
+            except Exception as e:
+                print(f"OCR consumer error at frame {data.get('i', '?')}: {e}")
+                traceback.print_exc()
+                continue
     finally:
         with open(raw_subtitle_path, mode='w+', encoding='utf-8') as raw_subtitle_file:
             for line in raw_subtitles:
@@ -221,7 +246,7 @@ def subtitle_extract_handler(task_queue, progress_queue, video_path, raw_subtitl
     if os.path.exists(raw_subtitle_path):
         os.remove(raw_subtitle_path)
     # 创建一个OCR队列，大小建议值8-20
-    ocr_queue = queue.Queue(20)
+    ocr_queue = queue.Queue(50)
     # 创建一个OCR事件生产者线程
     ocr_event_producer_thread = Thread(target=ocr_task_producer,
                                        args=(ocr_queue, task_queue, progress_queue, video_path, raw_subtitle_path,),
@@ -255,15 +280,17 @@ def async_start(video_path, raw_subtitle_path, sub_area, options):
     assert 'HARDWARD_ACCELERATOR' in options, "options缺少参数: HARDWARD_ACCELERATOR"
     # 创建一个任务队列
     # 任务格式为：(total_frame_count总帧数, current_frame_no当前帧, dt_box检测框, rec_res识别结果, subtitle_area字幕区域)
-    task_queue = Queue()
+    task_queue = queue.Queue()
     # 创建一个进度更新队列
-    progress_queue = Queue()
-    # 新建一个进程
-    p = Process(target=subtitle_extract_handler,
-                args=(task_queue, progress_queue, video_path, raw_subtitle_path, sub_area, SimpleNamespace(**options),))
-    # 启动进程
-    p.start()
-    return p, task_queue, progress_queue
+    progress_queue = queue.Queue()
+    # 打包后 multiprocessing.Process 的 spawn 模式在子进程中重新初始化可能导致静默崩溃，
+    # 改用 Thread 避免 PyInstaller 环境下的子进程问题（PaddleOCR 底层 C 扩展会释放 GIL）
+    _ns = SimpleNamespace(**options)
+    t = Thread(target=subtitle_extract_handler,
+               args=(task_queue, progress_queue, video_path, raw_subtitle_path, sub_area, _ns,),
+               daemon=True)
+    t.start()
+    return t, task_queue, progress_queue
 
 
 def frame_preprocess(subtitle_area, frame):
