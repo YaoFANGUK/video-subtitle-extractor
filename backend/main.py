@@ -25,8 +25,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 import subprocess
 from backend.config import *
 from backend.tools.hardware_accelerator import HardwareAccelerator
-from tools import reformat
-
+from backend.tools import reformat
 from backend.tools.ocr import OcrRecogniser, get_coordinates
 from backend.tools import subtitle_ocr
 from backend.tools.paddle_model_config import PaddleModelConfig
