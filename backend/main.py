@@ -120,8 +120,8 @@ class SubtitleExtractor:
         self.append_output(f"{tr['Main']['FrameCount']}：{self.frame_count}"
               f"，{tr['Main']['FrameRate']}：{self.fps}")
         # 打印加载模型信息
-        self.append_output(f'{os.path.basename(os.path.dirname(self.model_config.DET_MODEL_PATH))}-{os.path.basename(self.model_config.DET_MODEL_PATH)}')
-        self.append_output(f'{os.path.basename(os.path.dirname(self.model_config.REC_MODEL_PATH))}-{os.path.basename(self.model_config.REC_MODEL_PATH)}')
+        self.append_output(f'[V{self.model_config.MODEL_VERSION}] DET: {os.path.basename(self.model_config.DET_MODEL_PATH)}')
+        self.append_output(f'[V{self.model_config.MODEL_VERSION}] REC: {os.path.basename(self.model_config.REC_MODEL_PATH)}')
         # 打印视频帧提取开始提示
         self.append_output(tr['Main']['StartProcessFrame'])
         # 删除缓存

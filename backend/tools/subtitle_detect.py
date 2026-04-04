@@ -1,6 +1,13 @@
 
-from .paddle_model_config import PaddleModelConfig
-from .hardware_accelerator import HardwareAccelerator
+from backend.tools.paddle_model_config import PaddleModelConfig
+from backend.tools.hardware_accelerator import HardwareAccelerator
+import numpy as np
+
+try:
+    from paddleocr import TextDetection
+except ImportError:
+    TextDetection = None
+
 
 class SubtitleDetect:
     """
@@ -8,19 +15,23 @@ class SubtitleDetect:
     """
 
     def __init__(self):
-        from paddleocr.tools.infer import utility
-        from paddleocr.tools.infer.predict_det import TextDetector
         hardware_accelerator = HardwareAccelerator.instance()
-        onnx_providers = hardware_accelerator.onnx_providers
         model_config = PaddleModelConfig(hardware_accelerator)
-        args = utility.parse_args()
-        args.det_algorithm = 'DB'
-        args.det_model_dir = model_config.convertToOnnxModelIfNeeded(model_config.DET_MODEL_PATH)
-        args.use_gpu=hardware_accelerator.has_cuda()
-        args.use_onnx=len(onnx_providers) > 0
-        args.onnx_providers=onnx_providers
-        self.text_detector = TextDetector(args)
+        # 使用 TextDetection 公开 API（PaddleOCR 3.x）
+        kwargs = {'model_dir': model_config.DET_MODEL_PATH}
+        if model_config.DET_MODEL_NAME:
+            kwargs['model_name'] = model_config.DET_MODEL_NAME
+        self.text_detector = TextDetection(**kwargs)
 
     def detect_subtitle(self, img):
-        dt_boxes, elapse = self.text_detector(img)
-        return dt_boxes, elapse
+        """
+        检测图像中的文本框
+        :param img: 输入图像
+        :return: (dt_boxes, elapse) dt_boxes为numpy数组，elapse为耗时
+        """
+        results = list(self.text_detector.predict(img))
+        if not results:
+            return np.array([]), 0
+        res = results[0]
+        dt_polys = res.get('dt_polys', np.array([]))
+        return dt_polys, 0

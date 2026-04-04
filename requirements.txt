@@ -13,6 +13,6 @@ numpy~=2.2
 shapely~=2.1
 six~=1.17
 setuptools~=80.9
-paddleocr~=2.10.0
+paddleocr~=3.4.0
 je-showinfilemanager==1.1.6a4
 imageio-ffmpeg~=0.6
