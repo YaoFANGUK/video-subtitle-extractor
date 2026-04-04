@@ -97,7 +97,7 @@
 
 - Graphic User Interface (GUI):
 
-<video src="https://github.com/YaoFANGUK/video-subtitle-extractor/raw/main/design/demo.mp4" controls="controls" width="100%" style="max-width:800px;"></video>
+<p style="text-align:center;"><img src="https://github.com/YaoFANGUK/video-subtitle-extractor/raw/main/design/demo.gif" alt="demo.gif"/></p>
 
 
 - Command Line Interface (CLI): 
