@@ -1,6 +1,4 @@
 import os
-from pathlib import Path
-from fsplit.filesplit import Filesplit
 from backend.config import BASE_DIR, config
 
 
@@ -12,9 +10,9 @@ class PaddleModelConfig:
 
         # 模型文件目录
         self.MODEL_BASE = os.path.join(BASE_DIR, 'models')
-        # 默认模型版本 V5
+        # 模型版本 V5
         self.MODEL_VERSION = 'V5'
-        # V3, V4, V5模型默认图形识别的shape为3, 48, 320
+        # V5模型默认图形识别的shape为3, 48, 320
         self.REC_IMAGE_SHAPE = '3,48,320'
         # 初始化模型路径
         self.REC_MODEL_PATH = None
@@ -37,7 +35,6 @@ class PaddleModelConfig:
             'sr', 'kk', 'ky', 'tg', 'mk', 'tt', 'cv', 'ba', 'mhr', 'mo',
             'udm', 'kv', 'os', 'bua', 'xal', 'tyv', 'sah', 'kaa',
         ]
-        self.ESLAV_LANG = ['ru', 'be', 'uk']
         self.DEVANAGARI_LANG = [
             'hi', 'mr', 'ne', 'bh', 'mai', 'ang', 'bho', 'mah', 'sck', 'new', 'gom',
             'sa', 'bgc', 'devanagari',
@@ -51,28 +48,10 @@ class PaddleModelConfig:
 
         # 如果设置了识别文本语言类型，则设置为对应的语言
         if self.REC_CHAR_TYPE in self.MULTI_LANG:
-            # 优先尝试 V5 模型
-            v5_resolved = self._try_resolve_v5_models()
-            if v5_resolved:
+            resolved = self._resolve_models()
+            if resolved:
                 self.MODEL_VERSION = 'V5'
-                self.DET_MODEL_PATH, self.REC_MODEL_PATH, self.DET_MODEL_NAME, self.REC_MODEL_NAME = v5_resolved
-            else:
-                # Fallback 到 V4/V3
-                self._resolve_legacy_models()
-
-            # 定义图像识别shape
-            if self.MODEL_VERSION == 'V2':
-                self.REC_IMAGE_SHAPE = '3,32,320'
-            else:
-                self.REC_IMAGE_SHAPE = '3,48,320'
-
-            # 查看该路径下是否有文本模型识别完整文件，没有的话合并小文件生成完整文件
-            if self.REC_MODEL_PATH and 'inference.pdiparams' not in os.listdir(self.REC_MODEL_PATH):
-                fs = Filesplit()
-                fs.merge(input_dir=self.REC_MODEL_PATH)
-            if self.DET_MODEL_PATH and 'inference.pdiparams' not in os.listdir(self.DET_MODEL_PATH):
-                fs = Filesplit()
-                fs.merge(input_dir=self.DET_MODEL_PATH)
+                self.DET_MODEL_PATH, self.REC_MODEL_PATH, self.DET_MODEL_NAME, self.REC_MODEL_NAME = resolved
 
     def _get_v5_rec_model_name(self, lang):
         """
@@ -82,8 +61,6 @@ class PaddleModelConfig:
         if lang in ('ch', 'chinese_cht', 'japan'):
             return 'PP-OCRv5_server_rec_infer'
         elif lang == 'en':
-            # en 可以用 server 模型(中英日通用) 也可以用专用 mobile 模型
-            # 这里优先使用 server 模型，精度更高
             return 'PP-OCRv5_server_rec_infer'
         elif lang == 'korean':
             return 'korean_PP-OCRv5_mobile_rec_infer'
@@ -130,9 +107,9 @@ class PaddleModelConfig:
             pass
         return None
 
-    def _try_resolve_v5_models(self):
+    def _resolve_models(self):
         """
-        尝试解析 V5 模型路径，返回 (det_model_path, rec_model_path, det_model_name, rec_model_name) 或 None
+        解析 V5 模型路径，返回 (det_model_path, rec_model_path, det_model_name, rec_model_name) 或 None
         """
         v5_base = os.path.join(self.MODEL_BASE, 'V5')
 
@@ -173,55 +150,3 @@ class PaddleModelConfig:
 
         rec_model_name = self._read_model_name_from_yaml(rec_model_path)
         return det_model_path, rec_model_path, det_model_name, rec_model_name
-
-    def _resolve_legacy_models(self):
-        """
-        Fallback: 使用 V4/V3 模型
-        """
-        # 尝试 V4
-        self.MODEL_VERSION = 'V4'
-
-        if config.mode.value == 'fast':
-            self.DET_MODEL_PATH = os.path.join(self.MODEL_BASE, self.MODEL_VERSION, 'ch_det_fast')
-            self.REC_MODEL_PATH = os.path.join(self.MODEL_BASE, self.MODEL_VERSION,
-                                               f'{self.REC_CHAR_TYPE}_rec_fast')
-        elif config.mode.value == 'auto':
-            if self.hardware_accelerator.has_accelerator():
-                self.DET_MODEL_PATH = os.path.join(self.MODEL_BASE, self.MODEL_VERSION, 'ch_det')
-                if self.REC_CHAR_TYPE == 'en':
-                    self.REC_MODEL_PATH = os.path.join(self.MODEL_BASE, self.MODEL_VERSION, f'ch_rec')
-                else:
-                    self.REC_MODEL_PATH = os.path.join(self.MODEL_BASE, self.MODEL_VERSION,
-                                                       f'{self.REC_CHAR_TYPE}_rec')
-            else:
-                self.DET_MODEL_PATH = os.path.join(self.MODEL_BASE, self.MODEL_VERSION, 'ch_det_fast')
-                self.REC_MODEL_PATH = os.path.join(self.MODEL_BASE, self.MODEL_VERSION,
-                                                   f'{self.REC_CHAR_TYPE}_rec_fast')
-        else:
-            self.DET_MODEL_PATH = os.path.join(self.MODEL_BASE, self.MODEL_VERSION, 'ch_det')
-            self.REC_MODEL_PATH = os.path.join(self.MODEL_BASE, self.MODEL_VERSION,
-                                               f'{self.REC_CHAR_TYPE}_rec')
-
-        # 如果V4没有大模型，则切换为fast模型
-        if not os.path.exists(self.REC_MODEL_PATH):
-            self.REC_MODEL_PATH = os.path.join(self.MODEL_BASE, self.MODEL_VERSION,
-                                               f'{self.REC_CHAR_TYPE}_rec_fast')
-        # 如果V4既没有大模型又没有fast模型，则使用V3
-        if not os.path.exists(self.REC_MODEL_PATH):
-            self.MODEL_VERSION = 'V3'
-            self.REC_MODEL_PATH = os.path.join(self.MODEL_BASE, self.MODEL_VERSION,
-                                               f'{self.REC_CHAR_TYPE}_rec')
-        if not os.path.exists(self.REC_MODEL_PATH):
-            self.MODEL_VERSION = 'V3'
-            self.REC_MODEL_PATH = os.path.join(self.MODEL_BASE, self.MODEL_VERSION,
-                                               f'{self.REC_CHAR_TYPE}_rec_fast')
-
-        # 语言组映射到共享模型
-        if self.REC_CHAR_TYPE in self.LATIN_LANG:
-            self.REC_MODEL_PATH = os.path.join(self.MODEL_BASE, self.MODEL_VERSION, f'latin_rec_fast')
-        elif self.REC_CHAR_TYPE in self.ARABIC_LANG:
-            self.REC_MODEL_PATH = os.path.join(self.MODEL_BASE, self.MODEL_VERSION, f'arabic_rec_fast')
-        elif self.REC_CHAR_TYPE in self.CYRILLIC_LANG:
-            self.REC_MODEL_PATH = os.path.join(self.MODEL_BASE, self.MODEL_VERSION, f'cyrillic_rec_fast')
-        elif self.REC_CHAR_TYPE in self.DEVANAGARI_LANG:
-            self.REC_MODEL_PATH = os.path.join(self.MODEL_BASE, self.MODEL_VERSION, f'devanagari_rec_fast')
