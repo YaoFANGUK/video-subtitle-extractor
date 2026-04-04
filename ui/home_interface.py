@@ -6,8 +6,9 @@ import time
 import traceback
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout
 from PySide6.QtCore import Slot, QRect, Signal
+from PySide6.QtGui import QTextCharFormat, QColor
 from PySide6 import QtWidgets
-from qfluentwidgets import (PushButton, CardWidget, TextEdit, FluentIcon)
+from qfluentwidgets import (PushButton, CardWidget, PlainTextEdit, FluentIcon)
 from ui.setting_interface import SettingInterface
 from ui.component.video_display_component import VideoDisplayComponent
 from ui.component.task_list_component import TaskListComponent, TaskStatus, TaskOptions
@@ -69,11 +70,10 @@ class HomeInterface(QWidget):
         self.video_slider.valueChanged.connect(self.slider_changed)
         
         # 输出文本区域
-        self.output_text = TextEdit()
+        self.output_text = PlainTextEdit()
         self.output_text.setMinimumHeight(150)
         self.output_text.setReadOnly(True)
         self.output_text.document().setDocumentMargin(10)
-        self.output_text.setStyleSheet("QTextEdit { background: transparent; }")
         # 连接滚动条值变化信号
         self.output_text.verticalScrollBar().valueChanged.connect(self.on_scroll_change)
         
@@ -512,28 +512,28 @@ class HomeInterface(QWidget):
         Args:
             *args: 要输出的内容，多个参数将用空格连接
         """
-        # 将所有参数转换为字符串并用空格连接
         text = ' '.join(str(arg) for arg in args).rstrip()
-        # 根据消息前缀选择颜色
-        if '【完成】' in text or text.startswith('[完成]'):
-            html = f'<span style="color:#10b981;">{text}</span>'
-        elif '【处理中】' in text or text.startswith('[处理中]'):
-            html = f'<span style="color:#3b82f6;">{text}</span>'
-        elif '【结束】' in text or text.startswith('[结束]'):
-            html = f'<span style="color:#10b981;">{text}</span>'
-        elif '【警告】' in text or text.startswith('[警告]'):
-            html = f'<span style="color:#f59e0b;">{text}</span>'
-        elif '【重要提示】' in text:
-            html = f'<span style="color:#f59e0b;">{text}</span>'
-        elif 'Error' in text or '错误' in text:
-            html = f'<span style="color:#ef4444;">{text}</span>'
+
+        # 根据消息类型选择颜色
+        fmt = QTextCharFormat()
+        if '【完成】' in text or '【结束】' in text:
+            fmt.setForeground(QColor('#10b981'))
+        elif '【处理中】' in text:
+            fmt.setForeground(QColor('#3b82f6'))
+        elif '【警告】' in text or '【重要提示】' in text:
+            fmt.setForeground(QColor('#f59e0b'))
         elif text.startswith('---'):
-            html = f'<span style="color:#6b7280;">{text}</span>'
-        else:
-            html = f'<span>{text}</span>'
+            fmt.setForeground(QColor('#d1d5db'))
+        elif '成功打开视频' in text:
+            fmt.setForeground(QColor('#10b981'))
+        elif '无法打开视频' in text or '请先打开视频' in text or '错误' in text or 'Error' in text:
+            fmt.setForeground(QColor('#ef4444'))
+        elif text.startswith('  '):
+            fmt.setForeground(QColor('#6b7280'))
+
         cursor = self.output_text.textCursor()
         cursor.movePosition(cursor.MoveOperation.End)
-        cursor.insertHtml(f'{html}<br>')
+        cursor.insertText(text + '\n', fmt)
         print(*args)  # 保持原始的 print 行为
         # 如果启用了自动滚动，则滚动到底部
         if self.auto_scroll:
