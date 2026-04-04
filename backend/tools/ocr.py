@@ -43,13 +43,9 @@ class OcrRecogniser:
             # 计算有多少行字幕，将每行字幕最小的ymin值放入lines
             lines = []
             for i in coordinate_list:
-                if len(lines) < 1:
-                    lines.append(self.y_round(i[2]))
-                else:
-                    if self.y_round(i[2]) not in lines \
-                            and self.y_round(i[2]) + 10 not in lines \
-                            and self.y_round(i[2]) - 10 not in lines:
-                        lines.append(self.y_round(i[2]))
+                rounded_y = self.y_round(i[2])
+                if not any(abs(rounded_y - line_y) <= 10 for line_y in lines):
+                    lines.append(rounded_y)
             lines = sorted(lines)
 
             for i in coordinate_list:
@@ -58,25 +54,8 @@ class OcrRecogniser:
                         i[2] = j
 
             to_rank_res = list(zip(coordinate_list, recognise_result))
-            ranked_res = []
-            for line in lines:
-                tmp_list = []
-                for i in to_rank_res:
-                    if i[0][2] == line:
-                        tmp_list.append(i)
-                # 先根据纵坐标排序
-                for k in range(1, len(tmp_list)):
-                    for j in range(0, len(tmp_list) - k):
-                        if tmp_list[j][0][2] > tmp_list[j + 1][0][2]:
-                            print(tmp_list[j][0][2])
-                            tmp_list[j], tmp_list[j + 1] = tmp_list[j + 1], tmp_list[j]
-                # 再根据横坐标排列
-                for l in range(1, len(tmp_list)):
-                    for j in range(0, len(tmp_list) - l):
-                        if tmp_list[j][0][0] > tmp_list[j + 1][0][0]:
-                            tmp_list[j], tmp_list[j + 1] = tmp_list[j + 1], tmp_list[j]
-                for m in tmp_list:
-                    ranked_res.append(m)
+            # 用sorted替代冒泡排序：先按ymin，再按xmin
+            ranked_res = sorted(to_rank_res, key=lambda x: (x[0][2], x[0][0]))
             dt_box = []
             for i in [j[0] for j in ranked_res]:
                 dt_box.append([(i[0], i[2]), (i[1], i[2]), (i[1], i[3]), (i[0], i[3])])

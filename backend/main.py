@@ -229,26 +229,27 @@ class SubtitleExtractor:
         """
         根据帧率，定时提取视频帧，容易丢字幕，但速度快，将提取到的视频帧加入ocr识别任务队列
         """
+        # 计算采样间隔（每隔多少帧取一帧）
+        frame_interval = int(self.fps // config.extractFrequency.value)
+        if frame_interval < 1:
+            frame_interval = 1
         # 当前视频帧的帧号
         current_frame_no = 0
-        while self.video_cap.isOpened():
+        total_frames = int(self.frame_count)
+        while current_frame_no < total_frames:
+            # 直接跳到目标帧
+            self.video_cap.set(cv2.CAP_PROP_POS_FRAMES, current_frame_no)
             ret, frame = self.video_cap.read()
-            # 如果读取视频帧失败（视频读到最后一帧）
             if not ret:
                 break
-            # 读取视频帧成功
-            else:
-                current_frame_no += 1
-                # subtitle_ocr_task_queue: (total_frame_count总帧数, current_frame_no当前帧, dt_box检测框, rec_res识别结果, 当前帧时间，subtitle_area字幕区域)
-                task = (self.frame_count, current_frame_no, None, None, None, config.subtitleArea.value)
-                self.subtitle_ocr_task_queue.put(task)
-                # 跳过剩下的帧
-                for i in range(int(self.fps // config.extractFrequency.value) - 1):
-                    ret, _ = self.video_cap.read()
-                    if ret:
-                        current_frame_no += 1
-                        # 更新进度条
-                        self.update_progress(frame_extract=(current_frame_no / self.frame_count) * 100)
+            current_frame_no += 1
+            # subtitle_ocr_task_queue: (total_frame_count总帧数, current_frame_no当前帧, dt_box检测框, rec_res识别结果, 当前帧时间，subtitle_area字幕区域)
+            task = (self.frame_count, current_frame_no, None, None, None, config.subtitleArea.value)
+            self.subtitle_ocr_task_queue.put(task)
+            # 更新进度条
+            self.update_progress(frame_extract=(current_frame_no / self.frame_count) * 100)
+            # 跳到下一个采样帧
+            current_frame_no = current_frame_no + frame_interval - 1
 
         self.video_cap.release()
 
@@ -675,26 +676,24 @@ class SubtitleExtractor:
         根据坐标点信息，进行统计，将一直具有固定坐标的文本区域选出
         :return 返回最有可能的水印区域
         """
-        f = open(self.raw_subtitle_path, mode='r', encoding='utf-8')  # 打开txt文件，以‘utf-8’编码读取
-        line = f.readline()  # 以行的形式进行读取文件
-        # 坐标点列表
-        coordinates_list = []
-        # 帧列表
-        frame_no_list = []
-        # 内容列表
-        content_list = []
-        while line:
-            frame_no = line.split('\t')[0]
-            text_position = line.split('\t')[1].split('(')[1].split(')')[0].split(', ')
-            content = line.split('\t')[2]
-            frame_no_list.append(frame_no)
-            coordinates_list.append((int(text_position[0]),
-                                     int(text_position[1]),
-                                     int(text_position[2]),
-                                     int(text_position[3])))
-            content_list.append(content)
-            line = f.readline()
-        f.close()
+        with open(self.raw_subtitle_path, mode='r', encoding='utf-8') as f:
+            lines = f.readlines()
+        # 一次性解析所有行
+        parsed = []
+        for line in lines:
+            parts = line.split('\t')
+            if len(parts) < 3:
+                continue
+            frame_no = parts[0]
+            text_position = parts[1].split('(')[1].split(')')[0].split(', ')
+            content = parts[2]
+            coordinate = (int(text_position[0]), int(text_position[1]),
+                          int(text_position[2]), int(text_position[3]))
+            parsed.append((frame_no, coordinate, content))
+
+        frame_no_list = [p[0] for p in parsed]
+        coordinates_list = [p[1] for p in parsed]
+        content_list = [p[2] for p in parsed]
         # 将坐标列表的相似值统一
         coordinates_list = self._unite_coordinates(coordinates_list)
 
@@ -703,12 +702,9 @@ class SubtitleExtractor:
             for frame_no, coordinate, content in zip(frame_no_list, coordinates_list, content_list):
                 f.write(f'{frame_no}\t{coordinate}\t{content}')
 
-        if len(Counter(coordinates_list).most_common()) > config.waterarkAreaNum.value:
-            # 读取配置文件，返回可能为水印区域的坐标列表
-            return Counter(coordinates_list).most_common(config.waterarkAreaNum.value)
-        else:
-            # 不够则有几个返回几个
-            return Counter(coordinates_list).most_common()
+        count = Counter(coordinates_list).most_common()
+        num = min(config.waterarkAreaNum.value, len(count))
+        return count[:num]
 
     def _detect_subtitle_area(self):
         """
@@ -716,54 +712,31 @@ class SubtitleExtractor:
         假定：字幕区域在y轴上有一个相对固定的坐标范围，相对于场景文本，这个范围出现频率更高
         :return 返回字幕的区域位置
         """
-        # 打开去水印区域处理过的raw txt
-        f = open(self.raw_subtitle_path, mode='r', encoding='utf-8')  # 打开txt文件，以‘utf-8’编码读取
-        line = f.readline()  # 以行的形式进行读取文件
-        # y坐标点列表
+        with open(self.raw_subtitle_path, mode='r', encoding='utf-8') as f:
+            lines = f.readlines()
         y_coordinates_list = []
-        while line:
-            text_position = line.split('\t')[1].split('(')[1].split(')')[0].split(', ')
+        for line in lines:
+            parts = line.split('\t')
+            if len(parts) < 2:
+                continue
+            text_position = parts[1].split('(')[1].split(')')[0].split(', ')
             y_coordinates_list.append((int(text_position[2]), int(text_position[3])))
-            line = f.readline()
-        f.close()
         return Counter(y_coordinates_list).most_common(1)
 
     def _frame_to_timecode(self, frame_no):
         """
-        将视频帧转换成时间
+        将视频帧转换成时间（纯计算，不打开视频文件）
         :param frame_no: 视频的帧号，i.e. 第几帧视频帧
-        :returns: SMPTE格式时间戳 as string, 如'01:02:12:032' 或者 '01:02:12;032'
+        :returns: SMPTE格式时间戳 as string, 如'01:02:12,032'
         """
-        # 设置当前帧号
-        cap = cv2.VideoCapture(self.video_path)
-        cap.set(cv2.CAP_PROP_POS_FRAMES, frame_no)
-        ret, _ = cap.read()
-        # 获取当前帧号对应的时间戳
-        if ret:
-            milliseconds = cap.get(cv2.CAP_PROP_POS_MSEC)
-            if milliseconds <= 0:
-                return '{0:02d}:{1:02d}:{2:02d},{3:03d}'.format(int(frame_no / (3600 * self.fps)),
-                                                                int(frame_no / (60 * self.fps) % 60),
-                                                                int(frame_no / self.fps % 60),
-                                                                int(frame_no % self.fps))
-            seconds = milliseconds // 1000
-            milliseconds = int(milliseconds % 1000)
-            minutes = 0
-            hours = 0
-            if seconds >= 60:
-                minutes = int(seconds // 60)
-                seconds = int(seconds % 60)
-            if minutes >= 60:
-                hours = int(minutes // 60)
-                minutes = int(minutes % 60)
-            smpte_token = ','
-            cap.release()
-            return "%02d:%02d:%02d%s%03d" % (hours, minutes, seconds, smpte_token, milliseconds)
-        else:
-            return '{0:02d}:{1:02d}:{2:02d},{3:03d}'.format(int(frame_no / (3600 * self.fps)),
-                                                            int(frame_no / (60 * self.fps) % 60),
-                                                            int(frame_no / self.fps % 60),
-                                                            int(frame_no % self.fps))
+        total_ms = frame_no / self.fps * 1000
+        total_ms_int = int(total_ms)
+        milliseconds = total_ms_int % 1000
+        total_seconds = total_ms_int // 1000
+        seconds = total_seconds % 60
+        minutes = (total_seconds // 60) % 60
+        hours = total_seconds // 3600
+        return "%02d:%02d:%02d,%03d" % (hours, minutes, seconds, milliseconds)
 
     def _timestamp_to_frameno(self, time_ms):
         return int(time_ms / self.fps)
@@ -823,45 +796,26 @@ class SubtitleExtractor:
         """
         with open(self.raw_subtitle_path, mode='r', encoding='utf-8') as r:
             lines = r.readlines()
-        content_list = []
-        frame_no_list = []
+
+        # 用dict按frame_no分组，保留原始顺序
+        from collections import OrderedDict
+        grouped = OrderedDict()
         for line in lines:
-            frame_no = line.split('\t')[0]
-            frame_no_list.append(frame_no)
-            coordinate = line.split('\t')[1]
-            content = line.split('\t')[2]
-            content_list.append([frame_no, coordinate, content])
-
-        # 找出那些不止一行的帧号
-        frame_no_list = [i[0] for i in Counter(frame_no_list).most_common() if i[1] > 1]
-
-        # 找出这些帧号出现的位置
-        concatenation_list = []
-        for frame_no in frame_no_list:
-            position = [i for i, x in enumerate(content_list) if x[0] == frame_no]
-            concatenation_list.append((frame_no, position))
-
-        for i in concatenation_list:
-            content = []
-            for j in i[1]:
-                content.append(content_list[j][2])
-            content = ' '.join(content).replace('\n', ' ') + '\n'
-            for k in i[1]:
-                content_list[k][2] = content
-
-        # 将多余的字幕行删除
-        to_delete = []
-        for i in concatenation_list:
-            for j in i[1][1:]:
-                to_delete.append(content_list[j])
-        for i in to_delete:
-            if i in content_list:
-                content_list.remove(i)
+            parts = line.split('\t', 2)
+            if len(parts) < 3:
+                continue
+            frame_no, coordinate, content = parts
+            if frame_no not in grouped:
+                grouped[frame_no] = (coordinate, [])
+            grouped[frame_no][1].append(content)
 
         with open(self.raw_subtitle_path, mode='w', encoding='utf-8') as f:
-            for frame_no, coordinate, content in content_list:
-                content = unicodedata.normalize('NFKC', content)
-                f.write(f'{frame_no}\t{coordinate}\t{content}')
+            for frame_no, (coordinate, contents) in grouped.items():
+                merged = ' '.join(contents).replace('\n', ' ')
+                if not merged.endswith('\n'):
+                    merged += '\n'
+                merged = unicodedata.normalize('NFKC', merged)
+                f.write(f'{frame_no}\t{coordinate}\t{merged}')
 
     def _unite_coordinates(self, coordinates_list):
         """
@@ -871,14 +825,39 @@ class SubtitleExtractor:
         :param coordinates_list 包含坐标点的列表
         :return: 返回一个统一值后的坐标列表
         """
-        # 将相似的坐标统一为一个
-        index = 0
-        for coordinate in coordinates_list:  # TODO：时间复杂度n^2，待优化
-            for i in coordinates_list:
-                if self.__is_coordinate_similar(coordinate, i):
-                    coordinates_list[index] = i
-            index += 1
-        return coordinates_list
+        if not coordinates_list:
+            return coordinates_list
+        # 按xmin排序后用滑动窗口，相似坐标的xmin差值在容忍范围内
+        n = len(coordinates_list)
+        indexed = sorted(enumerate(coordinates_list), key=lambda x: x[1][0])
+        # parent数组用于并查集
+        parent = list(range(n))
+        def find(i):
+            while parent[i] != i:
+                parent[i] = parent[parent[i]]
+                i = parent[i]
+            return i
+        def union(i, j):
+            ri, rj = find(i), find(j)
+            if ri != rj:
+                # 保留较小索引的坐标作为代表
+                if ri > rj:
+                    ri, rj = rj, ri
+                parent[rj] = ri
+        # 滑动窗口：xmin已排序，只要xmin差值超过容忍度就移动左边界
+        left = 0
+        for right in range(n):
+            while left < right and indexed[right][1][0] - indexed[left][1][0] >= config.tolerantPixelX:
+                left += 1
+            # 检查窗口内所有元素与当前元素是否相似
+            for k in range(left, right):
+                if self.__is_coordinate_similar(indexed[k][1], indexed[right][1]):
+                    union(indexed[k][0], indexed[right][0])
+        # 将所有坐标统一为其组代表的坐标
+        result = list(coordinates_list)
+        for i in range(n):
+            result[i] = coordinates_list[find(i)]
+        return result
 
     def _compute_image_similarity(self, image1, image2):
         """

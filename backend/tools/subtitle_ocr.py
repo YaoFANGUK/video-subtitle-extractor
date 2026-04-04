@@ -9,7 +9,6 @@ from backend.tools.constant import SubtitleArea
 from backend.tools import constant
 from threading import Thread
 import queue
-from shapely.geometry import Polygon
 from types import SimpleNamespace
 import shutil
 import numpy as np
@@ -46,17 +45,24 @@ def extract_subtitles(data, text_recogniser, img, raw_subtitles,
             selected = False
             # 初始化超界偏差为0
             overflow_area_rate = 0
-            # 用户指定的字幕区域
-            sub_area_polygon = sub_area.to_polygon()
-            # 识别出的字幕区域
-            coordinate_polygon = coordinate_to_polygon(coordinate)
-            # 计算两个区域是否有交集交集
-            intersection = sub_area_polygon.intersection(coordinate_polygon)
+            # 使用AABB矩形重叠判断（比Shapely Polygon快得多）
+            c_xmin, c_xmax, c_ymin, c_ymax = coordinate
+            # 计算交集矩形
+            inter_xmin = max(sub_area.xmin, c_xmin)
+            inter_ymin = max(sub_area.ymin, c_ymin)
+            inter_xmax = min(sub_area.xmax, c_xmax)
+            inter_ymax = min(sub_area.ymax, c_ymax)
+            has_intersection = inter_xmin < inter_xmax and inter_ymin < inter_ymax
             drop_reason = ''
             # 如果有交集
-            if not intersection.is_empty:
+            if has_intersection:
+                sub_area_w = sub_area.xmax - sub_area.xmin
+                sub_area_h = sub_area.ymax - sub_area.ymin
+                sub_area_size = sub_area_w * sub_area_h
+                inter_area = (inter_xmax - inter_xmin) * (inter_ymax - inter_ymin)
+                coord_area = (c_xmax - c_xmin) * (c_ymax - c_ymin)
                 # 计算越界允许偏差
-                overflow_area_rate = ((sub_area_polygon.area + coordinate_polygon.area - intersection.area) / sub_area_polygon.area) - 1
+                overflow_area_rate = ((sub_area_size + coord_area - inter_area) / sub_area_size) - 1
                 # 如果越界比例低于设定阈值且该行文本识别的置信度高于设定阈值
                 not_overflow = overflow_area_rate <= options.SUB_AREA_DEVIATION_RATE
                 confident = prob > options.DROP_SCORE
@@ -100,13 +106,6 @@ def dump_debug_info(options, line, img, loss_list, ocr_loss_debug_path, sub_area
             img = paint_chinese_opencv(img, text, pos=(coordinate[0], coordinate[2] - 30), color=color)
             img = cv2.rectangle(img, (coordinate[0], coordinate[2]), (coordinate[1], coordinate[3]), color, 2)
         cv2.imwrite(os.path.join(os.path.abspath(ocr_loss_debug_path), f'{str(data["i"]).zfill(8)}.png'), img)
-
-def coordinate_to_polygon(coordinate):
-    xmin = coordinate[0]
-    xmax = coordinate[1]
-    ymin = coordinate[2]
-    ymax = coordinate[3]
-    return Polygon([[xmin, ymin], [xmax, ymin], [xmax, ymax], [xmin, ymax]])
 
 
 FONT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'NotoSansCJK-Bold.otf')
