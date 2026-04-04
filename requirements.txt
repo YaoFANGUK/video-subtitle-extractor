@@ -7,11 +7,13 @@ wordsegment~=1.3
 scikit-image~=0.25
 lmdb~=1.6
 pyclipper~=1.3
+pyside6~=6.11
 pyside6-fluent-widgets~=1.8
 numpy~=2.2
 shapely~=2.1
 six~=1.17
 setuptools~=80.9
+paddlepaddle~=3.3
 paddleocr~=3.4.0
 je-showinfilemanager==1.1.6a4
 imageio-ffmpeg~=0.6
