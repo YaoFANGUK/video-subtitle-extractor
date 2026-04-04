@@ -135,7 +135,7 @@ class SubtitleExtractor:
         # 创建一个字幕OCR识别进程
         subtitle_ocr_process = self.start_subtitle_ocr_async()
         if self.sub_area is not None:
-            if platform.system() in ['Windows', 'Linux']:
+            if platform.system() in ['Windows', 'Linux', 'Darwin']:
                 # 使用GPU且使用accurate模式时才开放此方法：
                 if self.hardware_accelerator.has_accelerator() and config.mode.value == 'accurate':
                     self.extract_frame_by_det()
@@ -452,6 +452,9 @@ class SubtitleExtractor:
         # 定义videoSubFinder所在路径
         if platform.system() == 'Windows':
             path_vsf = os.path.join(BASE_DIR, 'subfinder', 'windows', 'VideoSubFinderWXW.exe')
+        elif platform.system() == 'Darwin':
+            path_vsf = os.path.join(BASE_DIR, 'subfinder', 'macos', 'VideoSubFinderCli')
+            os.chmod(path_vsf, 0o775)
         else:
             path_vsf = os.path.join(BASE_DIR, 'subfinder', 'linux', 'VideoSubFinderCli.run')
             os.chmod(path_vsf, 0o775)
@@ -497,7 +500,8 @@ class SubtitleExtractor:
             self.vsf_running = True
             try:
                 p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=1,
-                                    close_fds='posix' in sys.builtin_module_names, shell=True, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
+                                    close_fds='posix' in sys.builtin_module_names, shell=True,
+                                    start_new_session=True)
                 Thread(target=vsf_output, daemon=True, args=(p.stderr,)).start()
                 ProcessManager.instance().add_process(p)
                 self.manage_process(p.pid)
