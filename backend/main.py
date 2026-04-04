@@ -109,19 +109,19 @@ class SubtitleExtractor:
         self.lock.acquire()
         # 重置进度条
         self.update_progress(ocr=0, frame_extract=0)
+        self.append_output('-----------------------------')
         # 打印识别语言与识别模式
-        self.append_output(f"{tr['Main']['RecSubLang']}：{config.language.value}")
-        self.append_output(f"{tr['Main']['RecMode']}：{config.mode.value}")
+        self.append_output(f"  {tr['Main']['RecSubLang']}：{config.language.value}  |  {tr['Main']['RecMode']}：{config.mode.value}")
         # 如果使用GPU加速，则打印GPU加速提示
         if self.hardware_accelerator.has_accelerator():
-            self.append_output(tr['Main']['AcceleratorON'].format(self.hardware_accelerator.accelerator_name))
-        
+            self.append_output(f"  {tr['Main']['AcceleratorON'].format(self.hardware_accelerator.accelerator_name)}")
+
         # 打印视频帧数与帧率
-        self.append_output(f"{tr['Main']['FrameCount']}：{self.frame_count}"
-              f"，{tr['Main']['FrameRate']}：{self.fps}")
+        self.append_output(f"  {tr['Main']['FrameCount']}：{self.frame_count}"
+              f"  |  {tr['Main']['FrameRate']}：{self.fps}")
         # 打印加载模型信息
-        self.append_output(f'[V{self.model_config.MODEL_VERSION}] DET: {os.path.basename(self.model_config.DET_MODEL_PATH)}')
-        self.append_output(f'[V{self.model_config.MODEL_VERSION}] REC: {os.path.basename(self.model_config.REC_MODEL_PATH)}')
+        self.append_output(f"  DET: {os.path.basename(self.model_config.DET_MODEL_PATH)}  |  REC: {os.path.basename(self.model_config.REC_MODEL_PATH)}")
+        self.append_output('-----------------------------')
         # 打印视频帧提取开始提示
         self.append_output(tr['Main']['StartProcessFrame'])
         # 删除缓存
@@ -182,6 +182,7 @@ class SubtitleExtractor:
         if config.wordSegmentation.value:
             reformat.execute(self.subtitle_output_path, config.language.value)
         self.append_output(tr['Main']['FinishGenerateSub'], f"{round(time.time() - start_time, 2)}s")
+        self.append_output('-----------------------------')
         self.update_progress(ocr=100, frame_extract=100)
         self.isFinished = True
         # 删除缓存文件
