@@ -66,16 +66,18 @@ class AsyncPythonRunner:
             cmd.extend(args)
         
         # 启动子进程
-        self.process = subprocess.Popen(
-            cmd,
+        startup_args = dict(
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             encoding='utf-8',
             text=True,
             bufsize=1,
             universal_newlines=True,
-            cwd=cwd
+            cwd=cwd,
         )
+        if sys.platform == 'win32':
+            startup_args['creationflags'] = subprocess.CREATE_NO_WINDOW
+        self.process = subprocess.Popen(cmd, **startup_args)
         
         # 启动输出读取线程
         self._start_reader_thread('stdout', self.process.stdout)
