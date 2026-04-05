@@ -363,3 +363,4 @@ $RECYCLE.BIN/
 /backend/models/**/*.onnx
 /config/config.json
 /.claude/
+/installer_output/
