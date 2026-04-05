@@ -9,6 +9,13 @@
 
 import sys
 import os
+
+# PyInstaller --windowed 模式下 stdout/stderr 为 None，子进程 print/tqdm 会崩溃
+if sys.stdout is None:
+    sys.stdout = open(os.devnull, 'w', encoding='utf-8')
+if sys.stderr is None:
+    sys.stderr = open(os.devnull, 'w', encoding='utf-8')
+
 import configparser
 import cv2
 import multiprocessing
