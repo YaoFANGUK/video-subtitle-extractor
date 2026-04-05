@@ -9,6 +9,13 @@
 
 import sys
 import os
+import ctypes
+
+# 请求管理员权限（Windows）
+if sys.platform == 'win32' and not ctypes.windll.shell32.IsUserAnAdmin():
+    params = ' '.join([f'"{arg}"' for arg in sys.argv])
+    ctypes.windll.shell32.ShellExecuteW(None, 'runas', sys.executable, params, None, 1)
+    sys.exit(0)
 
 # PyInstaller --windowed 模式下 stdout/stderr 为 None，子进程 print/tqdm 会崩溃
 if sys.stdout is None:

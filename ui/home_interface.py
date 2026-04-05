@@ -577,7 +577,7 @@ class HomeInterface(QWidget):
         files, _ = QtWidgets.QFileDialog.getOpenFileNames(
             self,
             tr['SubtitleExtractorGUI']['Open'],
-            "",
+            os.path.expanduser("~"),
             "All Files (*.*);;MP4 Files (*.mp4);;FLV Files (*.flv);;WMV Files (*.wmv);;AVI Files (*.avi)"
         )
         if files:
