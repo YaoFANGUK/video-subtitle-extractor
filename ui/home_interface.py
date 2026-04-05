@@ -18,7 +18,7 @@ from backend.tools.subtitle_extractor_remote_call import SubtitleExtractorRemote
 from backend.tools.process_manager import ProcessManager
 
 class HomeInterface(QWidget):
-    progress_signal = Signal(int, int, int, bool) 
+    progress_signal = Signal(int, int, int, bool, int) 
     append_log_signal = Signal(list)
     task_error_signal = Signal(object)
     def __init__(self, parent=None):
@@ -367,7 +367,7 @@ class HomeInterface(QWidget):
                             # 更新任务状态为已完成
                             task = self.task_list_component.get_task(self.current_processing_task_index)
                             if process.exitcode == 0 and task and task.status == TaskStatus.PROCESSING:
-                                self.progress_signal.emit(100, 100, 200, True)
+                                self.progress_signal.emit(100, 100, 100, True, 100)
                                 # 任务完成, 更新输出路径为只读
                                 task.output_path = output_path
                                 self.task_list_component.update_task_status(self.current_processing_task_index, TaskStatus.COMPLETED)
@@ -416,7 +416,7 @@ class HomeInterface(QWidget):
             sr.subtitle_output_path = output_path
             for key in options:
                 setattr(sr, key, options[key])
-            sr.add_progress_listener(lambda progress_ocr, progress_frame_extract, progress_total, isFinished: SubtitleExtractorRemoteCall.remote_call_update_progress(queue, progress_ocr, progress_frame_extract, progress_total, isFinished))
+            sr.add_progress_listener(lambda progress_ocr, progress_frame_extract, progress_total, isFinished, progress_post=0: SubtitleExtractorRemoteCall.remote_call_update_progress(queue, progress_ocr, progress_frame_extract, progress_total, isFinished, progress_post))
             sr.append_output = lambda *args: SubtitleExtractorRemoteCall.remote_call_append_log(queue, args)
             sr.manage_process = lambda pid: SubtitleExtractorRemoteCall.remote_call_manage_process(queue, pid)
             sr.run()
@@ -483,18 +483,26 @@ class HomeInterface(QWidget):
         self.current_processing_task_index = -1
 
     @Slot(int, bool)
-    def update_progress(self, progress_remover, progress_finder, progress_total, isFinished):
+    def update_progress(self, progress_remover, progress_finder, progress_total, isFinished, progress_post=0):
         try:
             pos = min(self.frame_count - 1, int(progress_remover / 100 * self.frame_count))
             if pos != self.video_slider.value():
                 self.video_slider.setValue(pos)
-            
-            # 更新任务进度
+
+            # 更新任务进度（加权：帧提取5% + OCR 90% + 后处理5%）
             if self.current_processing_task_index >= 0:
-                self.task_list_component.update_task_progress(
-                    self.current_processing_task_index, 
-                    int((progress_remover + progress_finder) / progress_total * 100),
-                )
+                displayed = min(100, int(progress_remover * 0.9 + progress_finder * 0.05 + progress_post * 0.05))
+                # 确保进度不会回退
+                if not hasattr(self, '_last_task_progress'):
+                    self._last_task_progress = {}
+                task_idx = self.current_processing_task_index
+                last_progress = self._last_task_progress.get(task_idx, -1)
+                if displayed >= last_progress or isFinished:
+                    self._last_task_progress[task_idx] = displayed
+                    self.task_list_component.update_task_progress(
+                        task_idx,
+                        displayed,
+                    )
             
             # 检查是否完成
             if isFinished:

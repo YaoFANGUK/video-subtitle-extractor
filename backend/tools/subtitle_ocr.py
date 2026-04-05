@@ -125,7 +125,7 @@ def paint_chinese_opencv(im, chinese, pos, color):
     return img
 
 
-def ocr_task_consumer(ocr_queue, raw_subtitle_path, sub_area, video_path, options):
+def ocr_task_consumer(ocr_queue, raw_subtitle_path, sub_area, video_path, options, progress_queue):
     """
     消费者： 消费ocr_queue，将ocr队列中的数据取出，进行ocr识别，写入字幕文件中
     :param ocr_queue (current_frame_no当前帧帧号, frame 视频帧, dt_box检测框, rec_res识别结果)
@@ -145,17 +145,24 @@ def ocr_task_consumer(ocr_queue, raw_subtitle_path, sub_area, video_path, option
         shutil.rmtree(ocr_loss_debug_path, True)
 
     raw_subtitles = []
+    processed_count = 0
     try:
         while True:
             try:
                 frame_no, frame, dt_box, rec_res = ocr_queue.get(block=True)
                 if frame_no == -1:
+                    # frame 是生产者统计的总帧数
+                    total_tasks = frame if frame is not None else processed_count
+                    progress_queue.put((-1, total_tasks))
                     return
                 data['i'] = frame_no
                 extract_subtitles(data, text_recogniser, frame, raw_subtitles, sub_area, options, dt_box,
                                     rec_res, ocr_loss_debug_path)
+                processed_count += 1
+                progress_queue.put((frame_no, processed_count))
             except Exception as e:
                 print(e)
+                progress_queue.put(-1)
                 break
     finally:
         with open(raw_subtitle_path, mode='w+', encoding='utf-8') as raw_subtitle_file:
@@ -174,17 +181,19 @@ def ocr_task_producer(ocr_queue, task_queue, progress_queue, video_path, raw_sub
     """
     cap = cv2.VideoCapture(video_path)
     tbar = None
+    frame_count = 0
     while True:
         try:
             # 从任务队列中提取任务信息
             total_frame_count, current_frame_no, dt_box, rec_res, total_ms, default_subtitle_area = task_queue.get(block=True)
-            progress_queue.put(current_frame_no)
             if tbar is None:
                 tbar = tqdm(total=round(total_frame_count), position=1)
             # current_frame 等于-1说明所有视频帧已经读完
             if current_frame_no == -1:
-                # ocr识别队列加入结束标志
-                ocr_queue.put((-1, None, None, None))
+                # ocr识别队列加入结束标志，附带总帧数
+                ocr_queue.put((-1, frame_count, None, None))
+                # 通过 progress_queue 提前通知总帧数，让主进程可以精确计算进度
+                progress_queue.put((-2, frame_count))
                 # 更新进度条
                 tbar.update(tbar.total - tbar.n)
                 break
@@ -199,6 +208,7 @@ def ocr_task_producer(ocr_queue, task_queue, progress_queue, video_path, raw_sub
             ret, frame = cap.read()
             # 如果读取成功
             if ret:
+                frame_count += 1
                 # 根据默认字幕位置，则对视频帧进行裁剪，裁剪后处理
                 if default_subtitle_area is not None:
                     frame = frame_preprocess(default_subtitle_area, frame)
@@ -231,7 +241,7 @@ def subtitle_extract_handler(task_queue, progress_queue, video_path, raw_subtitl
                                        daemon=True)
     # 创建一个OCR事件消费者提取线程
     ocr_event_consumer_thread = Thread(target=ocr_task_consumer,
-                                       args=(ocr_queue, raw_subtitle_path, sub_area, video_path, options,),
+                                       args=(ocr_queue, raw_subtitle_path, sub_area, video_path, options, progress_queue,),
                                        daemon=True)
     # 开启消费者线程
     ocr_event_producer_thread.start()
