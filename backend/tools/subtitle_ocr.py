@@ -181,7 +181,6 @@ def ocr_task_consumer(ocr_queue, raw_subtitle_path, sub_area, video_path, option
             except queue.Empty:
                 print("OCR consumer timeout: no task received in 300 seconds, exiting.")
                 progress_queue.put(-1)
->>>>>>> REPLACE
                 break
             except Exception as e:
                 print(f"OCR consumer error at frame {data.get('i', '?')}: {e}")
