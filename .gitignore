@@ -362,3 +362,4 @@ $RECYCLE.BIN/
 /subtitle.ini
 /backend/models/**/*.onnx
 /config/config.json
+/.claude/

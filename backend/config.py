@@ -1,10 +1,18 @@
 
 import os
+import sys
 from pathlib import Path
-from qfluentwidgets import (qconfig, ConfigItem, QConfig, OptionsValidator, BoolValidator, OptionsConfigItem, 
+from qfluentwidgets import (qconfig, ConfigItem, QConfig, OptionsValidator, BoolValidator, OptionsConfigItem,
                             EnumSerializer, RangeValidator, RangeConfigItem, ConfigValidator)
 from backend.tools.constant import SubtitleArea, VideoSubFinderDecoder
 import configparser
+
+
+def resource_path(relative_path):
+    """获取资源文件的绝对路径，兼容 PyInstaller 打包和开发环境"""
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath('.'), relative_path)
 
 # 项目版本号
 VERSION = "2.2.0"
@@ -21,7 +29,7 @@ HARDWARD_ACCELERATION_OPTION = True
 # 读取界面语言配置
 tr = configparser.ConfigParser()
 
-TRANSLATION_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'interface', f"en.ini")
+TRANSLATION_FILE = resource_path(os.path.join('backend', 'interface', f"en.ini"))
 tr.read(TRANSLATION_FILE, encoding='utf-8')
 
 class Config(QConfig):
@@ -97,17 +105,17 @@ class Config(QConfig):
     # VideoSubFinder 视频解码组件
     videoSubFinderDecoder = OptionsConfigItem("Main", "VideoSubFinderDecoder", VideoSubFinderDecoder.OPENCV, OptionsValidator(VideoSubFinderDecoder), EnumSerializer(VideoSubFinderDecoder))
 
-CONFIG_FILE = 'config/config.json'
+CONFIG_FILE = resource_path('config/config.json')
 config = Config()
 qconfig.load(CONFIG_FILE, config)
 
 # 读取界面语言配置
 tr = configparser.ConfigParser()
 
-TRANSLATION_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'interface', f"{config.interface.value}.ini")
+TRANSLATION_FILE = resource_path(os.path.join('backend', 'interface', f"{config.interface.value}.ini"))
 tr.read(TRANSLATION_FILE, encoding='utf-8')
 
 # 项目的base目录
-BASE_DIR = str(Path(os.path.abspath(__file__)).parent)
+BASE_DIR = resource_path('backend')
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'

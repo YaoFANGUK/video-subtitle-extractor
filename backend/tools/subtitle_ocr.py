@@ -109,6 +109,9 @@ def dump_debug_info(options, line, img, loss_list, ocr_loss_debug_path, sub_area
 
 
 FONT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'NotoSansCJK-Bold.otf')
+import sys as _sys
+if hasattr(_sys, '_MEIPASS'):
+    FONT_PATH = os.path.join(_sys._MEIPASS, 'backend', 'tools', 'NotoSansCJK-Bold.otf')
 FONT = ImageFont.truetype(FONT_PATH, 20)
 
 

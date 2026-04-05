@@ -43,7 +43,9 @@ def execute(path, lang='en'):
                     "needn't", "oughtn't", "shan't", "shouldn't", "usedn't", "won't", "wouldn't", "that's", "what's", "it'll"]
         verb_form_map = {}
 
-        typo_map_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'configs', 'typoMap.json')
+        typo_map_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'configs', 'typoMap.json')
+        if hasattr(__import__('sys'), '_MEIPASS'):
+            typo_map_path = os.path.join(__import__('sys')._MEIPASS, 'backend', 'configs', 'typoMap.json')
         try:
             with open(typo_map_path, 'r', encoding='utf-8') as load_f:
                 typo_map = json.load(load_f)
