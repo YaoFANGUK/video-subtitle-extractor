@@ -84,12 +84,14 @@ class SubtitleExtractor:
         self.subtitle_output_path = os.path.splitext(self.video_path)[0] + '.srt'
         # 自定义ocr对象
         self.ocr = None
-        # 总处理进度
-        self.progress_total = 200
+        # 总处理进度（帧提取100 + OCR100 + 后处理100 = 300）
+        self.progress_total = 300
         # 视频帧提取进度
         self.progress_frame_extract = 0
         # OCR识别进度
         self.progress_ocr = 0
+        # 后处理进度
+        self.progress_post = 0
         # 是否完成
         self.isFinished = False
         # 字幕OCR任务队列
@@ -109,7 +111,7 @@ class SubtitleExtractor:
         start_time = time.time()
         self.lock.acquire()
         # 重置进度条
-        self.update_progress(ocr=0, frame_extract=0)
+        self.update_progress(ocr=0, frame_extract=0, post=0)
         self.append_output('-----------------------------')
         # 打印识别语言与识别模式
         self.append_output(
@@ -173,6 +175,8 @@ class SubtitleExtractor:
             self.filter_scene_text()
             self.append_output(tr['Main']['FinishDeleteNonSub'])
 
+        self.update_progress(post=20)
+
         # 打印开始字幕生成提示
         self.append_output(tr['Main']['StartGenerateSub'])
         # 判断是否使用了vsf提取字幕
@@ -182,11 +186,14 @@ class SubtitleExtractor:
         else:
             # 如果未使用vsf提取字幕，则使用常规字幕生成方法
             self.generate_subtitle_file()
+
+        self.update_progress(post=90)
+
         if config.wordSegmentation.value:
             reformat.execute(self.subtitle_output_path, config.language.value)
         self.append_output(tr['Main']['FinishGenerateSub'], f"{round(time.time() - start_time, 2)}s")
         self.append_output('-----------------------------')
-        self.update_progress(ocr=100, frame_extract=100)
+        self.update_progress(ocr=100, frame_extract=100, post=100)
         self.isFinished = True
         # 删除缓存文件
         self.empty_cache()
@@ -775,11 +782,17 @@ class SubtitleExtractor:
         idx_i = 0
         content_list_len = len(content_list)
         # 循环遍历每行字幕，记录开始时间与结束时间
+        last_reported_idx = -1
+        report_interval = max(1, content_list_len // 100)
         while idx_i < content_list_len:
             i = content_list[idx_i]
             start_frame = i.no
             idx_j = idx_i
             while idx_j < content_list_len:
+                # 定期更新去重进度（post: 20→85），基于 idx_j 推进
+                if idx_j - last_reported_idx >= report_interval:
+                    last_reported_idx = idx_j
+                    self.update_progress(post=20 + int(65 * idx_j / content_list_len))
                 # 计算当前行与下一行的Levenshtein距离
                 # 判决idx_j的下一帧是否与idx_i不同，若不同（或者是最后一帧）则找到结束帧
                 if idx_j + 1 == content_list_len or ratio(i.content.replace(' ', ''),
@@ -983,16 +996,19 @@ class SubtitleExtractor:
             if os.path.exists(self.temp_output_dir):
                 shutil.rmtree(self.temp_output_dir, True)
 
-    def update_progress(self, ocr=None, frame_extract=None):
+    def update_progress(self, ocr=None, frame_extract=None, post=None):
         """
         更新进度条
         :param ocr ocr进度
         :param frame_extract 视频帧提取进度
+        :param post 后处理进度
         """
         if ocr is not None:
             self.progress_ocr = max(0, min(100, ocr))  # Clamp value between 0 and 100
         if frame_extract is not None:
             self.progress_frame_extract = max(0, min(100, frame_extract))
+        if post is not None:
+            self.progress_post = max(0, min(100, post))
         # 通知所有监听器
         self.notify_progress_listeners()
 
@@ -1000,22 +1016,36 @@ class SubtitleExtractor:
         def get_ocr_progress():
             """
             获取ocr识别进度
+            生产者在所有帧入队后发送 (-2, total_tasks) 告知总帧数
+            消费者每处理一帧发送 (frame_no, processed_count)
+            消费者处理完全部帧后发送 (-1, total_tasks)
             """
-            # 获取视频总帧数
-            total_frame_count = self.frame_count
-            # 是否打印提示开始查找字幕的信息
             notify = True
+            total_tasks = None
             while True:
-                current_frame_no = self.subtitle_ocr_progress_queue.get(block=True)
+                value = self.subtitle_ocr_progress_queue.get(block=True)
                 if notify:
                     self.append_output(tr['Main']['StartFindSub'])
                     notify = False
-                self.update_progress(
-                    ocr=100 if current_frame_no == -1 else (current_frame_no / total_frame_count * 100))
-                # self.append_output(f'recv total_ms:{total_ms}')
-                if current_frame_no == -1:
+                # 生产者告知总帧数 value = (-2, total_tasks)
+                if isinstance(value, tuple) and len(value) == 2 and value[0] == -2:
+                    total_tasks = value[1]
+                    continue
+                # 终止条件
+                if value == -1:
+                    self.update_progress(ocr=100)
                     return
-
+                if isinstance(value, tuple) and value[0] == -1:
+                    self.update_progress(ocr=100)
+                    return
+                # value = (frame_no, processed_count)
+                if isinstance(value, tuple) and len(value) == 2:
+                    _, processed_count = value
+                    if total_tasks and total_tasks > 0:
+                        ocr_pct = min(99, processed_count / total_tasks * 100)
+                    else:
+                        ocr_pct = min(99, processed_count)
+                    self.update_progress(ocr=ocr_pct)
         options = {
             'REC_CHAR_TYPE': config.language.value,
             'DROP_SCORE': config.dropScore.value / 100.0,
@@ -1074,7 +1104,7 @@ class SubtitleExtractor:
         """
         for listener in self.progress_listeners:
             try:
-                listener(self.progress_ocr, self.progress_frame_extract, self.progress_total, self.isFinished)
+                listener(self.progress_ocr, self.progress_frame_extract, self.progress_total, self.isFinished, self.progress_post)
             except Exception as e:
                 traceback.print_exc()
 
