@@ -364,3 +364,4 @@ $RECYCLE.BIN/
 /config/config.json
 /.claude/
 /installer_output/
+/entitlements.plist
