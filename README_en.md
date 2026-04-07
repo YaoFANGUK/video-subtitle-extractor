@@ -1,5 +1,7 @@
 [简体中文](README.md) | English
 
+<p align="center"><img src="https://github.com/YaoFANGUK/video-subtitle-extractor/raw/main/design/icon_1024.png" alt="VSE Logo" width="128"/></p>
+
 ## Introduction
 
 ![License](https://img.shields.io/badge/License-Apache%202-red.svg)
