@@ -1,23 +1,34 @@
 import os
-import re
-from multiprocessing import Queue, Process
-import cv2
-from PIL import ImageFont, ImageDraw, Image
-from tqdm import tqdm
-from backend.tools.ocr import OcrRecogniser, get_coordinates
-from backend.tools.constant import SubtitleArea
-from backend.tools import constant
-from threading import Thread
 import queue
-from types import SimpleNamespace
+import re
 import shutil
-import numpy as np
 from collections import namedtuple
+from multiprocessing import Process, Queue
+from threading import Thread
+from types import SimpleNamespace
+
+import cv2
+import numpy as np
+from PIL import Image, ImageDraw, ImageFont
+from tqdm import tqdm
+
 from backend.config import tr
+from backend.tools import constant
+from backend.tools.constant import SubtitleArea
+from backend.tools.ocr import OcrRecogniser, get_coordinates
 
 
-def extract_subtitles(data, text_recogniser, img, raw_subtitles,
-                      sub_area, options, dt_box_arg, rec_res_arg, ocr_loss_debug_path):
+def extract_subtitles(
+    data,
+    text_recogniser,
+    img,
+    raw_subtitles,
+    sub_area,
+    options,
+    dt_box_arg,
+    rec_res_arg,
+    ocr_loss_debug_path,
+):
     """
     提取视频帧中的字幕信息
     """
@@ -31,12 +42,12 @@ def extract_subtitles(data, text_recogniser, img, raw_subtitles,
     # 获取文本坐标
     coordinates = get_coordinates(dt_box)
     # 将结果写入txt文本中
-    if options.REC_CHAR_TYPE == 'en':
+    if options.REC_CHAR_TYPE == "en":
         # 如果识别语言为英文，则去除中文
-        text_res = [(re.sub('[\u4e00-\u9fa5]', '', res[0]), res[1]) for res in rec_res]
+        text_res = [(re.sub("[\u4e00-\u9fa5]", "", res[0]), res[1]) for res in rec_res]
     else:
         text_res = [(res[0], res[1]) for res in rec_res]
-    line = ''
+    line = ""
     loss_list = []
     for content, coordinate in zip(text_res, coordinates):
         text = content[0]
@@ -53,7 +64,7 @@ def extract_subtitles(data, text_recogniser, img, raw_subtitles,
             inter_xmax = min(sub_area.xmax, c_xmax)
             inter_ymax = min(sub_area.ymax, c_ymax)
             has_intersection = inter_xmin < inter_xmax and inter_ymin < inter_ymax
-            drop_reason = ''
+            drop_reason = ""
             # 如果有交集
             if has_intersection:
                 sub_area_w = sub_area.xmax - sub_area.xmin
@@ -62,53 +73,107 @@ def extract_subtitles(data, text_recogniser, img, raw_subtitles,
                 inter_area = (inter_xmax - inter_xmin) * (inter_ymax - inter_ymin)
                 coord_area = (c_xmax - c_xmin) * (c_ymax - c_ymin)
                 # 计算越界允许偏差
-                overflow_area_rate = ((sub_area_size + coord_area - inter_area) / sub_area_size) - 1
+                overflow_area_rate = (
+                    (sub_area_size + coord_area - inter_area) / sub_area_size
+                ) - 1
                 # 如果越界比例低于设定阈值且该行文本识别的置信度高于设定阈值
                 not_overflow = overflow_area_rate <= options.SUB_AREA_DEVIATION_RATE
                 confident = prob > options.DROP_SCORE
                 if not_overflow and confident:
                     # 保留该帧
                     selected = True
-                    line += f'{str(data["i"]).zfill(8)}\t{coordinate}\t{text}\n'
-                    raw_subtitles.append(f'{str(data["i"]).zfill(8)}\t{coordinate}\t{text}\n')
+                    line += f"{str(data['i']).zfill(8)}\t{coordinate}\t{text}\n"
+                    raw_subtitles.append(
+                        f"{str(data['i']).zfill(8)}\t{coordinate}\t{text}\n"
+                    )
                 else:
                     if not not_overflow:
-                        drop_reason = tr['Main']['OcrDropOutOfBoxRate'].format(int(options.SUB_AREA_DEVIATION_RATE * 100), int(overflow_area_rate * 100))
+                        drop_reason = tr["Main"]["OcrDropOutOfBoxRate"].format(
+                            int(options.SUB_AREA_DEVIATION_RATE * 100),
+                            int(overflow_area_rate * 100),
+                        )
                     elif not confident:
-                        drop_reason = tr['Main']['OcrDropConfidentLow'].format(int(options.DROP_SCORE * 100))
+                        drop_reason = tr["Main"]["OcrDropConfidentLow"].format(
+                            int(options.DROP_SCORE * 100)
+                        )
             else:
-                drop_reason = tr['Main']['OcrDropNoIntercetion']
+                drop_reason = tr["Main"]["OcrDropNoIntercetion"]
             if drop_reason:
-                tqdm.write(tr['Main']['OcrResultWithDropReason'].format(text, round(prob * 100,1), drop_reason))
+                tqdm.write(
+                    tr["Main"]["OcrResultWithDropReason"].format(
+                        text, round(prob * 100, 1), drop_reason
+                    )
+                )
             else:
-                tqdm.write(tr['Main']['OcrResult'].format(text, round(prob * 100,1)))
+                tqdm.write(tr["Main"]["OcrResult"].format(text, round(prob * 100, 1)))
             # 保存丢掉的识别结果
-            loss_info = namedtuple('loss_info', 'text prob overflow_area_rate coordinate selected')
-            loss_list.append(loss_info(text, prob, overflow_area_rate, coordinate, selected))
+            loss_info = namedtuple(
+                "loss_info", "text prob overflow_area_rate coordinate selected"
+            )
+            loss_list.append(
+                loss_info(text, prob, overflow_area_rate, coordinate, selected)
+            )
         else:
-            raw_subtitles.append(f'{str(data["i"]).zfill(8)}\t{coordinate}\t{text}\n')
+            raw_subtitles.append(f"{str(data['i']).zfill(8)}\t{coordinate}\t{text}\n")
     # 输出调试信息
     dump_debug_info(options, line, img, loss_list, ocr_loss_debug_path, sub_area, data)
 
 
 def dump_debug_info(options, line, img, loss_list, ocr_loss_debug_path, sub_area, data):
     loss = False
-    if options.DEBUG_OCR_LOSS and options.REC_CHAR_TYPE in ('ch', 'japan ', 'korea', 'ch_tra'):
-        loss = len(line) > 0 and re.search(r'[\u4e00-\u9fa5\u3400-\u4db5\u3130-\u318F\uAC00-\uD7A3\u0800-\u4e00]', line) is None
+    if options.DEBUG_OCR_LOSS and options.REC_CHAR_TYPE in (
+        "ch",
+        "japan ",
+        "korea",
+        "ch_tra",
+    ):
+        loss = (
+            len(line) > 0
+            and re.search(
+                r"[\u4e00-\u9fa5\u3400-\u4db5\u3130-\u318F\uAC00-\uD7A3\u0800-\u4e00]",
+                line,
+            )
+            is None
+        )
     if loss:
         if not os.path.exists(ocr_loss_debug_path):
             os.makedirs(ocr_loss_debug_path, mode=0o777, exist_ok=True)
-        img = cv2.rectangle(img, (sub_area.xmin, sub_area.ymin), (sub_area.xmax, sub_area.ymax), constant.BGR_COLOR_BLUE, 2)
+        img = cv2.rectangle(
+            img,
+            (sub_area.xmin, sub_area.ymin),
+            (sub_area.xmax, sub_area.ymax),
+            constant.BGR_COLOR_BLUE,
+            2,
+        )
         for loss_info in loss_list:
             coordinate = loss_info.coordinate
-            color = constant.BGR_COLOR_GREEN if loss_info.selected else constant.BGR_COLOR_RED
+            color = (
+                constant.BGR_COLOR_GREEN
+                if loss_info.selected
+                else constant.BGR_COLOR_RED
+            )
             text = f"[{loss_info.text}] prob:{loss_info.prob:.4f} or:{loss_info.overflow_area_rate:.2f}"
-            img = paint_chinese_opencv(img, text, pos=(coordinate[0], coordinate[2] - 30), color=color)
-            img = cv2.rectangle(img, (coordinate[0], coordinate[2]), (coordinate[1], coordinate[3]), color, 2)
-        cv2.imwrite(os.path.join(os.path.abspath(ocr_loss_debug_path), f'{str(data["i"]).zfill(8)}.png'), img)
+            img = paint_chinese_opencv(
+                img, text, pos=(coordinate[0], coordinate[2] - 30), color=color
+            )
+            img = cv2.rectangle(
+                img,
+                (coordinate[0], coordinate[2]),
+                (coordinate[1], coordinate[3]),
+                color,
+                2,
+            )
+        cv2.imwrite(
+            os.path.join(
+                os.path.abspath(ocr_loss_debug_path), f"{str(data['i']).zfill(8)}.png"
+            ),
+            img,
+        )
 
 
-FONT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'NotoSansCJK-Bold.otf')
+FONT_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "NotoSansCJK-Bold.otf"
+)
 FONT = ImageFont.truetype(FONT_PATH, 20)
 
 
@@ -122,7 +187,9 @@ def paint_chinese_opencv(im, chinese, pos, color):
     return img
 
 
-def ocr_task_consumer(ocr_queue, raw_subtitle_path, sub_area, video_path, options, progress_queue):
+def ocr_task_consumer(
+    ocr_queue, raw_subtitle_path, sub_area, video_path, options, progress_queue
+):
     """
     消费者： 消费ocr_queue，将ocr队列中的数据取出，进行ocr识别，写入字幕文件中
     :param ocr_queue (current_frame_no当前帧帧号, frame 视频帧, dt_box检测框, rec_res识别结果)
@@ -131,12 +198,14 @@ def ocr_task_consumer(ocr_queue, raw_subtitle_path, sub_area, video_path, option
     :param video_path
     :param options
     """
-    data = {'i': 1}
+    data = {"i": 1}
     # 初始化文本识别对象
     text_recogniser = OcrRecogniser()
     text_recogniser.hardware_accelerator = options.HARDWARD_ACCELERATOR
     # 丢失字幕的存储路径
-    ocr_loss_debug_path = os.path.join(os.path.abspath(os.path.splitext(video_path)[0]), 'loss')
+    ocr_loss_debug_path = os.path.join(
+        os.path.abspath(os.path.splitext(video_path)[0]), "loss"
+    )
     # 删除之前的缓存垃圾
     if os.path.exists(ocr_loss_debug_path):
         shutil.rmtree(ocr_loss_debug_path, True)
@@ -152,9 +221,18 @@ def ocr_task_consumer(ocr_queue, raw_subtitle_path, sub_area, video_path, option
                     total_tasks = frame if frame is not None else processed_count
                     progress_queue.put((-1, total_tasks))
                     return
-                data['i'] = frame_no
-                extract_subtitles(data, text_recogniser, frame, raw_subtitles, sub_area, options, dt_box,
-                                    rec_res, ocr_loss_debug_path)
+                data["i"] = frame_no
+                extract_subtitles(
+                    data,
+                    text_recogniser,
+                    frame,
+                    raw_subtitles,
+                    sub_area,
+                    options,
+                    dt_box,
+                    rec_res,
+                    ocr_loss_debug_path,
+                )
                 processed_count += 1
                 progress_queue.put((frame_no, processed_count))
             except Exception as e:
@@ -162,12 +240,14 @@ def ocr_task_consumer(ocr_queue, raw_subtitle_path, sub_area, video_path, option
                 progress_queue.put(-1)
                 break
     finally:
-        with open(raw_subtitle_path, mode='w+', encoding='utf-8') as raw_subtitle_file:
+        with open(raw_subtitle_path, mode="w+", encoding="utf-8") as raw_subtitle_file:
             for line in raw_subtitles:
                 raw_subtitle_file.write(line)
 
 
-def ocr_task_producer(ocr_queue, task_queue, progress_queue, video_path, raw_subtitle_path):
+def ocr_task_producer(
+    ocr_queue, task_queue, progress_queue, video_path, raw_subtitle_path
+):
     """
     生产者：负责生产用于OCR识别的数据，将需要进行ocr识别的数据加入ocr_queue中
     :param ocr_queue (current_frame_no当前帧帧号, frame 视频帧, dt_box检测框, rec_res识别结果)
@@ -182,7 +262,14 @@ def ocr_task_producer(ocr_queue, task_queue, progress_queue, video_path, raw_sub
     while True:
         try:
             # 从任务队列中提取任务信息
-            total_frame_count, current_frame_no, dt_box, rec_res, total_ms, default_subtitle_area = task_queue.get(block=True)
+            (
+                total_frame_count,
+                current_frame_no,
+                dt_box,
+                rec_res,
+                total_ms,
+                default_subtitle_area,
+            ) = task_queue.get(block=True)
             if tbar is None:
                 tbar = tqdm(total=round(total_frame_count), position=1)
             # current_frame 等于-1说明所有视频帧已经读完
@@ -217,7 +304,9 @@ def ocr_task_producer(ocr_queue, task_queue, progress_queue, video_path, raw_sub
     cap.release()
 
 
-def subtitle_extract_handler(task_queue, progress_queue, video_path, raw_subtitle_path, sub_area, options):
+def subtitle_extract_handler(
+    task_queue, progress_queue, video_path, raw_subtitle_path, sub_area, options
+):
     """
     创建并开启一个视频帧提取线程与一个ocr识别线程
     :param task_queue 任务队列，(total_frame_count总帧数, current_frame_no当前帧, dt_box检测框, rec_res识别结果, subtitle_area字幕区域)
@@ -233,13 +322,30 @@ def subtitle_extract_handler(task_queue, progress_queue, video_path, raw_subtitl
     # 创建一个OCR队列，大小建议值8-20
     ocr_queue = queue.Queue(20)
     # 创建一个OCR事件生产者线程
-    ocr_event_producer_thread = Thread(target=ocr_task_producer,
-                                       args=(ocr_queue, task_queue, progress_queue, video_path, raw_subtitle_path,),
-                                       daemon=True)
+    ocr_event_producer_thread = Thread(
+        target=ocr_task_producer,
+        args=(
+            ocr_queue,
+            task_queue,
+            progress_queue,
+            video_path,
+            raw_subtitle_path,
+        ),
+        daemon=True,
+    )
     # 创建一个OCR事件消费者提取线程
-    ocr_event_consumer_thread = Thread(target=ocr_task_consumer,
-                                       args=(ocr_queue, raw_subtitle_path, sub_area, video_path, options, progress_queue,),
-                                       daemon=True)
+    ocr_event_consumer_thread = Thread(
+        target=ocr_task_consumer,
+        args=(
+            ocr_queue,
+            raw_subtitle_path,
+            sub_area,
+            video_path,
+            options,
+            progress_queue,
+        ),
+        daemon=True,
+    )
     # 开启消费者线程
     ocr_event_producer_thread.start()
     # 开启生产者线程
@@ -258,19 +364,30 @@ def async_start(video_path, raw_subtitle_path, sub_area, options):
     options.DEBUG_OCR_LOSS
     options.HARDWARD_ACCELERATOR
     """
-    assert 'REC_CHAR_TYPE' in options, "options缺少参数：REC_CHAR_TYPE"
-    assert 'DROP_SCORE' in options, "options缺少参数: DROP_SCORE'"
-    assert 'SUB_AREA_DEVIATION_RATE' in options, "options缺少参数: SUB_AREA_DEVIATION_RATE"
-    assert 'DEBUG_OCR_LOSS' in options, "options缺少参数: DEBUG_OCR_LOSS"
-    assert 'HARDWARD_ACCELERATOR' in options, "options缺少参数: HARDWARD_ACCELERATOR"
+    assert "REC_CHAR_TYPE" in options, "options缺少参数：REC_CHAR_TYPE"
+    assert "DROP_SCORE" in options, "options缺少参数: DROP_SCORE'"
+    assert "SUB_AREA_DEVIATION_RATE" in options, (
+        "options缺少参数: SUB_AREA_DEVIATION_RATE"
+    )
+    assert "DEBUG_OCR_LOSS" in options, "options缺少参数: DEBUG_OCR_LOSS"
+    assert "HARDWARD_ACCELERATOR" in options, "options缺少参数: HARDWARD_ACCELERATOR"
     # 创建一个任务队列
     # 任务格式为：(total_frame_count总帧数, current_frame_no当前帧, dt_box检测框, rec_res识别结果, subtitle_area字幕区域)
     task_queue = Queue()
     # 创建一个进度更新队列
     progress_queue = Queue()
     # 新建一个进程
-    p = Process(target=subtitle_extract_handler,
-                args=(task_queue, progress_queue, video_path, raw_subtitle_path, sub_area, SimpleNamespace(**options),))
+    p = Process(
+        target=subtitle_extract_handler,
+        args=(
+            task_queue,
+            progress_queue,
+            video_path,
+            raw_subtitle_path,
+            sub_area,
+            SimpleNamespace(**options),
+        ),
+    )
     # 启动进程
     p.start()
     return p, task_queue, progress_queue
