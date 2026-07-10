@@ -561,6 +561,11 @@ class HomeInterface(QWidget):
             self.video_cap = None
         self.video_cap = cv2.VideoCapture(self.video_path)
         if not self.video_cap.isOpened():
+            # OpenCV can't decode this codec (AV1/HEVC/VP9) — try ffmpeg
+            from backend.tools.ffmpeg_reader import FFmpegReader
+
+            self.video_cap = FFmpegReader(self.video_path)
+        if not self.video_cap.isOpened():
             return False
         ret, frame = self.video_cap.read()
         if not ret:
