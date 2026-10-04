@@ -414,6 +414,7 @@ class HomeInterface(QWidget):
             from backend.main import SubtitleExtractor
             sr = SubtitleExtractor(video_path)
             sr.subtitle_output_path = output_path
+            sr.show_terminal_progress = False
             for key in options:
                 setattr(sr, key, options[key])
             sr.add_progress_listener(lambda progress_ocr, progress_frame_extract, progress_total, isFinished, progress_post=0: SubtitleExtractorRemoteCall.remote_call_update_progress(queue, progress_ocr, progress_frame_extract, progress_total, isFinished, progress_post))

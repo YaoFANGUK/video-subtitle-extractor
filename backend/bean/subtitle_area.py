@@ -1,7 +1,13 @@
 
-from typing import Union
-from dataclasses import dataclass
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Sequence, Union
 from shapely.geometry import Polygon
+
+if TYPE_CHECKING:
+    from backend.tools.roi import SubtitleROI
+
 
 @dataclass
 class SubtitleArea:
@@ -14,6 +20,7 @@ class SubtitleArea:
     xmax: Union[int, float]
     # 字幕区域在视频中的位置
     ab_section: range = None
+    roi: SubtitleROI | None = field(default=None, compare=False, repr=False)
     
     def __init__(self, ymin: Union[int, float], ymax: Union[int, float], 
                  xmin: Union[int, float], xmax: Union[int, float], 
@@ -23,6 +30,22 @@ class SubtitleArea:
         self.xmin = xmin
         self.xmax = xmax
         self.ab_section = ab_section
+        self.roi = None
+
+    def initialize_roi(
+        self,
+        frame_shape: Sequence[int],
+        padding: int | None = None,
+    ) -> SubtitleROI:
+        """Create this area's reusable ROI after the video frame size is known."""
+        from backend.tools.roi import DEFAULT_ROI_PADDING, SubtitleROI
+
+        self.roi = SubtitleROI(
+            frame_shape,
+            self,
+            DEFAULT_ROI_PADDING if padding is None else padding,
+        )
+        return self.roi
 
     def normalized(self):
         if self.xmin > self.xmax:

@@ -1,5 +1,5 @@
 from backend.config import tr
-import paddle
+from backend.tools.quiet_paddle import paddle
 
 class HardwareAccelerator:
 
