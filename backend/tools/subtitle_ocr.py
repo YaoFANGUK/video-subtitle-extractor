@@ -17,7 +17,8 @@ from backend.config import tr
 
 
 def extract_subtitles(data, text_recogniser, img, raw_subtitles,
-                      sub_area, options, dt_box_arg, rec_res_arg, ocr_loss_debug_path):
+                      sub_area, options, dt_box_arg, rec_res_arg, ocr_loss_debug_path,
+                      roi=None, log_callback=None):
     """
     提取视频帧中的字幕信息
     """
@@ -26,7 +27,7 @@ def extract_subtitles(data, text_recogniser, img, raw_subtitles,
     rec_res = rec_res_arg
     # 如果没有检测结果，则获取检测结果
     if dt_box is None or rec_res is None:
-        dt_box, rec_res = text_recogniser.predict(img)
+        dt_box, rec_res = text_recogniser.predict(img, roi=roi)
         # rec_res格式为： ("hello", 0.997)
     # 获取文本坐标
     coordinates = get_coordinates(dt_box)
@@ -79,9 +80,13 @@ def extract_subtitles(data, text_recogniser, img, raw_subtitles,
             else:
                 drop_reason = tr['Main']['OcrDropNoIntercetion']
             if drop_reason:
-                tqdm.write(tr['Main']['OcrResultWithDropReason'].format(text, round(prob * 100,1), drop_reason))
+                message = tr['Main']['OcrResultWithDropReason'].format(text, round(prob * 100,1), drop_reason)
             else:
-                tqdm.write(tr['Main']['OcrResult'].format(text, round(prob * 100,1)))
+                message = tr['Main']['OcrResult'].format(text, round(prob * 100,1))
+            if log_callback is None:
+                tqdm.write(message)
+            else:
+                log_callback(message)
             # 保存丢掉的识别结果
             loss_info = namedtuple('loss_info', 'text prob overflow_area_rate coordinate selected')
             loss_list.append(loss_info(text, prob, overflow_area_rate, coordinate, selected))
@@ -89,6 +94,12 @@ def extract_subtitles(data, text_recogniser, img, raw_subtitles,
             raw_subtitles.append(f'{str(data["i"]).zfill(8)}\t{coordinate}\t{text}\n')
     # 输出调试信息
     dump_debug_info(options, line, img, loss_list, ocr_loss_debug_path, sub_area, data)
+
+
+def format_ocr_progress_message(progress_ratio, message):
+    """Prefix an OCR result with its position in the source video (ratio 0..1)."""
+    progress = min(max(progress_ratio, 0.0), 1.0) * 100
+    return f"Finished {progress:5.1f}% | {message}"
 
 
 def dump_debug_info(options, line, img, loss_list, ocr_loss_debug_path, sub_area, data):
@@ -146,7 +157,7 @@ def ocr_task_consumer(ocr_queue, raw_subtitle_path, sub_area, video_path, option
     try:
         while True:
             try:
-                frame_no, frame, dt_box, rec_res = ocr_queue.get(block=True)
+                frame_no, frame, dt_box, rec_res, progress_ratio = ocr_queue.get(block=True)
                 if frame_no == -1:
                     # frame 是生产者统计的总帧数
                     total_tasks = frame if frame is not None else processed_count
@@ -154,7 +165,15 @@ def ocr_task_consumer(ocr_queue, raw_subtitle_path, sub_area, video_path, option
                     return
                 data['i'] = frame_no
                 extract_subtitles(data, text_recogniser, frame, raw_subtitles, sub_area, options, dt_box,
-                                    rec_res, ocr_loss_debug_path)
+                                    rec_res, ocr_loss_debug_path,
+                                    roi=sub_area.roi if sub_area is not None else None,
+                                    log_callback=lambda message: progress_queue.put((
+                                        "log",
+                                        format_ocr_progress_message(
+                                            progress_ratio,
+                                            message,
+                                        ),
+                                    )))
                 processed_count += 1
                 progress_queue.put((frame_no, processed_count))
             except Exception as e:
@@ -167,7 +186,14 @@ def ocr_task_consumer(ocr_queue, raw_subtitle_path, sub_area, video_path, option
                 raw_subtitle_file.write(line)
 
 
-def ocr_task_producer(ocr_queue, task_queue, progress_queue, video_path, raw_subtitle_path):
+def ocr_task_producer(
+    ocr_queue,
+    task_queue,
+    progress_queue,
+    video_path,
+    raw_subtitle_path,
+    roi=None,
+):
     """
     生产者：负责生产用于OCR识别的数据，将需要进行ocr识别的数据加入ocr_queue中
     :param ocr_queue (current_frame_no当前帧帧号, frame 视频帧, dt_box检测框, rec_res识别结果)
@@ -177,24 +203,32 @@ def ocr_task_producer(ocr_queue, task_queue, progress_queue, video_path, raw_sub
     :param raw_subtitle_path
     """
     cap = cv2.VideoCapture(video_path)
-    tbar = None
+    progress_started = False
     frame_count = 0
     while True:
         try:
             # 从任务队列中提取任务信息
             total_frame_count, current_frame_no, dt_box, rec_res, total_ms, default_subtitle_area = task_queue.get(block=True)
-            if tbar is None:
-                tbar = tqdm(total=round(total_frame_count), position=1)
+            if not progress_started:
+                progress_queue.put(("bar_start", round(total_frame_count)))
+                progress_started = True
             # current_frame 等于-1说明所有视频帧已经读完
             if current_frame_no == -1:
                 # ocr识别队列加入结束标志，附带总帧数
-                ocr_queue.put((-1, frame_count, None, None))
+                ocr_queue.put((-1, frame_count, None, None, 1.0))
                 # 通过 progress_queue 提前通知总帧数，让主进程可以精确计算进度
                 progress_queue.put((-2, frame_count))
-                # 更新进度条
-                tbar.update(tbar.total - tbar.n)
+                progress_queue.put(("bar_finish",))
                 break
-            tbar.update(round(current_frame_no - tbar.n))
+            # current_frame_no from VSF tasks is a lookup key (ms / fps), not a real frame
+            # number, so the position in the video is derived from the timestamp instead.
+            if total_ms is not None:
+                video_fps = cap.get(cv2.CAP_PROP_FPS)
+                progress_ratio = total_ms / (total_frame_count / video_fps * 1000) if video_fps > 0 else 0.0
+            else:
+                progress_ratio = current_frame_no / total_frame_count
+            progress_ratio = min(max(progress_ratio, 0.0), 1.0)
+            progress_queue.put(("bar_update", round(progress_ratio * total_frame_count)))
             # 设置当前视频帧
             # 如果total_ms不为空，则使用了VSF提取字幕
             if total_ms is not None:
@@ -207,10 +241,10 @@ def ocr_task_producer(ocr_queue, task_queue, progress_queue, video_path, raw_sub
             if ret:
                 frame_count += 1
                 # 根据默认字幕位置，则对视频帧进行裁剪，裁剪后处理
-                if default_subtitle_area is not None:
+                if default_subtitle_area is not None and roi is None:
                     frame = frame_preprocess(default_subtitle_area, frame)
                 # print(f"current_frame_no: {current_frame_no}")
-                ocr_queue.put((current_frame_no, frame, dt_box, rec_res))
+                ocr_queue.put((current_frame_no, frame, dt_box, rec_res, progress_ratio))
         except Exception as e:
             print(e)
             break
@@ -234,7 +268,9 @@ def subtitle_extract_handler(task_queue, progress_queue, video_path, raw_subtitl
     ocr_queue = queue.Queue(20)
     # 创建一个OCR事件生产者线程
     ocr_event_producer_thread = Thread(target=ocr_task_producer,
-                                       args=(ocr_queue, task_queue, progress_queue, video_path, raw_subtitle_path,),
+                                       args=(ocr_queue, task_queue, progress_queue, video_path,
+                                             raw_subtitle_path,
+                                             sub_area.roi if sub_area is not None else None,),
                                        daemon=True)
     # 创建一个OCR事件消费者提取线程
     ocr_event_consumer_thread = Thread(target=ocr_task_consumer,

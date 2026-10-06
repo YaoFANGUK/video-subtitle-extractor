@@ -1,0 +1,58 @@
+[project]
+name = "video-subtitle-extractor-local"
+version = "0.1.0"
+description = "Local Windows CUDA environment for Video Subtitle Extractor"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "imageio-ffmpeg~=0.6",
+    "je-showinfilemanager==1.1.6a4",
+    "levenshtein==0.26.0",
+    "numpy~=2.2",
+    "opencv-python~=4.11",
+    "onnxruntime-gpu==1.20.1",
+    "paddleocr~=3.4.0",
+    # "paddleocr-hebrew",
+    "paddlepaddle-gpu>=3.3,<4.dev0",
+    "pillow==10.4.0",
+    "pyclipper~=1.3",
+    "pyside6~=6.11",
+    "pyside6-fluent-widgets~=1.8",
+    "pysrt~=1.1",
+    "setuptools~=80.9",
+    "shapely~=2.1",
+    "tqdm~=4.67",
+    "wordsegment~=1.3",
+    "requests>=2.34.2",
+    "nvidia-cudnn-cu11==8.9.*",
+    "nvidia-cublas-cu11>=11.11.3.6",
+    "nvidia-cuda-runtime-cu11",
+    "nvidia-cufft-cu11",
+    "nvidia-curand-cu11",
+]
+
+
+[tool.uv]
+environments = [
+    "sys_platform == 'win32' and platform_machine == 'AMD64'",
+]
+
+# paddleocr-hebrew requests the CPU onnxruntime package.
+# Exclude it because this project explicitly installs onnxruntime-gpu.
+exclude-dependencies = [
+    "onnxruntime",
+]
+
+[tool.uv.sources]
+paddlepaddle-gpu = { index = "paddle-cu118" }
+onnxruntime-gpu = { index = "onnxruntime-cuda11" }
+paddleocr-hebrew = { git = "https://github.com/RivoksLab/paddleocr-hebrew.git" }
+
+[[tool.uv.index]]
+name = "paddle-cu118"
+url = "https://www.paddlepaddle.org.cn/packages/stable/cu118/"
+explicit = true
+
+[[tool.uv.index]]
+name = "onnxruntime-cuda11"
+url = "https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/onnxruntime-cuda-11/pypi/simple/"
+explicit = true

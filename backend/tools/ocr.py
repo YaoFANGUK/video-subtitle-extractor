@@ -1,6 +1,7 @@
 import os
 from backend.config import *
 import importlib
+import backend.tools.quiet_paddle  # noqa: F401  must precede paddleocr
 from paddleocr import PaddleOCR
 from backend.tools.hardware_accelerator import HardwareAccelerator
 from backend.tools.paddle_model_config import PaddleModelConfig
@@ -10,7 +11,7 @@ class OcrRecogniser:
     def __init__(self):
         self.recogniser = None
         # 占位，应该由main.py初始化
-        self.hardware_accelerator = HardwareAccelerator()
+        self.hardware_accelerator = HardwareAccelerator.instance()
 
     @staticmethod
     def y_round(y):
@@ -21,12 +22,13 @@ class OcrRecogniser:
         else:
             return y_max
 
-    def predict(self, image):
+    def predict(self, image, roi=None):
         if not self.recogniser:
             self.recogniser = self.init_model()
 
         # PaddleOCR 3.x: 使用 predict_iter 获取结果
-        results = list(self.recogniser.predict_iter(image))
+        model_image = roi.crop(image) if roi is not None else image
+        results = list(self.recogniser.predict_iter(model_image))
         if not results:
             return [], []
 
@@ -44,6 +46,8 @@ class OcrRecogniser:
         coordinate_list = []
         for poly in dt_polys:
             points = [(int(p[0]), int(p[1])) for p in poly]
+            if roi is not None:
+                points = roi.to_original(points)
             # 取 AABB 用于排序
             xs = [p[0] for p in points]
             ys = [p[1] for p in points]

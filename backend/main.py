@@ -96,6 +96,7 @@ class SubtitleExtractor:
         self.subtitle_ocr_task_queue = None
         # 字幕OCR进度队列
         self.subtitle_ocr_progress_queue = None
+        self.show_terminal_progress = True
         # vsf运行状态
         self.vsf_running = False
         # 进度监听器列表
@@ -108,6 +109,8 @@ class SubtitleExtractor:
         # 记录开始运行的时间
         start_time = time.time()
         self.lock.acquire()
+        if self.sub_area is not None:
+            self.sub_area.initialize_roi((self.frame_height, self.frame_width))
         # 重置进度条
         self.update_progress(ocr=0, frame_extract=0, post=0)
         self.append_output('-----------------------------')
@@ -271,13 +274,20 @@ class SubtitleExtractor:
         frame_lru_list_max_size = 2
         ocr_args_list = []
         compare_ocr_result_cache = {}
-        tbar = tqdm(total=int(self.frame_count), unit='f', position=0, file=sys.__stdout__)
+        tbar = tqdm(
+            total=int(self.frame_count),
+            unit='f',
+            position=0,
+            file=sys.__stdout__,
+            disable=not self.show_terminal_progress,
+        )
         first_flag = True
         is_finding_start_frame_no = False
         is_finding_end_frame_no = False
         start_frame_no = 0
         start_end_frame_no = []
         start_frame = None
+        roi = self.sub_area.roi if self.sub_area is not None else None
         if self.ocr is None:
             self.ocr = OcrRecogniser()
         while self.video_cap.isOpened():
@@ -288,7 +298,7 @@ class SubtitleExtractor:
             # 读取视频帧成功
             current_frame_no += 1
             tbar.update(1)
-            dt_boxes, elapse = self.sub_detector.detect_subtitle(frame)
+            dt_boxes, elapse = self.sub_detector.detect_subtitle(frame, roi=roi)
             has_subtitle = False
             sub_area = self.sub_area
             if sub_area is not None:
@@ -312,7 +322,7 @@ class SubtitleExtractor:
                 # 判断是字幕头还是尾
                 if is_finding_start_frame_no:
                     start_frame_no = current_frame_no
-                    dt_box, rec_res = self.ocr.predict(frame)
+                    dt_box, rec_res = self.ocr.predict(frame, roi=roi)
                     area_text1 = "".join(self.__get_area_text((dt_box, rec_res)))
                     if start_frame_no not in compare_ocr_result_cache.keys():
                         compare_ocr_result_cache[current_frame_no] = {'text': area_text1, 'dt_box': dt_box, 'rec_res': rec_res}
@@ -490,7 +500,7 @@ class SubtitleExtractor:
                 self.vsf_running = True
                 Thread(target=count_process, daemon=True).start()       
                 # 已知BUG: test_chinese_cht.flv在net drive上会导致无法停止, 但在本地不会, 可能是vsf的原因
-                p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=1,
+                p = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                                     close_fds='posix' in sys.builtin_module_names, shell=False, creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
                 ProcessManager.instance().add_process(p)
                 self.manage_process(p.pid)
@@ -506,7 +516,7 @@ class SubtitleExtractor:
             cmd += f"--open_video_{config.videoSubFinderDecoder.value.value.lower()} "
             self.vsf_running = True
             try:
-                p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=1,
+                p = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
                                     close_fds='posix' in sys.builtin_module_names, shell=True,
                                     start_new_session=True)
                 Thread(target=vsf_output, daemon=True, args=(p.stderr,)).start()
@@ -926,14 +936,16 @@ class SubtitleExtractor:
         if img1_no in result_cache:
             area_text1 = result_cache[img1_no]['text']
         else:
-            dt_box, rec_res = self.ocr.predict(img1)
+            roi = self.sub_area.roi if self.sub_area is not None else None
+            dt_box, rec_res = self.ocr.predict(img1, roi=roi)
             area_text1 = "".join(self.__get_area_text((dt_box, rec_res)))
             result_cache[img1_no] = {'text': area_text1, 'dt_box': dt_box, 'rec_res': rec_res}
 
         if img2_no in result_cache:
             area_text2 = result_cache[img2_no]['text']
         else:
-            dt_box, rec_res = self.ocr.predict(img2)
+            roi = self.sub_area.roi if self.sub_area is not None else None
+            dt_box, rec_res = self.ocr.predict(img2, roi=roi)
             area_text2 = "".join(self.__get_area_text((dt_box, rec_res)))
             result_cache[img2_no] = {'text': area_text2, 'dt_box': dt_box, 'rec_res': rec_res}
         delete_no_list = []
@@ -1008,11 +1020,34 @@ class SubtitleExtractor:
             """
             notify = True
             total_tasks = None
+            ocr_tbar = None
             while True:
                 value = self.subtitle_ocr_progress_queue.get(block=True)
+                if isinstance(value, tuple) and value and value[0] == "bar_start":
+                    ocr_tbar = tqdm(
+                        total=value[1],
+                        unit='f',
+                        position=1,
+                        file=sys.__stdout__,
+                        disable=not self.show_terminal_progress,
+                    )
+                    continue
+                if isinstance(value, tuple) and value and value[0] == "bar_update":
+                    if ocr_tbar is not None and value[1] > ocr_tbar.n:
+                        ocr_tbar.update(value[1] - ocr_tbar.n)
+                    continue
+                if isinstance(value, tuple) and value and value[0] == "bar_finish":
+                    if ocr_tbar is not None:
+                        ocr_tbar.update(ocr_tbar.total - ocr_tbar.n)
+                        ocr_tbar.close()
+                        ocr_tbar = None
+                    continue
                 if notify:
                     self.append_output(tr['Main']['StartFindSub'])
                     notify = False
+                if isinstance(value, tuple) and value and value[0] == "log":
+                    self.append_output(value[1])
+                    continue
                 # 生产者告知总帧数 value = (-2, total_tasks)
                 if isinstance(value, tuple) and len(value) == 2 and value[0] == -2:
                     total_tasks = value[1]
@@ -1061,7 +1096,7 @@ class SubtitleExtractor:
         Args:
             *args: 要输出的内容，多个参数将用空格连接
         """
-        print(*args)
+        tqdm.write(" ".join(map(str, args)), file=sys.__stdout__)
 
     def add_progress_listener(self, listener):
         """
